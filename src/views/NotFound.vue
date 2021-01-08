@@ -1,7 +1,8 @@
 <template>
-  <div class="about">
-    <Navigation></Navigation>
-    <h2>About</h2>
+  <Navigation></Navigation>
+  <div class="notfound">
+    <img alt="Vue logo" src="../assets/logo.png" />
+    <h1>404 NOT FOUND</h1>
   </div>
 </template>
 
@@ -9,7 +10,7 @@
 import Navigation from '../components/Navigation.vue'
 
 export default {
-  name: 'About',
+  name: 'NotFound',
   components: {
     Navigation
   }

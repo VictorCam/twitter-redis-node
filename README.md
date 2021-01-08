@@ -1,4 +1,4 @@
-# project-cc (codename: corgig)
+# project-cc (codename: codecanine)
 
 ## Project Setup
 ```
@@ -6,7 +6,7 @@ NOTE: this should all be on the base/root directory
 1. npm install
 2. npm install -g nodemon (use sudo on linux/mac)
 3. npm install -g @vue/cli (use sudo on linux/mac)
-4. make .env file then write "TOKEN_SECRET = xxx" (no parentheses)
+4. make .env file then write "TOKEN_SECRET = xxx"
 5. npm run serve (starts frontend for vue)
 6. npm run server (starts backend for database)
 ```
@@ -20,7 +20,6 @@ npm update OR ncu -u (fix vulerabilities)
 ```
 
 ## Resources
-```
 See [Configuration Reference](https://cli.vuejs.org/config/).
 See [Vue Developer Tools](https://github.com/vuejs/vue-devtools#vue-devtools).
-```
+

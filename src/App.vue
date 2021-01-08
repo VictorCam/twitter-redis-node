@@ -1,10 +1,7 @@
 <template>
-  <div id="nav">
-    <h1>Project Corgig</h1>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </div>
+  <div id="main">
   <router-view/>
+  </div>
 </template>
 
 <style>
@@ -16,16 +13,16 @@
   color: #2c3e50;
 }
 
-#nav {
+#main {
   padding: 30px;
 }
 
-#nav a {
+#main a {
   font-weight: bold;
   color: #2c3e50;
 }
 
-#nav a.router-link-exact-active {
+#main a.router-link-exact-active {
   color: #42b983;
 }
 </style>

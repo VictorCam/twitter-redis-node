@@ -1,14 +1,14 @@
 <template>
+<Navigation></Navigation>
   <div id="Test">
-    <Navigation></Navigation>
     <h2>Test</h2>
     <div v-for="name in all_users" :key="name.id">
-    <Post>
+    <Ctest>
       <template #data>
           <p>{{name.ID}}</p>
           <p>{{name.Name}}</p>
       </template>
-    </Post>
+    </Ctest>
     </div>
     {{tmp}}
   </div>
@@ -16,14 +16,14 @@
 
 <script>
 import { useStore } from 'vuex'
-import { useState } from '../helpers'
-import Post from '../components/Post.vue'
-import Navigation from '../components/Navigation.vue'
+import { useState } from '@/helpers'
+import Ctest from '@/components/Ctest.vue'
+import Navigation from '@/components/Navigation.vue'
 
 export default {
   name: 'Test',
   components: {
-    Post, Navigation
+    Ctest, Navigation
   },
   setup() {
     const store = useStore()

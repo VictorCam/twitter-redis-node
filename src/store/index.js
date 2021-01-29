@@ -1,24 +1,34 @@
 import { createStore } from 'vuex'
 import axios from "axios"
+import createPersistedState from 'vuex-persistedstate'
+import auth from "./auth"
+import SecureLS from "secure-ls";
+var ls = new SecureLS({isCompression:true});
 
 export default createStore({
-  state: {
-    tmp: [],
-    all_users: []
-  },
   modules: {
+    auth: auth
   },
-  getters: {
+  plugins: [createPersistedState({
+    paths: ['auth'],
+    storage: {
+      getItem: (key) => ls.get(key),
+      setItem: (key, value) => ls.set(key, value),
+      removeItem: (key) => ls.remove(key),
+    }})
+  ],
+  state: {
+    tmp: '',
+    all_users: [],
   },
   actions: {
     tmp({ commit }) {
-      console.log('hello there I am working!')
       commit('SET_TMP', 'wow')
     },
     all_users({ commit }) {
-      axios.get("http://localhost:13377/").then(res => {
-        commit("SET_ALL_USERS", res.data);
-      })
+      axios.get("http://localhost:13377/")
+      .then(res => commit("SET_ALL_USERS", res.data))
+      .catch(err => console.log("api error: (test route)", err))
     }
   },
   mutations: {

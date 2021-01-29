@@ -1,7 +1,7 @@
 <template>
-  <Navigation></Navigation>
+<Navigation></Navigation>
   <div class="about">
-    <h2>About</h2>
+    <h2>Posts</h2>
   </div>
 </template>
 
@@ -9,7 +9,7 @@
 import Navigation from '../components/Navigation.vue'
 
 export default {
-  name: 'About',
+  name: 'Posts',
   components: {
     Navigation
   }

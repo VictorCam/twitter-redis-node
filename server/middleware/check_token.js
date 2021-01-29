@@ -18,7 +18,7 @@ module.exports = function(req,res,next) {
       }
     else {
         // res.clearCookie('token') //maybe not clear the token just yet
-        return res.status(401).send("Access Denied") //error if jwt is expired or invalid
+        return res.status(403).send("Access Denied") //error if jwt is expired or invalid
     }
   })
 }

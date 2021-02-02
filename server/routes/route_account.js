@@ -1,7 +1,7 @@
 const connectsql = require("../server_connection")
 const express = require("express")
-const cors = require("cors")
 const router = express.Router()
+const cors = require("cors")
 const jwt = require("jsonwebtoken")
 const bcrpyt = require("bcrypt")
 const cookie = require("cookie")
@@ -18,7 +18,7 @@ router.post("/login", (req, res) => {
               console.log(rows[0].ID)
 
               const token = jwt.sign({user_ID: rows[0].ID}, process.env.TOKEN_SECRET, {expiresIn: "24h"});
-              res.setHeader('Set-Cookie', cookie.serialize('token', token, { httpOnly: true, /*maxAge: now,*/ sameSite: "strict"}));
+              res.setHeader('Set-Cookie', cookie.serialize('Authorization', token, { httpOnly: true, /*maxAge: now,*/ sameSite: 'Strict'}))
               res.status(200).send(true)
           }
           else {
@@ -26,7 +26,19 @@ router.post("/login", (req, res) => {
               res.status(401).end()
           }
       })
-  })
+})
+
+router.post("/signup", (req, res) => {
+  var sql = "INSERT INTO user_tables(Name, Password) VALUES(?, ?)"
+  connectsql.query(sql, [req.body.username.toString(), req.body.password.toString()], function (err, data) {
+          if (!err) {
+              res.status(200);
+              console.log("sign up success!");
+          } else {
+              console.log("something went wrong during sign up");
+          }
+      })
+})
 
 router.use(cors());
 

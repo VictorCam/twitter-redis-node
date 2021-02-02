@@ -1,11 +1,8 @@
 <template>
 <Navigation></Navigation>
-  <div class="login">
-    <h1>Login</h1>
-
-    {{login}}
-
-    <form @submit.prevent="onSubmit()">
+  <div class="signup">
+    <h1>Sign Up</h1>
+      <form @submit.prevent="onSubmit()">
       UserName:
       <br />
       <input type="text" name="username" v-model.trim="form.username" />
@@ -26,22 +23,22 @@ import { useStateAuth } from '@/helpers'
 import Navigation from '@/components/Navigation.vue'
 
 export default {
-  name: 'Login',
+  name: 'signup',
   components: {
     Navigation
   },
   setup() {
     const store = useStore()
-    const form = ref({username:'', password:''}) //form login
+    const form = ref({username:'', password:''}) //form signup
 
     function onSubmit() { //method
-      store.dispatch('login', form.value) //api call
+      store.dispatch('signup', form.value) //api call
       form.value.username = form.value.password = '' //form reset
     }
 
-    const { login } = useStateAuth(['login']) //state api calls
+    const { signup } = useStateAuth(['signup']) //state api calls
     
-    return { onSubmit, form, login } //computed api call
+    return { onSubmit, form, signup } //computed api call
   }
 }
 </script>

@@ -5,7 +5,8 @@
     <router-link to="/">Test</router-link> |
     <router-link to="/about">About</router-link> |
     <router-link to="/posts">Posts</router-link> |
-    <router-link to="/login">Login</router-link>
+    <router-link to="/login">Login</router-link> |
+    <router-link to="/Signup">Sign Up</router-link>
   </div>
 </template>
 

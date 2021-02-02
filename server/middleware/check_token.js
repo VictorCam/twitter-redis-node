@@ -1,29 +1,41 @@
 const jwt = require("jsonwebtoken")
+const cookie = require("cookie")
 require("dotenv").config()
 
-module.exports = function(req,res,next) {
-    if(req.headers.cookie == null) { //check if cookie exist
+module.exports = async function(req,res,next) {
+  //find cookies
+  try {
+    var s_value = getCookieValue('vuex', req)
+    var t_value = getCookieValue('Authorization', req)
+    l_state = JSON.parse(decodeURIComponent(s_value)).auth.login
+  } catch { console.log("ERROR: vuex cookie OR auth cookie") }
+
+  //edge cases
+  if(l_state === false && typeof t_value !== 'undefined' || l_state === true && typeof t_value === 'undefined') {
+      res.clearCookie('vuex')
+      res.clearCookie('Authorization')
+      return res.sendStatus(401)
+  }
+
+  //guest
+  if(l_state === false && t_value !== 'undefined') { return next() }
+
+  //verify user
+  jwt.verify(t_value, process.env.TOKEN_SECRET, (err,user) => {
+    if(!err) {
+      req.user_ID = user.user_ID
+      console.log("valid user")
       return next()
     }
-
-    var key = getCookieValue('token', req) //do regex match since cookie exists
-    if(!key) {
-        return res.status(401).send("Access Denied") //if cookie name does not match then error out
-    }
-
-    jwt.verify(key,process.env.TOKEN_SECRET, (err,user) => {
-    if(!err) {
-        req.user_ID = user.user_ID //sending data to route
-        return next()
-      }
     else {
-        // res.clearCookie('token') //maybe not clear the token just yet
-        return res.status(403).send("Access Denied") //error if jwt is expired or invalid
+        res.clearCookie('vuex')
+        res.clearCookie('Authorization')
+        return res.sendStatus(401)
     }
   })
 }
 
 function getCookieValue(a,req) {
   var b = req.headers.cookie.match('(^|;)\\s*' + a + '\\s*=\\s*([^;]+)')
-  return b ? b.pop() : ''
+  return b ? b.pop() : undefined
 }

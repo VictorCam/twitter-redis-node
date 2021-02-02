@@ -1,6 +1,5 @@
 const express = require("express")
 const cors = require("cors")
-const bodyParser = require("body-parser")
 const app = express()
 
 const corsOptions = {
@@ -9,13 +8,13 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions))
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
 
 //imported routes
 const
   users = require('./routes/route_users'),
-  login = require("./routes/route_login")
+  login = require('./routes/route_account')
 
 //linked routes (route middleware)
 app.use("/", [users, login])

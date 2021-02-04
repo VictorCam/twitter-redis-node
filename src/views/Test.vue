@@ -10,7 +10,6 @@
       </template>
     </Ctest>
     </div>
-    {{tmp}}
   </div>
 </template>
 
@@ -27,11 +26,10 @@ export default {
   },
   setup() {
     const store = useStore()
-
+    
     store.dispatch('all_users') //created api call
-    store.dispatch('tmp') //created api call
-    const { all_users, tmp } = useState(['all_users','tmp']) //computed api call
-    return { all_users, tmp }
+    const { all_users } = useState(['all_users']) //computed api call
+    return { all_users }
   }
 }
 </script>

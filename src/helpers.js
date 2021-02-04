@@ -7,12 +7,6 @@ export function useState(arr) {
   return Object.fromEntries(keypair)
 }
 
-export function useStateAuth(arr) {
-  const store = useStore()
-  const keypair = arr.map(s => [s, computed(() => store.state.auth[s])])
-  return Object.fromEntries(keypair)
-}
-
 export function useGetters(arr) {
   const store = useStore()
   const keypair = arr.map(g => [g, computed(() => store.getters[g])])

@@ -3,35 +3,30 @@ const cookie = require("cookie")
 require("dotenv").config()
 
 module.exports = async function(req,res,next) {
-  //find cookies
-  try {
-    var s_value = getCookieValue('vuex', req)
-    var t_value = getCookieValue('Authorization', req)
-    l_state = JSON.parse(decodeURIComponent(s_value)).auth.login
-  } catch { console.log("ERROR: vuex cookie OR auth cookie") }
-
-  //edge cases
-  if(l_state === false && typeof t_value !== 'undefined' || l_state === true && typeof t_value === 'undefined') {
-      res.clearCookie('vuex')
-      res.clearCookie('Authorization')
+  try { var token = getCookieValue('Authorization', req) }
+  catch {
+      console.log("ERROR #1: could not find authorization (assuming guest)")
+      res.cookie('auth', 'true', { sameSite: 'Lax'})
       return res.sendStatus(401)
   }
-
-  //guest
-  if(l_state === false && t_value !== 'undefined') { return next() }
+  
+  //assuming user with !token is a guest
+  if(typeof token === 'undefined') {
+    console.log("ERROR #2: could not find authorization (assuming guest)")
+    res.cookie('auth', 'true', { sameSite: 'Lax'})
+    return res.sendStatus(401)
+  }
 
   //verify user
-  jwt.verify(t_value, process.env.TOKEN_SECRET, (err,user) => {
+  jwt.verify(token, process.env.TOKEN_SECRET, (err,user) => {
     if(!err) {
+      console.log("SUCCESS: valid jwt")
+      res.cookie('auth', 'true', { sameSite: 'Lax'})
       req.user_ID = user.user_ID
-      console.log("valid user")
       return next()
     }
-    else {
-        res.clearCookie('vuex')
-        res.clearCookie('Authorization')
-        return res.sendStatus(401)
-    }
+    console.log("FAILURE: invalid jwt")
+    return res.sendStatus(401)
   })
 }
 

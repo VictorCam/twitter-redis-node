@@ -1,42 +1,45 @@
 import { createStore } from 'vuex'
 import axios from "axios"
-import createPersistedState from 'vuex-persistedstate'
-import auth from './auth'
-import Cookies from 'js-cookie'
 
-export default createStore({
-  modules: {
-    auth: auth
-  },
-  plugins: [createPersistedState({
-    paths: ['auth'],
-    storage: {
-      getItem: (key) => Cookies.get(key),
-      setItem: (key, value) => Cookies.set(key, value, {sameSite: 'Lax'}),
-      removeItem: (key) => Cookies.remove(key),
-    }})
-  ],
-  state: {
+const getDefaultState = () => {
+  return {
+    login: '',
     tmp: '',
     all_users: [],
     signup: ''
-  },
+  }
+}
+
+export default createStore({
+  state: getDefaultState(),
   actions: {
-    tmp() {
-      console.log("test")
+    login({ commit }, payload) {
+      payload = Object.assign({}, payload)
+      axios.post("http://localhost:13377/login", payload, {withCredentials: true})
+      .then(res => commit('SET_LOGIN', res.data))
+      .catch(err => console.log("api error: /login", err))
     },
     all_users({ commit }) {
       axios.get("http://localhost:13377/", {withCredentials: true})
       .then(res => commit("SET_ALL_USERS", res.data))
-      .catch(console.log("store error: all_users"))
+      .catch(err => console.log("store error: all_users", err))
     },
     signup({ commit }, payload) {
       axios.post("http://localhost:13377/signup", payload)
       .then(res => commit("SET_SIGNUP", res.data))
-      .catch(console.log("store error: signup"))
+      .catch(err => console.log("store error: signup", err))
+    },
+    reset({ commit }) {
+      axios.get("http://localhost:13377/logout", {withCredentials: true})
+      .then( commit('SET_RESET') )
+      .catch(err => console.log("store error: resetting state", err))
     }
   },
+
   mutations: {
+    SET_LOGIN(state, payload) {
+      state.login = payload
+    },
     SET_TMP(state, payload) {
       state.tmp = payload
     },
@@ -45,6 +48,9 @@ export default createStore({
     },
     SET_SIGNUP(state, payload) {
       state.signup = payload
+    },
+    SET_RESET(state) {
+      Object.assign(state, getDefaultState())
     }
   }
 })

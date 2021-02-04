@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "server": "nodemon /Users/vdcam/Documents/GitHub/project-cc/server/server.js",
+    "server": "nodemon ./server/server.js",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
@@ -20,11 +20,9 @@
     "jsonwebtoken": "^8.5.1",
     "mysql": "^2.18.1",
     "nodemon": "^2.0.7",
-    "secure-ls": "^1.2.6",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0",
-    "vuex": "^4.0.0-0",
-    "vuex-persistedstate": "^4.0.0-beta.1"
+    "vuex": "^4.0.0-0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

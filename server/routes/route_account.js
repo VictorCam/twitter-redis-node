@@ -19,6 +19,7 @@ router.post("/login", (req, res) => {
 
               const token = jwt.sign({user_ID: rows[0].ID}, process.env.TOKEN_SECRET, {expiresIn: "24h"});
               res.setHeader('Set-Cookie', cookie.serialize('Authorization', token, { httpOnly: true, /*maxAge: now,*/ sameSite: 'Strict'}))
+              res.cookie('auth', 'true', { sameSite: 'Lax'})
               res.status(200).send(true)
           }
           else {
@@ -39,6 +40,14 @@ router.post("/signup", (req, res) => {
           }
       })
 })
+
+router.get("/logout", (req, res) => {
+    res.setHeader('Access-Control-Allow-Credentials', true)
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080')
+
+    res.clearCookie('Authorization')
+    res.status(200).send(false) //properly logged out (I think I might need to reset data after this in my store?)
+});
 
 router.use(cors());
 

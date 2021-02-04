@@ -22,7 +22,7 @@
 <script>
 import { ref } from 'vue'
 import { useStore } from 'vuex'
-import { useStateAuth } from '@/helpers'
+import { useState } from '@/helpers'
 import Navigation from '@/components/Navigation.vue'
 
 export default {
@@ -39,7 +39,7 @@ export default {
       form.value.username = form.value.password = '' //form reset
     }
 
-    const { login } = useStateAuth(['login']) //state api calls
+    const { login } = useState(['login']) //state api calls
     
     return { onSubmit, form, login } //computed api call
   }

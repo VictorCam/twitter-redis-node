@@ -19,7 +19,7 @@
 <script>
 import { ref } from 'vue'
 import { useStore } from 'vuex'
-import { useStateAuth } from '@/helpers'
+import { useState } from '@/helpers'
 import Navigation from '@/components/Navigation.vue'
 
 export default {
@@ -36,7 +36,7 @@ export default {
       form.value.username = form.value.password = '' //form reset
     }
 
-    const { signup } = useStateAuth(['signup']) //state api calls
+    const { signup } = useState(['signup']) //state api calls
     
     return { onSubmit, form, signup } //computed api call
   }

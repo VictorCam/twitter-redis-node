@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import jscookie from 'js-cookie'
 import store from '../store/index'
 
 //lazy loading views
@@ -16,7 +17,7 @@ const routes = [
   },
   {
     path: '/', name: 'Test', component: Test,
-    meta: { require_auth: false}
+    meta: { require_auth: true}
   },
   {
     path: '/about', name: 'About', component: About,
@@ -31,7 +32,7 @@ const routes = [
     meta: { require_auth: false}
   },
   {
-    path: '/Signup', name: 'Signup', component: Signup,
+    path: '/signup', name: 'Signup', component: Signup,
     meta: { require_auth: false}
   }
 ]
@@ -42,7 +43,22 @@ const router = createRouter({
 })
 
 router.beforeEach((to,from,next) => {
-  return ((to.meta.require_auth && !store.state.auth.login) ? next({ name: 'Test' }) : next() )
+  try{
+    var auth = jscookie.get('auth').toLowerCase() === 'true'
+  }
+  catch {
+    jscookie.set('auth', 'false', { sameSite: 'Lax' })
+    auth = jscookie.get('auth').toLowerCase() === 'true'
+    store.dispatch("reset")
+  }
+
+  if(to.meta.require_auth && !auth){  
+    next({ name: 'Login' })
+    store.dispatch("reset")
+  }
+  else {
+    next() 
+  }
 })
 
 

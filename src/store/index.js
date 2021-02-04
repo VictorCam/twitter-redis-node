@@ -17,22 +17,30 @@ export default createStore({
       payload = Object.assign({}, payload)
       axios.post("http://localhost:13377/login", payload, {withCredentials: true})
       .then(res => commit('SET_LOGIN', res.data))
-      .catch(err => console.log("api error: /login", err))
-    },
-    all_users({ commit }) {
-      axios.get("http://localhost:13377/", {withCredentials: true})
-      .then(res => commit("SET_ALL_USERS", res.data))
-      .catch(err => console.log("store error: all_users", err))
+      .catch(err => {
+        console.log("store error: login", err)
+      })
     },
     signup({ commit }, payload) {
       axios.post("http://localhost:13377/signup", payload)
       .then(res => commit("SET_SIGNUP", res.data))
-      .catch(err => console.log("store error: signup", err))
+      .catch(err => {
+        console.log("store error: signup", err)
+      })
+    },
+    all_users({ commit }) {
+      axios.get("http://localhost:13377/", {withCredentials: true})
+      .then(res => commit("SET_ALL_USERS", res.data))
+      .catch(err => {
+        console.log("store error: all_users", err)
+      })
     },
     reset({ commit }) {
       axios.get("http://localhost:13377/logout", {withCredentials: true})
       .then( commit('SET_RESET') )
-      .catch(err => console.log("store error: resetting state", err))
+      .catch(err => {
+        console.log("store error: reset", err)
+      })
     }
   },
 

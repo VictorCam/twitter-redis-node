@@ -52,6 +52,8 @@ router.beforeEach((to,from,next) => {
     store.dispatch("reset")
   }
 
+  console.log(auth)
+
   if(to.meta.require_auth && !auth){  
     next({ name: 'Login' })
     store.dispatch("reset")

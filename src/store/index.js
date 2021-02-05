@@ -13,6 +13,38 @@ const getDefaultState = () => {
   }
 }
 
+
+axios.interceptors.request.use(function (response) {
+  return response
+}, function (error) {
+  return Promise.reject(error);
+})
+
+
+axios.interceptors.response.use(function (response) {
+  return response
+}, function (error) {
+  if (typeof error.response === 'undefined') {
+    alert('A network error occurred. '
+        + 'This could be a CORS issue or a dropped internet connection. '
+        + 'It is not possible for us to know.')
+  }
+  if(error.response.status === 401) {
+      console.log("401 status caught")
+      alert("You are not authorized")
+      router.push('/login')
+  }
+  else {
+      alert('A network error occurred. '
+          + 'This could be a CORS issue or a dropped internet connection. '
+          + 'It is not possible for us to know.')
+  }
+  if (error.response && error.response.data) {
+      return Promise.reject("Response error #1:",error.response.data)
+  }
+  return Promise.reject("Response error #2:",error.message)
+})
+
 export default createStore({
   state: getDefaultState(),
   actions: {
@@ -22,49 +54,29 @@ export default createStore({
         commit('SET_LOGIN', res.data) 
         router.push('/Posts')
       })
-      .catch(err => {
-        console.log("store error: login", err)
-      })
     },
     signup({ commit }, payload) {
       axios.post("http://localhost:13377/signup", payload)
       .then(res => commit("SET_SIGNUP", res.data))
-      .catch(err => {
-        console.log("store error: signup", err)
-      })
     },
     all_users({ commit }) {
       axios.get("http://localhost:13377/", {withCredentials: true})
       .then(res => commit("SET_ALL_USERS", res.data))
-      .catch(err => {
-        console.log("store error: all_users", err)
-        router.push('/login')
-      })
     },
     all_posts({ commit }) {
       axios.get("http://localhost:13377/posts", {withCredentials: true})
       .then(res => commit('SET_ALL_POSTS', res.data))
-      .catch(err => {
-        console.log("store error: all_posts", err)
-        router.push('/login')
-      })
     },
     user({ commit }) {
       axios.get("http://localhost:13377/user", {withCredentials: true})
       .then(res => commit('SET_USER', res.data))
-      .catch(err => {
-        console.log("store error: user", err)
-        router.push('/login')
-      })
     },
     logout({ commit }) {
       axios.get("http://localhost:13377/logout", {withCredentials: true})
       .then( commit('SET_RESET') )
-      .catch(err => {
-        console.log("store error: reset", err)
-        commit('SET_RESET')
-        router.push('/login')
-      })
+    },
+    reset({ commit }) {
+      commit('SET_RESET')
     }
   },
 

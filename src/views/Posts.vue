@@ -56,7 +56,7 @@ export default {
     store.dispatch('user') //api call
     const { all_posts, user } = useState(['all_posts', 'user']) //state api calls
     
-    return { onSubmit, form, all_posts, user } //computed api call
+    return { onSubmit, form, all_posts, user }
   }
 }
 </script>

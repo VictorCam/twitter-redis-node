@@ -38,7 +38,7 @@ export default {
 
     const { signup } = useState(['signup']) //state api calls
     
-    return { onSubmit, form, signup } //computed api call
+    return { onSubmit, form, signup }
   }
 }
 </script>

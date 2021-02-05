@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import jscookie from 'js-cookie'
-import store from '../store/index'
 
 //lazy loading views
 const Test = () => import('@/views/Test.vue')
@@ -44,28 +43,21 @@ const router = createRouter({
 
 router.beforeEach((to,from,next) => {
   //find cookie
-  try{ var auth = jscookie.get('auth').toLowerCase() === 'true' }
-  catch {
-    console.log("error with auth")
-    jscookie.set('auth', 'false', { sameSite: 'Lax' })
-    auth = jscookie.get('auth').toLowerCase() === 'true'
-    store.dispatch("logout")
-  }
+  var auth = jscookie.get('authorization')
+  var result = (typeof auth !== 'undefined')
 
   //check if we can access this route
-  if(to.meta.require_auth && !auth) {
-    console.log("require_auth triggered (messed with auth)")
-    store.dispatch("logout")
-    next({ name: 'Login' })
+  if(to.meta.require_auth && result) {
+    console.log("require_auth triggered")
+    return next({ name: 'Login' })
   }
-  else if(to.meta.prevent_auth && auth) {
+  if(to.meta.prevent_auth && !result) {
     console.log("prevent_auth triggered")
-    next({ name: 'Posts' })
+    return next({ name: 'Posts' })
   }
   else {
     next() 
   }
-
 })
 
 

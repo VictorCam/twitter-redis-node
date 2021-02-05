@@ -19,8 +19,8 @@ router.get("/posts", check_token(), (req, res) => {
 })
 
 router.post("/create_post", check_token(), (req, res) => { //do not forever to check if the post belongs to the user with a WHERE ID = req.user_ID
-    res.setHeader("Access-Control-Allow-Origin","http://localhost:8080")
-    res.setHeader("Access-Control-Allow-Credentials",true)
+    res.setHeader("Access-Control-Allow-Origin", "http://localhost:8080")
+    res.setHeader("Access-Control-Allow-Credentials", true)
 
     var sql = "INSERT INTO user_post(ID, Post) VALUES(?, ?)"
     connectsql.query(sql, [req.user_ID, req.body.info], function (err, data) {

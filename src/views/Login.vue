@@ -39,9 +39,10 @@ export default {
       form.value.username = form.value.password = '' //form reset
     }
 
+    store.dispatch('reset') //reset to ensure data integrity
     const { login } = useState(['login']) //state api calls
     
-    return { onSubmit, form, login } //computed api call
+    return { onSubmit, form, login }
   }
 }
 </script>

@@ -18,7 +18,6 @@ router.post("/login", (req, res) => {
               console.log("success", data[0].Name)
               const token = jwt.sign({id: data[0].ID}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
               res.setHeader('Set-Cookie', cookie.serialize('authorization', token, { httpOnly: true, /*maxAge: now,*/ sameSite: 'Strict'}))
-              res.cookie('auth', 'true', { sameSite: 'Lax'})
               return res.status(200).send(true)
           }
           else {
@@ -43,8 +42,7 @@ router.post("/signup", (req, res) => {
 router.get("/logout", (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true)
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080')
-    res.clearCookie('authorization')
-    res.cookie('auth', 'false', { sameSite: 'Lax'})
+    res.cookie('authorization', 'false', { httpOnly: false })
     res.sendStatus(200)
 })
 

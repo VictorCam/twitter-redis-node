@@ -13,27 +13,27 @@ const Signup = () => import('@/views/Signup.vue')
 const routes = [
   {
     path: "/:catchAll(.*)", name: "404", component: NotFound,
-    meta: { require_auth: false}
+    meta: { require_auth: false, prevent_auth: false}
   },
   {
     path: '/', name: 'Test', component: Test,
-    meta: { require_auth: true}
+    meta: { require_auth: true, prevent_auth: false}
   },
   {
     path: '/about', name: 'About', component: About,
-    meta: { require_auth: false}
+    meta: { require_auth: false, prevent_auth: false}
   },
   {
     path: '/posts', name: 'Posts', component: Posts,
-    meta: { require_auth: true}
+    meta: { require_auth: true, prevent_auth: false}
   },
   {
     path: '/login', name: 'Login', component: Login,
-    meta: { require_auth: false}
+    meta: { require_auth: false, prevent_auth: true}
   },
   {
     path: '/signup', name: 'Signup', component: Signup,
-    meta: { require_auth: false}
+    meta: { require_auth: false, prevent_auth: true}
   }
 ]
 
@@ -43,24 +43,29 @@ const router = createRouter({
 })
 
 router.beforeEach((to,from,next) => {
-  try{
-    var auth = jscookie.get('auth').toLowerCase() === 'true'
-  }
+  //find cookie
+  try{ var auth = jscookie.get('auth').toLowerCase() === 'true' }
   catch {
+    console.log("error with auth")
     jscookie.set('auth', 'false', { sameSite: 'Lax' })
     auth = jscookie.get('auth').toLowerCase() === 'true'
-    store.dispatch("reset")
+    store.dispatch("logout")
   }
 
-  console.log(auth)
-
-  if(to.meta.require_auth && !auth){  
+  //check if we can access this route
+  if(to.meta.require_auth && !auth) {
+    console.log("require_auth triggered (messed with auth)")
+    store.dispatch("logout")
     next({ name: 'Login' })
-    store.dispatch("reset")
+  }
+  else if(to.meta.prevent_auth && auth) {
+    console.log("prevent_auth triggered")
+    next({ name: 'Posts' })
   }
   else {
     next() 
   }
+
 })
 
 

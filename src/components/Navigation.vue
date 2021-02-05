@@ -1,4 +1,3 @@
-
 <template>
   <div class="Navigation">
     <h1>Project CodeCanine</h1>

@@ -14,10 +14,11 @@ app.use(express.urlencoded({ extended: false }))
 //imported routes
 const
   users = require('./routes/route_users'),
-  login = require('./routes/route_account')
+  login = require('./routes/route_account'),
+  posts = require("./routes/route_posts")
 
 //linked routes (route middleware)
-app.use("/", [users, login])
+app.use("/", [users, login, posts])
 
 
 //port

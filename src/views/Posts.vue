@@ -2,7 +2,7 @@
 <Navigation></Navigation>
   <div class="about">
     <h2>Posts</h2>
-    <div v-if="user">
+    <!-- <div v-if="user"> -->
 
     <form @submit.prevent="onSubmit()">
       POST:
@@ -19,16 +19,16 @@
         <template #data>
           <p>User: {{post.ID}}</p>
           <p>Body: {{post.post}}</p>
-          <button v-show="post.ID == user">Make Post</button>
-          <button v-show="post.ID != user || post.ID == user">View Stats</button>
+          <!-- <button v-show="post.ID == user">Make Post</button> -->
+          <!-- <button v-show="post.ID != user || post.ID == user">View Stats</button> -->
         </template>
       </Ctest>
       </div>
     </div>
 
-    <div v-else>LOADING</div>
+    <!-- <div v-else>LOADING</div> -->
     
-  </div>
+  <!-- </div> -->
 </template>
 
 <script>
@@ -53,10 +53,10 @@ export default {
     }
 
     store.dispatch('all_posts') //api call
-    store.dispatch('user') //api call
-    const { all_posts, user } = useState(['all_posts', 'user']) //state api calls
+    // store.dispatch('user') //api call
+    const { all_posts } = useState(['all_posts']) //state api calls
     
-    return { onSubmit, form, all_posts, user }
+    return { onSubmit, form, all_posts }
   }
 }
 </script>

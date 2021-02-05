@@ -17,7 +17,7 @@ const getDefaultState = () => {
 axios.interceptors.request.use(function (response) {
   return response
 }, function (error) {
-  return Promise.reject(error);
+  return Promise.reject(error)
 })
 
 
@@ -25,22 +25,15 @@ axios.interceptors.response.use(function (response) {
   return response
 }, function (error) {
   if (typeof error.response === 'undefined') {
-    alert('A network error occurred. '
-        + 'This could be a CORS issue or a dropped internet connection. '
-        + 'It is not possible for us to know.')
+    alert('A network error occurred')
+    return Promise.reject("Response error #1:",error.response.data)
   }
   if(error.response.status === 401) {
-      console.log("401 status caught")
       alert("You are not authorized")
       router.push('/login')
   }
-  else {
-      alert('A network error occurred. '
-          + 'This could be a CORS issue or a dropped internet connection. '
-          + 'It is not possible for us to know.')
-  }
-  if (error.response && error.response.data) {
-      return Promise.reject("Response error #1:",error.response.data)
+  if(error.response && error.response.data) {
+    return Promise.reject("Response error #1:",error.response.data)
   }
   return Promise.reject("Response error #2:",error.message)
 })
@@ -48,32 +41,30 @@ axios.interceptors.response.use(function (response) {
 export default createStore({
   state: getDefaultState(),
   actions: {
-    login({ commit }, payload) {
-      axios.post("http://localhost:13377/login", payload, {withCredentials: true})
-      .then(res => { 
-        commit('SET_LOGIN', res.data) 
-        router.push('/Posts')
-      })
+    async login({ commit }, payload) {
+      const res = await axios.post("http://localhost:13377/login", payload, {withCredentials: true})
+      commit('SET_LOGIN', res.data) 
+      router.push('/Posts')
     },
-    signup({ commit }, payload) {
-      axios.post("http://localhost:13377/signup", payload)
-      .then(res => commit("SET_SIGNUP", res.data))
+    async signup({ commit }, payload) {
+      const res = await axios.post("http://localhost:13377/signup", payload)
+      commit("SET_SIGNUP", res.data)
     },
-    all_users({ commit }) {
-      axios.get("http://localhost:13377/", {withCredentials: true})
-      .then(res => commit("SET_ALL_USERS", res.data))
+    async all_users({ commit }) {
+      const res = await axios.get("http://localhost:13377/", {withCredentials: true})
+      commit("SET_ALL_USERS", res.data)
     },
-    all_posts({ commit }) {
-      axios.get("http://localhost:13377/posts", {withCredentials: true})
-      .then(res => commit('SET_ALL_POSTS', res.data))
+    async all_posts({ commit }) {
+      const res = await axios.get("http://localhost:13377/posts", {withCredentials: true})
+      commit('SET_ALL_POSTS', res.data)
     },
-    user({ commit }) {
-      axios.get("http://localhost:13377/user", {withCredentials: true})
-      .then(res => commit('SET_USER', res.data))
+    async user({ commit }) {
+      const res = await axios.get("http://localhost:13377/user", {withCredentials: true})
+      commit('SET_USER', res.data)
     },
-    logout({ commit }) {
-      axios.get("http://localhost:13377/logout", {withCredentials: true})
-      .then( commit('SET_RESET') )
+    async logout({ commit }) {
+      await axios.get("http://localhost:13377/logout", {withCredentials: true})
+      commit('SET_RESET')
     },
     reset({ commit }) {
       commit('SET_RESET')

@@ -2,33 +2,34 @@
 <Navigation></Navigation>
   <div class="about">
     <h2>Posts</h2>
-    <!-- <div v-if="user"> -->
+    <div v-if="user">
 
-    <form @submit.prevent="onSubmit()">
-      POST:
-      <input type="text" v-model="form.message" />
+    <form @submit.prevent="makePost()">
+      Make a Post:
+      <input type="text" v-model="post.msg" />
       <input class="submitpost" type="submit" value="Submit" />
     </form>
 
-    <br>
-    <br>
-    <br>
 
-      <div v-for="(post) in all_posts" :key="post.id">
+      <div v-for="(post, index) in all_posts" :key="post.id">
       <Ctest>
         <template #data>
           <p>User: {{post.ID}}</p>
           <p>Body: {{post.post}}</p>
-          <!-- <button v-show="post.ID == user">Make Post</button> -->
-          <!-- <button v-show="post.ID != user || post.ID == user">View Stats</button> -->
+          <div v-show="post.ID == user">
+            <input @keyup.enter="editPost(post.POST_ID, index)" type="text" placeholder="edit post" v-model="edit.msg" >
+            <button  @click="editPost(post.POST_ID, index)">Update</button>
+            <button @click="deletePost(post.POST_ID, index)">Delete</button>
+          </div>
+          <button>View Stats</button>
         </template>
       </Ctest>
       </div>
     </div>
 
-    <!-- <div v-else>LOADING</div> -->
+    <div v-else>LOADING</div>
     
-  <!-- </div> -->
+  </div>
 </template>
 
 <script>
@@ -46,17 +47,28 @@ export default {
   },
   setup() {
     const store = useStore()
-    const form = ref({message: ''}) //form signup
+    const post = ref({msg: ''}) //post msg
+    const edit = ref({msg: ''}) //edit msg
 
-    function onSubmit() { //method
-    console.log('hi')
+    function makePost() { //method
+      store.dispatch("makePost", [post.value.msg])
+      post.value.msg = ''
+    }
+
+    function deletePost(post_id, index) { //method
+      store.dispatch("deletePost", [post_id, index])
+    }
+
+    function editPost(post_id, index) { //method
+      store.dispatch("editPost", [edit.value.msg, post_id, index])
+      edit.value.msg = ''
     }
 
     store.dispatch('all_posts') //api call
-    // store.dispatch('user') //api call
-    const { all_posts } = useState(['all_posts']) //state api calls
+    store.dispatch('user') //api call
+    const { all_posts, user } = useState(['all_posts', 'user']) //state api calls
     
-    return { onSubmit, form, all_posts }
+    return { makePost, deletePost, editPost, user, post, all_posts, edit }
   }
 }
 </script>

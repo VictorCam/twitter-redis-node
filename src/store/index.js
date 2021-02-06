@@ -4,6 +4,7 @@ import router from '../router/index'
 
 const getDefaultState = () => {
   return {
+    profile: [],
     user: [],
     login: '',
     tmp: '',
@@ -13,13 +14,11 @@ const getDefaultState = () => {
   }
 }
 
-
 axios.interceptors.request.use(function (response) {
   return response
 }, function (error) {
   return Promise.reject(error)
 })
-
 
 axios.interceptors.response.use(function (response) {
   return response
@@ -29,7 +28,7 @@ axios.interceptors.response.use(function (response) {
     return Promise.reject("Response error #1:",error.response.data)
   }
   if(error.response.status === 401) {
-      alert("You are not authorized")
+      alert(`${error.response.data}`)
       router.push('/login')
   }
   if(error.response && error.response.data) {
@@ -44,7 +43,7 @@ export default createStore({
     async login({ commit }, payload) {
       const res = await axios.post("http://localhost:13377/login", payload, {withCredentials: true})
       commit('SET_LOGIN', res.data) 
-      router.push('/Posts')
+      router.push('/posts')
     },
     async signup({ commit }, payload) {
       const res = await axios.post("http://localhost:13377/signup", payload)
@@ -56,6 +55,7 @@ export default createStore({
     },
     async all_posts({ commit }) {
       const res = await axios.get("http://localhost:13377/posts", {withCredentials: true})
+      console.log(res.data)
       commit('SET_ALL_POSTS', res.data)
     },
     async user({ commit }) {
@@ -65,12 +65,28 @@ export default createStore({
     async logout({ commit }) {
       await axios.get("http://localhost:13377/logout", {withCredentials: true})
       commit('SET_RESET')
+      router.push('/login')
+    },
+    async deletePost({ commit }, payload) {
+      const res = await axios.post("http://localhost:13377/delete_post", payload, {withCredentials:true})
+      commit("SET_DELETE_POST", res.data)
+    },
+    async makePost({ commit }, payload) {
+      const res = await axios.post("http://localhost:13377/create_post", payload, {withCredentials:true})
+      commit("SET_CREATE_POST", res.data)
+    },
+    async editPost({ commit }, payload) {
+      const res = await axios.post("http://localhost:13377/edit_post", payload, {withCredentials:true})
+      commit("SET_EDIT_POST", res.data)
+    },
+    async profile({ commit }, payload) {
+      const res = await axios.get(`http://localhost:13377/profile/${payload}`, {withCredentials:true})
+      commit("SET_PROFILE", res.data)
     },
     reset({ commit }) {
       commit('SET_RESET')
     }
   },
-
   mutations: {
     SET_LOGIN(state, payload) {
       state.login = payload
@@ -88,10 +104,23 @@ export default createStore({
       Object.assign(state, getDefaultState())
     },
     SET_ALL_POSTS(state, payload) {
-      state.all_posts = payload
+      state.all_posts = payload.slice().reverse()
     },
     SET_USER(state, payload) {
       state.user = payload
+    },
+    SET_DELETE_POST(state, payload) {
+      state.all_posts.splice(payload,1)
+    },
+    SET_CREATE_POST(state, payload) {
+      state.all_posts.unshift(payload) 
+    },
+    SET_EDIT_POST(state, payload) {
+      console.log("data", payload)
+      state.all_posts[payload.index].post = payload.post
+    },
+    SET_PROFILE(state, payload) {
+      state.profile = payload
     }
   }
 })

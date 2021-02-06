@@ -11,18 +11,16 @@ router.post("/login", (req, res) => {
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080')
 
-  const sql = "SELECT * FROM user_tables where user_tables.Name = ? AND user_tables.Password= ?"
+  const sql = "SELECT * FROM user_tables WHERE user_tables.Name = ? AND user_tables.Password= ?"
   connectsql.query(sql,[req.body.username,req.body.password], function(err, data) {
-    console.log("SQL username + pasword:", req.body.username, " ", req.body.password)
-          if (data.length == 1) {
-              console.log("success", data[0].Name)
+          if (!err && data.length == 1) {
               const token = jwt.sign({id: data[0].ID}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
               res.setHeader('Set-Cookie', cookie.serialize('authorization', token, { httpOnly: true, /*maxAge: now,*/ sameSite: 'Strict'}))
               return res.status(200).send(true)
           }
           else {
               console.log("authentication failed")
-              return res.status(401).end()
+              return res.status(401).send("invalid username or password")
           }
       })
 })
@@ -43,13 +41,24 @@ router.get("/logout", (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true)
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080')
     res.cookie('authorization', 'false', { httpOnly: false })
-    res.sendStatus(200)
+    return res.sendStatus(200)
 })
 
 router.get("/user", check_token(), (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true)
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080')
     return res.status(200).json(req.id.toString())
+})
+
+router.get("/profile/:id", check_token(), (req, res) => {
+    var sql = "SELECT * FROM user_tables WHERE ID = ?"
+    connectsql.query(sql, [req.params.id], function (err, data) {
+            if (!err) {
+              return res.status(200).send(data[0])
+            } else {
+                console.log("something went wrong during sign up")
+            }
+        })
 })
 
 router.use(cors())

@@ -8,6 +8,7 @@ const NotFound = () => import('@/views/NotFound.vue')
 const Posts = () => import('@/views/Posts.vue')
 const Login = () => import('@/views/Login.vue')
 const Signup = () => import('@/views/Signup.vue')
+const Profile = () => import('@/views/Profile.vue')
 
 const routes = [
   {
@@ -33,7 +34,11 @@ const routes = [
   {
     path: '/signup', name: 'Signup', component: Signup,
     meta: { require_auth: false, prevent_auth: true}
-  }
+  },
+  {
+    path: "/profile/:id", name: "profile", component: Profile,
+    meta: { require_auth: true, prevent_auth: false}
+  },
 ]
 
 const router = createRouter({
@@ -49,11 +54,11 @@ router.beforeEach((to,from,next) => {
   //check if we can access this route
   if(to.meta.require_auth && result) {
     console.log("require_auth triggered")
-    return next({ name: 'Login' })
+    next({ name: 'Login' })
   }
-  if(to.meta.prevent_auth && !result) {
+  else if(to.meta.prevent_auth && !result) {
     console.log("prevent_auth triggered")
-    return next({ name: 'Posts' })
+    next({ name: 'Posts' })
   }
   else {
     next() 

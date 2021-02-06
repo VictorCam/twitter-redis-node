@@ -17,17 +17,48 @@ router.get("/posts", check_token(), (req, res) => {
 
 router.post("/create_post", check_token(), (req, res) => { //do not forever to check if the post belongs to the user with a WHERE ID = req.user_ID
     var sql = "INSERT INTO user_post(ID, Post) VALUES(?, ?)"
-    connectsql.query(sql, [req.user_ID, req.body.info], function (err, data) {
+    connectsql.query(sql, [req.id, req.body[0]], function (err, data) {
             if (!err) {
-                var reply = { //object must be consistent with the POST ID (server headers)
-                    'POST_ID': data.insertId, 
-                    'ID': req.user_ID,
-                    'post': req.body.info
-                }
-                res.status(200).send(reply)
+                const data = {}
+                data.POST_ID = data.insertId
+                data.ID = req.id
+                data.post = req.body[0]
+                return res.status(200).send(data)
+            }
+            else {
+                return res.status(500).send("unable to create post")
+            }
+        })
+})
+
+router.post("/edit_post", check_token(), (req, res) => {
+    res.setHeader("Access-Control-Allow-Origin","http://localhost:8080")
+    res.setHeader("Access-Control-Allow-Credentials",true)
+
+    var sql = "UPDATE user_post SET Post = (?) WHERE user_post.POST_ID = (?) AND user_post.ID = (?)"
+    connectsql.query(sql, [req.body[0], req.body[1], req.id], function (err, data) {
+            if (!err) {
+                const data = {}
+                data.post = req.body[0]
+                data.index = req.body[2]
+                return res.status(200).send(data)
+            }
+            else {
+                res.status(500).send("unable to update post")
+            }
+        })
+})
+
+router.post("/delete_post", check_token(), (req, res) => {
+    res.setHeader("Access-Control-Allow-Origin","http://localhost:8080")
+    res.setHeader("Access-Control-Allow-Credentials",true)
+    var sql = "DELETE FROM user_post WHERE user_post.POST_ID = (?)"
+    connectsql.query(sql, [req.body[0]], function (err, data) {
+            if (!err) {
+                res.status(200).send(req.body[1].toString()) //index to delete
             } 
             else {
-                res.status(500).send("unable to create post")
+                res.status(500).send("unable to delete post")
             }
         })
 })

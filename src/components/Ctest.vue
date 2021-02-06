@@ -25,7 +25,7 @@ export default {
   border: solid 0.1em;
   margin: 0.5em;
   padding: 0.5em;
-  width: 30%;
+  width: 35%;
 }
 
 </style>

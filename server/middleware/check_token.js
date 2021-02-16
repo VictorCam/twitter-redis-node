@@ -3,19 +3,18 @@ require("dotenv").config()
 
 module.exports = function() {
   return function (req, res, next) {
-    res.setHeader('Access-Control-Allow-Credentials', true)
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080')
+    res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:8080'})
     
     try { 
       var token = getCookieValue('authorization', req) 
       if(typeof token === 'undefined') {
         res.cookie('authorization', 'false', { httpOnly: false} )
-        return res.status(401).send("Error: auth not found")
+        return res.status(401).json("Error: auth not found")
       }
     }
     catch {
       res.cookie('authorization', 'false', { httpOnly: false} )
-      return res.status(401).send("Error: auth not found")
+      return res.status(401).json("Error: auth not found")
     }
 
     jwt.verify(token, process.env.TOKEN_SECRET, (err,user) => {
@@ -24,7 +23,7 @@ module.exports = function() {
         return next()
       }
       res.cookie('authorization', 'false', { httpOnly: false} )
-      return res.status(401).send("Error: invalid auth")
+      return res.status(401).json("Error: invalid auth")
     })
   }
 }

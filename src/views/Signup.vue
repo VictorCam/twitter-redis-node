@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { reactive } from 'vue'
 import { useStore } from 'vuex'
 import { useState } from '@/helpers'
 import Navigation from '@/components/Navigation.vue'
@@ -29,11 +29,12 @@ export default {
   },
   setup() {
     const store = useStore()
-    const form = ref({username:'', password:''}) //form signup
+    const jform = {username:'', password:''} //json
+    const form = reactive({...jform}) //form signup
 
     function onSubmit() { //method
       store.dispatch('signup', form.value) //api call
-      form.value.username = form.value.password = '' //form reset
+      Object.assign(form, jform)
     }
 
     const { signup } = useState(['signup']) //state api calls

@@ -6,7 +6,7 @@
     <router-link to="/posts">Posts</router-link> |
     <router-link to="/login">Login</router-link> |
     <router-link to="/Signup">Sign Up</router-link> |
-    <router-link to="/profile/1">Profile</router-link> |
+    <router-link to="/profile/">Profile</router-link> |
     <button @click="logout()">LOGOUT</button>
   </div>
 </template>
@@ -20,7 +20,7 @@ export default {
   setup() {
     const store = useStore()
 
-    function logout() { //method
+    function logout() {
       store.dispatch("logout")
     }
 

@@ -2,18 +2,6 @@ import { createStore } from 'vuex'
 import axios from "axios"
 import router from '../router/index'
 
-const getDefaultState = () => {
-  return {
-    profile: [],
-    user: [],
-    login: '',
-    tmp: '',
-    all_users: [],
-    all_posts: [],
-    signup: ''
-  }
-}
-
 axios.interceptors.request.use(function (response) {
   return response
 }, function (error) {
@@ -31,11 +19,23 @@ axios.interceptors.response.use(function (response) {
       alert(`${error.response.data}`)
       router.push('/login')
   }
-  if(error.response && error.response.data) {
-    return Promise.reject("Response error #1:",error.response.data)
-  }
+  
+  if(error.response.status === 422) alert(`${error.response.data}`)
+  if(error.response && error.response.data) return Promise.reject("Response error #1:",error.response.data)
   return Promise.reject("Response error #2:",error.message)
 })
+
+const getDefaultState = () => {
+  return {
+    profile: [],
+    user: [],
+    all_users: [],
+    all_posts: [],
+    signup: '',
+    login: '',
+    tmp: ''
+  }
+}
 
 export default createStore({
   state: getDefaultState(),
@@ -55,33 +55,32 @@ export default createStore({
     },
     async all_posts({ commit }) {
       const res = await axios.get("http://localhost:13377/posts", {withCredentials: true})
-      console.log(res.data)
       commit('SET_ALL_POSTS', res.data)
     },
     async user({ commit }) {
       const res = await axios.get("http://localhost:13377/user", {withCredentials: true})
       commit('SET_USER', res.data)
     },
-    async logout({ commit }) {
-      await axios.get("http://localhost:13377/logout", {withCredentials: true})
-      commit('SET_RESET')
-      router.push('/login')
+    async deletePost({ dispatch }, payload) {
+      await axios.delete(`http://localhost:13377/delete_post/${payload}`, {withCredentials:true})
+      dispatch('all_posts')
     },
-    async deletePost({ commit }, payload) {
-      const res = await axios.post("http://localhost:13377/delete_post", payload, {withCredentials:true})
-      commit("SET_DELETE_POST", res.data)
+    async makePost({ dispatch }, payload) {
+      await axios.post("http://localhost:13377/create_post", payload, {withCredentials:true})
+      dispatch('all_posts')
     },
-    async makePost({ commit }, payload) {
-      const res = await axios.post("http://localhost:13377/create_post", payload, {withCredentials:true})
-      commit("SET_CREATE_POST", res.data)
-    },
-    async editPost({ commit }, payload) {
-      const res = await axios.post("http://localhost:13377/edit_post", payload, {withCredentials:true})
-      commit("SET_EDIT_POST", res.data)
+    async editPost({ dispatch }, payload) {
+      await axios.put("http://localhost:13377/edit_post", payload, {withCredentials:true})
+      dispatch('all_posts')
     },
     async profile({ commit }, payload) {
       const res = await axios.get(`http://localhost:13377/profile/${payload}`, {withCredentials:true})
       commit("SET_PROFILE", res.data)
+    },
+    async logout({ commit }) {
+      await axios.get("http://localhost:13377/logout", {withCredentials: true})
+      commit('SET_RESET')
+      router.push('/login')
     },
     reset({ commit }) {
       commit('SET_RESET')
@@ -108,16 +107,6 @@ export default createStore({
     },
     SET_USER(state, payload) {
       state.user = payload
-    },
-    SET_DELETE_POST(state, payload) {
-      state.all_posts.splice(payload,1)
-    },
-    SET_CREATE_POST(state, payload) {
-      state.all_posts.unshift(payload) 
-    },
-    SET_EDIT_POST(state, payload) {
-      console.log("data", payload)
-      state.all_posts[payload.index].post = payload.post
     },
     SET_PROFILE(state, payload) {
       state.profile = payload

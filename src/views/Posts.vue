@@ -7,7 +7,6 @@
 			<input class="submitpost" type="submit" value="Submit" />
     </form>
 
-
     <Modal v-if="toggle.display">
       <template #editform>
         <input @keyup.enter="editPost(toggle.post_id)" type="text" placeholder="edit post" v-model="edit.message">
@@ -15,9 +14,9 @@
       </template>
     </Modal>
 
-
 		<div v-for="post in all_posts" :key="post.id">
 			<Ctest>
+        <template #profile-pic><img class="profile-image" :src="`http://localhost:13377/image/${post.icon}`" alt="cat"></template>
         <template #username>{{post.ID}}</template>
         <template #usercode>@{{post.ID}}</template>
 				<template #body-content><p>{{post.post}}</p></template>
@@ -50,7 +49,6 @@ export default {
   },
   setup() {
     const store = useStore()
-
 
     const jtoggle = {display: false, post_id: null}
     const jpost = {message: ''} //json

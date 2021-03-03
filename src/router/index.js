@@ -9,6 +9,8 @@ const Posts = () => import('@/views/Posts.vue')
 const Login = () => import('@/views/Login.vue')
 const Signup = () => import('@/views/Signup.vue')
 const Profile = () => import('@/views/Profile.vue')
+const Upload = () => import('@/views/Upload.vue')
+
 
 const routes = [
   {
@@ -39,6 +41,10 @@ const routes = [
     path: "/profile/:id", name: "profile", component: Profile,
     meta: { require_auth: true, prevent_auth: false}
   },
+  {
+    path: "/upload", name: "upload", component: Upload,
+    meta: { require_auth: true, prevent_auth: false}
+  }
 ]
 
 const router = createRouter({

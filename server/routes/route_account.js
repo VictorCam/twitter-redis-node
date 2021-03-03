@@ -3,10 +3,12 @@ const cookie = require("cookie")
 const joi = require('joi')
 const express = require("express")
 const cors = require("cors")
+const formidable = require('formidable')
 const connectsql = require("../server_connection")
 const check_token = require("../middleware/check_token")
 const router = express.Router()
 require("dotenv").config()
+
 
 router.post("/login", (req, res) => {
     res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:8080'})
@@ -23,7 +25,7 @@ router.post("/login", (req, res) => {
   connectsql.query(sql,[req.body.username, req.body.password], function(err, data) {
         if (!err && data.length == 1) {
             const token = jwt.sign({id: data[0].ID}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
-            res.setHeader('Set-Cookie', cookie.serialize('authorization', token, { httpOnly: true, sameSite: 'Strict'}))
+            res.cookie('authorization', token, { httpOnly: true, sameSite: 'Strict'})
             return res.sendStatus(200)
         }
         else {
@@ -76,6 +78,24 @@ router.get("/profile/:id", check_token(), (req, res) => {
                 console.log("something went wrong during sign up")
             }
         })
+})
+
+router.post("/profile_pic", check_token(), async (req, res) => { //unsecure method of saving and not async and not using streams 
+    const form = new formidable.IncomingForm()
+    form.parse(req)
+    form.on('fileBegin', function (name, file){
+        file.path = './uploads/' + file.name
+
+        var sql = "UPDATE user_tables SET icon = (?) WHERE user_tables.ID = (?)"
+        connectsql.query(sql, [file.name, req.id], function (err, data) {
+            if (!err) {
+                return res.sendStatus(200)
+            }
+            else {
+                return res.status(500).json("unable to update profile icon")
+            }
+        })
+    })
 })
 
 router.use(cors())

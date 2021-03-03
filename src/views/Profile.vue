@@ -19,7 +19,6 @@ import { useState } from '@/helpers'
 import Navigation from '@/components/Navigation.vue'
 
 export default {
-    name: 'Profile',
     components: {
         Navigation
     },

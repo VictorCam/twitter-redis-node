@@ -11,6 +11,7 @@ axios.interceptors.request.use(function (response) {
 axios.interceptors.response.use(function (response) {
   return response
 }, function (error) {
+  console.log(error)
   if (typeof error.response === 'undefined') {
     alert('A network error occurred')
     return Promise.reject("Response error #1:",error.response.data)
@@ -41,8 +42,8 @@ export default createStore({
   state: getDefaultState(),
   actions: {
     async login({ commit }, payload) {
-      const res = await axios.post("http://localhost:13377/login", payload, {withCredentials: true})
-      commit('SET_LOGIN', res.data) 
+      await axios.post("http://localhost:13377/login", payload, {withCredentials: true})
+      commit("NONE") 
       router.push('/posts')
     },
     async signup({ commit }, payload) {
@@ -77,6 +78,13 @@ export default createStore({
       const res = await axios.get(`http://localhost:13377/profile/${payload}`, {withCredentials:true})
       commit("SET_PROFILE", res.data)
     },
+    async profilePic({ commit }, payload) {
+      console.log(payload)
+      // const fd = new FormData()
+      // fd.append('file', payload, "file.PNG")
+      // await axios.post("http://localhost:13377/profile_pic", payload, {headers: {ContentType: 'image/png'}})
+      commit('NONE')
+    },
     async logout({ commit }) {
       await axios.get("http://localhost:13377/logout", {withCredentials: true})
       commit('SET_RESET')
@@ -110,6 +118,7 @@ export default createStore({
     },
     SET_PROFILE(state, payload) {
       state.profile = payload
-    }
+    },
+    NONE() { }
   }
 })

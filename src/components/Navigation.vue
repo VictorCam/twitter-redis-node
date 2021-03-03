@@ -9,6 +9,7 @@
     <router-link class="nav-item" to="/login">Login</router-link> |
     <router-link class="nav-item" to="/Signup">Sign Up</router-link> |
     <router-link class="nav-item" to="/profile/">Profile</router-link> |
+    <router-link class="nav-item" to="/upload">Upload</router-link> |
     <button @click="logout()">LOGOUT</button>
   </div>
 </nav>

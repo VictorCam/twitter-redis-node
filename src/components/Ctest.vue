@@ -1,7 +1,7 @@
 <template>
     <div class="feed-list">
         <div class="tweet-item">
-          <img class="profile-image" src="http://placekitten.com/500/500" alt="cat">
+          <span><slot name="profile-pic"></slot></span>
           <header class="post-header">
             <a class="user-id" href="#" target="_blank">
               <span class="username"><slot name="username"></slot></span>

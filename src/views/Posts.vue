@@ -50,9 +50,9 @@ export default {
   setup() {
     const store = useStore()
 
-    const jtoggle = {display: false, post_id: null}
+    const jtoggle = {display: false, post_id: null} //json
     const jpost = {message: ''} //json
-    const jedit = {message: '',  post_id: null } //json
+    const jedit = {message: '',  post_id: null} //json
     
     const post = reactive({...jpost}) //post msg
     const edit = reactive({...jedit}) //edit msg

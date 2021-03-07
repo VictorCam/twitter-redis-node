@@ -33,7 +33,7 @@ export default {
     const form = reactive({...jform}) //form signup
 
     function onSubmit() { //method
-      store.dispatch('signup', form.value) //api call
+      store.dispatch('signup', form) //api call
       Object.assign(form, jform)
     }
 

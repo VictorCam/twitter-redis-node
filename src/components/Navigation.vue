@@ -2,13 +2,13 @@
 
 <nav class="nav">
   <div class="container">
-    <a class="brand" style="color: rgb(255,255,255);">Project CodeCanine</a>
+    <a class="brand">Project CodeCanine</a>
     <router-link class="nav-item" to="/">Test</router-link> |
     <router-link class="nav-item" to="/about">About</router-link> |
     <router-link class="nav-item" to="/posts">Posts</router-link> |
     <router-link class="nav-item" to="/login">Login</router-link> |
     <router-link class="nav-item" to="/Signup">Sign Up</router-link> |
-    <router-link class="nav-item" to="/profile/">Profile</router-link> |
+    <!-- <router-link class="nav-item" :to="`/profile/${user}`" >Profile</router-link> | -->
     <router-link class="nav-item" to="/upload">Upload</router-link> |
     <button @click="logout()">LOGOUT</button>
   </div>
@@ -17,6 +17,7 @@
 
 <script>
 import { useStore } from 'vuex'
+// import { useState } from '@/helpers'
 
 export default {
   name: 'Navigation',
@@ -24,6 +25,9 @@ export default {
     const store = useStore()
 
     function logout() { store.dispatch("logout") }
+  
+    // store.dispatch('user')
+    // const { user } = useState(['user'])
 
     return { logout }
   }
@@ -38,6 +42,7 @@ export default {
 }
 
 .brand {
+  color: rgb(236, 236, 236);
   text-decoration: none;
   background-color: transparent;
   display: inline-block;

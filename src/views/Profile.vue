@@ -3,10 +3,10 @@
     <Navigation></Navigation>
     <h1>Profile</h1>
     <div v-if="profile.ID">
+        <img class="profile" width="100" height="100" :src="`http://localhost:13377/image/${profile.icon}`">
         <p>Username: {{ profile.Name }} </p>
         <p>Profile ID: {{ profile.ID }}</p>
     </div>
-
     <div v-else>LOADING</div>
   </div>
 </template>

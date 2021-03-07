@@ -7,16 +7,16 @@ const joi = require('joi')
 const Ajv = require('ajv')
 const ajv = new Ajv()
   
-router.get("/posts", check_token(), (req, res) => {
-    var sql = "SELECT USER.ID, USER.Name, POST.POST_ID, POST.post, USER.icon FROM user_tables USER, user_post POST WHERE USER.ID = POST.ID"
-    connectsql.query(sql, function (err, data) {
-        if (!err) {
-            return res.status(200).json(data)
-        }
-        else {
-            return res.status(500).json("unable to load posts")
-        }
-    })
+router.get("/posts", check_token(), async (req, res) => {
+    try {
+        var sql = "SELECT USER.ID, USER.Name, POST.POST_ID, POST.post, USER.icon FROM user_tables USER, user_post POST WHERE USER.ID = POST.ID"
+        var [rows, fields] = await connectsql.promise().query(sql)
+        return res.status(200).json(rows)
+    }
+    catch(e) {
+        console.log("error in /posts route ==", e)
+        return res.sendStatus(500)
+    }
 })
 
 router.post("/create_post", check_token(), (req, res) => { //make sure to allow only VALID json only requests
@@ -29,7 +29,7 @@ router.post("/create_post", check_token(), (req, res) => { //make sure to allow 
     const validate = ajv.compile(schema)
     validate(req.body)
     if(validate.errors) {
-        const error = {}
+        var error = {}
         error.error = validate.errors[0].dataPath
         error.message = validate.errors[0].message
         return res.status(422).send(error.message)
@@ -38,9 +38,10 @@ router.post("/create_post", check_token(), (req, res) => { //make sure to allow 
     var sql = "INSERT INTO user_post(ID, Post) VALUES(?, ?)"
     connectsql.query(sql, [req.id, req.body.message], function (err, data) {
         if (!err) {
-            const result = {}
-            data.post = req.body[0]
-            return res.status(200).json(result)
+            var result = {}
+            result.post = req.body.message
+            console.log(result)
+            return res.status(200).send(result)
         }
         else {
             return res.status(500).json("unable to create post")

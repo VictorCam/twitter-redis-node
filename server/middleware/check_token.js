@@ -1,10 +1,9 @@
 const jwt = require("jsonwebtoken")
 require("dotenv").config()
 
-module.exports = function() {
+module.exports = function(...test) {
   return function (req, res, next) {
     res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:8080'})
-    
     try { 
       var token = getCookieValue('authorization', req) 
       if(typeof token === 'undefined') {

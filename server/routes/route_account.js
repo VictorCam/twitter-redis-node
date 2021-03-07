@@ -3,6 +3,7 @@ const cookie = require("cookie")
 const joi = require('joi')
 const express = require("express")
 const cors = require("cors")
+const bcrypt = require('bcrypt')
 const formidable = require('formidable')
 const connectsql = require("../server_connection")
 const check_token = require("../middleware/check_token")
@@ -10,50 +11,60 @@ const router = express.Router()
 require("dotenv").config()
 
 
-router.post("/login", (req, res) => {
-    res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:8080'})
-    const schema = joi.object({
-        username: joi.string().min(1).max(100).required(),
-        password: joi.string().min(1).max(100).required()
-    })
+router.post("/login", async (req, res) => {
+    try {
+        res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:8080'})
 
-    login = schema.validate(req.body)
+        const schema = joi.object({
+            username: joi.string().min(1).max(100).required(),
+            password: joi.string().min(1).max(100).required()
+        })
+        login = schema.validate(req.body)
+        if(login.error) return res.status(422).json(login.error.details[0].message)
 
-    if(login.error) return res.status(422).json(login.error.details[0].message)
+        const sql = "SELECT ID, Password FROM user_tables WHERE user_tables.Name = ?"
+        var [rows, fields] = await connectsql.promise().query(sql, [req.body.username])
 
-  const sql = "SELECT * FROM user_tables WHERE user_tables.Name = ? AND user_tables.Password= ?"
-  connectsql.query(sql,[req.body.username, req.body.password], function(err, data) {
-        if (!err && data.length == 1) {
-            const token = jwt.sign({id: data[0].ID}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
-            res.cookie('authorization', token, { httpOnly: true, sameSite: 'Strict'})
-            return res.sendStatus(200)
-        }
-        else {
-            console.log("authentication failed")
-            return res.status(401).send("invalid username or password")
-        }
-    })
+        if(rows.length == 0) { console.log("user does not exist"); return res.sendStatus(401) }
+        if(!await bcrypt.compare(req.body.password, rows[0].Password)) { console.log("incorrect username and/or password"); return res.sendStatus(401) }
+
+        const token = jwt.sign({id: rows[0].ID}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
+        res.cookie('authorization', token, { httpOnly: true, sameSite: 'Strict'})
+        return res.status(200).json("status: ok")
+    }
+    catch(e) {
+        console.log("error in /login route ==", e)
+        return res.sendStatus(500)
+    }
 })
 
-router.post("/signup", (req, res) => {
-    const schema = joi.object({
-        username: joi.string().min(1).max(100).required(),
-        password: joi.string().min(1).max(100).required()
-    })
+router.post("/signup", async (req, res) => {
+    try {
+        const schema = joi.object({
+            username: joi.string().min(1).max(100).required(),
+            password: joi.string().min(1).max(100).required()
+        })
+        signup = schema.validate(req.body)
 
-    signup = schema.validate(req.body)
-    if(signup.error) return res.status(422).json(signup.error.details[0].message)
+        if(signup.error) return res.status(422).json(signup.error.details[0].message)
 
+        var hashedPassword = await bcrypt.hash(req.body.password, 10)
+        
+        //first query
+        const sql1 = "SELECT Password FROM user_tables WHERE user_tables.name = ?"
+        var [rows1, fields1] = await connectsql.promise().query(sql1, [req.body.username])
+    
+        if(rows1.length == 1) { console.log("user is already taken"); return res.status(409).send("Username is already taken") }
 
-  var sql = "INSERT INTO user_tables(Name, Password) VALUES(?, ?)"
-  connectsql.query(sql, [req.body.username, req.body.password], function (err, data) {
-          if (!err) {
-            return res.sendStatus(200)
-          } 
-          else {
-              console.log("something went wrong during sign up")
-          }
-      })
+        //second query
+        const sql2 = "INSERT INTO user_tables(Name, Password, icon) VALUES(?, ?, ?)"
+        var [rows2, fields2] = await connectsql.promise().query(sql2, [req.body.username, hashedPassword, "Flowchart.png"])
+        res.sendStatus(200)
+    }
+    catch(e) {
+        console.log("error in /signup route ==", e)
+        return res.sendStatus(500)
+    }
 })
 
 router.get("/logout", (req, res) => {
@@ -62,7 +73,7 @@ router.get("/logout", (req, res) => {
     return res.sendStatus(200)
 })
 
-router.get("/user", check_token(), (req, res) => {
+router.get("/user", check_token(false), (req, res) => {
     return res.status(200).json(req.id.toString())
 })
 

@@ -54,8 +54,10 @@ const router = createRouter({
 
 router.beforeEach((to,from,next) => {
   //find cookie
-  var auth = jscookie.get('authorization')
+  var auth = jscookie.get('auth_state')
   var result = (typeof auth !== 'undefined')
+  console.log("test: ", auth)
+  next()
 
   //check if we can access this route
   if(to.meta.require_auth && result) {

@@ -1,6 +1,8 @@
 const express = require("express")
+const cookieParser = require('cookie-parser')
 const cors = require("cors")
 const app = express()
+require("dotenv").config()
 
 const corsOptions = { origin: 'http://localhost:8080', credentials: true }
 
@@ -13,9 +15,15 @@ const fileOptions = {
 }
 
 app.use(cors(corsOptions))
+app.use(cookieParser(process.env.COOKIE_PARSER_SECRET))
 app.use("/image", express.static('uploads', fileOptions)) //use a reverse proxy (nginx) for improved preformance
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
+app.use((error, req, res, next) => {
+  if (error !== null)  return res.json({ error: "json is malformed" })
+  return next()
+})
 
 //imported routes
 const

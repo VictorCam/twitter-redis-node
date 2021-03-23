@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken")
 const cookie = require("cookie")
-const joi = require('joi')
 const express = require("express")
 const cors = require("cors")
 const bcrypt = require('bcrypt')
@@ -8,19 +7,26 @@ const formidable = require('formidable')
 const connectsql = require("../server_connection")
 const check_token = require("../middleware/check_token")
 const router = express.Router()
+const Ajv = require('ajv')
+const ajv = new Ajv()
+
 require("dotenv").config()
 
 
 router.post("/login", async (req, res) => {
     try {
         res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:8080'})
-
-        const schema = joi.object({
-            username: joi.string().min(1).max(100).required(),
-            password: joi.string().min(1).max(100).required()
-        })
-        login = schema.validate(req.body)
-        if(login.error) return res.status(422).json(login.error.details[0].message)
+        const schema = {
+            type: 'object', required: ['username', 'password'], additionalProperties: false,
+            properties: {
+                username: { type: 'string', minLength: 1, maxLength: 100 },
+                password: { type: 'string', minLength: 1, maxLength: 100 }
+            }
+        }
+        const validate = ajv.compile(schema)
+        validate(req.body)
+        if(validate.errors) return res.status(422).send({"error": validate.errors[0].dataPath, "message": validate.errors[0].message})
+    
 
         const sql = "SELECT ID, Password FROM user_tables WHERE user_tables.Name = ?"
         var [rows, fields] = await connectsql.promise().query(sql, [req.body.username])
@@ -28,8 +34,9 @@ router.post("/login", async (req, res) => {
         if(rows.length == 0) { console.log("user does not exist"); return res.sendStatus(401) }
         if(!await bcrypt.compare(req.body.password, rows[0].Password)) { console.log("incorrect username and/or password"); return res.sendStatus(401) }
 
-        const token = jwt.sign({id: rows[0].ID}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
-        res.cookie('authorization', token, { httpOnly: true, sameSite: 'Strict'})
+        var token = jwt.sign({id: rows[0].ID}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
+        res.cookie('authorization', `bearer ${token}`, { httpOnly: true, sameSite: 'Strict'})
+        res.cookie('auth_state', 'true', {signed: true})
         return res.status(200).json("status: ok")
     }
     catch(e) {
@@ -40,13 +47,16 @@ router.post("/login", async (req, res) => {
 
 router.post("/signup", async (req, res) => {
     try {
-        const schema = joi.object({
-            username: joi.string().min(1).max(100).required(),
-            password: joi.string().min(1).max(100).required()
-        })
-        signup = schema.validate(req.body)
-
-        if(signup.error) return res.status(422).json(signup.error.details[0].message)
+        const schema = {
+            type: 'object', required: ['username', 'password'], additionalProperties: false,
+            properties: {
+                username: { type: 'string', minLength: 1, maxLength: 100 },
+                password: { type: 'string', minLength: 1, maxLength: 100 }
+            }
+        }
+        const validate = ajv.compile(schema)
+        validate(req.body)
+        if(validate.errors) return res.status(422).send({"error": validate.errors[0].dataPath, "message": validate.errors[0].message})
 
         var hashedPassword = await bcrypt.hash(req.body.password, 10)
         
@@ -69,7 +79,8 @@ router.post("/signup", async (req, res) => {
 
 router.get("/logout", (req, res) => {
     res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:8080'})
-    res.cookie('authorization', 'false', { httpOnly: false })
+    res.clearCookie('authorization')
+    res.cookie('auth_state', 'false')
     return res.sendStatus(200)
 })
 
@@ -78,8 +89,10 @@ router.get("/user", check_token(false), (req, res) => {
 })
 
 router.get("/profile/:id", check_token(), (req, res) => {
-    const profile = joi.number().integer().required().min(1).validate(req.params.id)
-    if(profile.error) return res.status(422).json(profile.error.details[0].message)
+    const schema = { type: 'integer' }
+    var validate = ajv.compile(schema)
+    validate(parseInt(req.params.id))
+    if(validate.errors) return res.status(422).send({"message": validate.errors[0].message})
 
     var sql = "SELECT * FROM user_tables WHERE ID = ?"
     connectsql.query(sql, [req.params.id], function (err, data) {
@@ -91,22 +104,22 @@ router.get("/profile/:id", check_token(), (req, res) => {
         })
 })
 
-router.post("/profile_pic", check_token(), async (req, res) => { //unsecure method of saving and not async and not using streams 
-    const form = new formidable.IncomingForm()
-    form.parse(req)
-    form.on('fileBegin', function (name, file){
-        file.path = './uploads/' + file.name
+router.post("/profile_pic", check_token(), async (req, res) => { //unsecure method of saving and not async and not using streams
+    try {
+        const form = new formidable.IncomingForm()
+        form.parse(req)
+        form.on('fileBegin', async function (name, file){
+            file.path = './uploads/' + file.name
 
-        var sql = "UPDATE user_tables SET icon = (?) WHERE user_tables.ID = (?)"
-        connectsql.query(sql, [file.name, req.id], function (err, data) {
-            if (!err) {
-                return res.sendStatus(200)
-            }
-            else {
-                return res.status(500).json("unable to update profile icon")
-            }
+            const sql = "UPDATE user_tables SET icon = (?) WHERE user_tables.ID = (?)"
+            var [rows, fields] = await connectsql.promise().query(sql, [file.name, req.id])
+            return res.sendStatus(200)
         })
-    })
+    }
+    catch(e) {
+        console.log("error in /profile_pic route ==", e)
+        return res.sendStatus(500)     
+    }
 })
 
 router.use(cors())

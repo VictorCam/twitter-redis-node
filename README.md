@@ -2,13 +2,14 @@
 
 ## Project Setup
 ```
-NOTE: this should all be on the base/root directory
+NOTE: this should all be on the base/root directory (use sudo when needed)
 1. npm install
-2. npm install -g nodemon (use sudo on linux/mac)
-3. npm install -g @vue/cli (use sudo on linux/mac)
-4. make .env file then write "TOKEN_SECRET = xxx"
-5. npm run serve (starts frontend for vue)
-6. npm run server (starts backend for database)
+2. npm install -g nodemon
+3. npm install -g @vue/cli
+4. npm install -g npm2
+5. make .env file then write "TOKEN_SECRET = xxx"
+6. npm run serve (starts frontend for vue)
+7. npm run server (starts backend for database)
 ```
 
 ## Other Commands

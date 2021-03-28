@@ -11,12 +11,12 @@ module.exports = function(...test) {
 
     try {
       var token = req.cookies['authorization'] || req.headers['authorization']
-      if(!token) no_auth(req, res, next)
+      if(!token) return no_auth(req, res, next)
       token = token.split(" ")
-      if(token[0].toLowerCase() != 'bearer') no_auth(req, res, next)
+      if(token[0].toLowerCase() != 'bearer') return no_auth(req, res, next)
     }
     catch {
-      no_auth(req, res, next)
+      return no_auth(req, res, next)
     }
 
     jwt.verify(token[1], process.env.TOKEN_SECRET, (err,user) => {
@@ -24,7 +24,7 @@ module.exports = function(...test) {
         req.id = user.id
         return next()
       }
-      no_auth(req, res, next)
+      return no_auth(req, res, next)
     })
   }
 }

@@ -79,13 +79,6 @@ export default createStore({
       const res = await axios.get(`http://localhost:13377/profile/${payload}`, {withCredentials:true})
       commit("SET_PROFILE", res.data)
     },
-    async profilePic({ commit }, payload) {
-      console.log(payload)
-      // const fd = new FormData()
-      // fd.append('file', payload, "file.PNG")
-      // await axios.post("http://localhost:13377/profile_pic", payload, {headers: {ContentType: 'image/png'}})
-      commit('NONE')
-    },
     async logout({ commit }) {
       await axios.get("http://localhost:13377/logout", {withCredentials: true})
       commit('SET_RESET')

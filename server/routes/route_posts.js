@@ -3,8 +3,30 @@ const router = express.Router()
 const cors = require("cors")
 const connectsql = require("../server_connection")
 const check_token = require("../middleware/check_token")
-const Ajv = require('ajv')
+const Ajv = require('ajv').default
 const ajv = new Ajv()
+
+const create_post = {
+    type: 'object', required: ['message'], additionalProperties: false,
+    properties: {
+        message: { type: 'string', minLength: 1, maxLength: 100 } 
+    }
+}
+
+const edit_post = {
+    type: 'object', required: ['message', 'post_id'], additionalProperties: false,
+    properties: {
+        message: { type: 'string', minLength: 1, maxLength: 100 },
+        post_id: { type: 'integer' }
+    }
+}
+
+const delete_post = { type: 'integer' }
+
+const val_create_post = ajv.compile(create_post)
+const val_edit_post = ajv.compile(edit_post)
+const val_delete_post = ajv.compile(delete_post)
+
   
 router.get("/posts", check_token(), async (req, res) => {
     try {
@@ -18,57 +40,33 @@ router.get("/posts", check_token(), async (req, res) => {
     }
 })
 
-router.post("/create_post", check_token(), (req, res) => { //make sure to allow only VALID json only requests
-    res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
-    const schema = {
-        type: 'object', required: ['message'], additionalProperties: false,
-        properties: {
-            message: { type: 'string', minLength: 1, maxLength: 100 } 
-        }
-    }
-    const validate = ajv.compile(schema)
-    validate(req.body)
-    if(validate.errors) return res.status(422).send({"error": validate.errors[0].dataPath, "message": validate.errors[0].message})
-
-    var sql = "INSERT INTO user_post(ID, Post) VALUES(?, ?)"
-    connectsql.query(sql, [req.id, req.body.message], function (err, data) {
-        if (!err) {
-            var result = {}
-            result.post = req.body.message
-            console.log(result)
-            return res.status(200).send(result)
-        }
-        else {
-            return res.status(500).json("unable to create post")
-        }
-    })
-})
-
-router.put("/edit_post", check_token(), (req, res) => {
+router.post("/create_post", check_token(), async (req, res) => {
     try {
         res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        const schema = {
-            type: 'object', required: ['message', 'post_id'], additionalProperties: false,
-            properties: {
-                message: { type: 'string', minLength: 1, maxLength: 100 },
-                post_id: { type: 'integer' }
-            }
-        }
-        const validate = ajv.compile(schema)
-        validate(req.body)
-        if(validate.errors) return res.status(422).send({"error": validate.errors[0].dataPath, "message": validate.errors[0].message})
-        
+        val_create_post(req.body)
+        if(val_create_post.errors) return res.status(422).json({"error": val_create_post.errors[0].dataPath, "message": val_create_post.errors[0].message})
+
+        var sql = "INSERT INTO user_post(ID, Post) VALUES(?, ?)"
+        var [rows, fields] = await connectsql.promise().query(sql, [req.id, req.body.message])
+        return res.status(200).json({"post": req.body.message})
+    }
+    catch(e) {
+        console.log("error in /create_post route ==", e)
+        return res.sendStatus(500)
+    }
+})
+
+router.put("/edit_post", check_token(), async (req, res) => {
+    try {
+        res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
+
+        val_edit_post(req.body)
+        if(val_edit_post.errors) return res.status(422).json({"error": val_edit_post.errors[0].dataPath, "message": val_edit_post.errors[0].message})
         
         var sql = "UPDATE user_post SET Post = (?) WHERE user_post.POST_ID = (?) AND user_post.ID = (?)"
-        connectsql.query(sql, [req.body.message, req.body.post_id, req.id], function (err, data) {
-            if (!err) {
-                return res.sendStatus(200)
-            }
-            else {
-                res.status(500).json("unable to update post")
-            }
-        })
+        var [rows, fields] = await connectsql.promise().query(sql, [req.body.message, req.body.post_id, req.id])
+        res.sendStatus(200)
     }
     catch(e) {
         console.log("error in /edit_post route ==", e)
@@ -76,22 +74,19 @@ router.put("/edit_post", check_token(), (req, res) => {
     }
 })
 
-router.delete("/delete_post/:post", check_token(), (req, res) => {
-    const schema = { type: 'integer' }
-    var validate = ajv.compile(schema)
-    validate(parseInt(req.params.post))
-    if(validate.errors) return res.status(422).send({"message": validate.errors[0].message})
+router.delete("/delete_post/:post", check_token(), async (req, res) => {
+    try {
+        val_delete_post(parseInt(req.params.post))
+        if(val_delete_post.errors) return res.status(422).json({"error": val_delete_post.errors[0].message})
 
-
-    const sql = "DELETE FROM user_post WHERE user_post.POST_ID = (?)" //note: must check if user owns this post
-    connectsql.query(sql, [req.params.post], function (err, data) {
-        if (!err) {
-            res.sendStatus(200)
-        }
-        else {
-            res.status(500).json("unable to delete post")
-        }
-    })
+        const sql = "DELETE FROM user_post WHERE user_post.POST_ID = (?)" //note: must check if user owns this post
+        var [rows, fields] = await connectsql.promise().query(sql, [req.params.post])
+        res.sendStatus(200)
+    }
+    catch(e) {
+        console.log("error in /delete_post route ==", e)
+        return res.sendStatus(500)
+    }
 })
 
 router.use(cors());

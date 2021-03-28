@@ -6,7 +6,7 @@ NOTE: this should all be on the base/root directory (use sudo when needed)
 1. npm install
 2. npm install -g nodemon
 3. npm install -g @vue/cli
-4. npm install -g npm2
+4. npm install -g pm2
 5. make .env file then write "TOKEN_SECRET = xxx"
 6. npm run serve (starts frontend for vue)
 7. npm run server (starts backend for database)

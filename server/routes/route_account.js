@@ -48,7 +48,7 @@ router.post("/login", async (req, res) => {
         const sql = "SELECT ID, Password FROM user_tables WHERE user_tables.Name = ?"
         var [rows, fields] = await connectsql.promise().query(sql, [req.body.username])
 
-        if(rows.length == 0) { console.log("user does not exist"); return res.sendStatus(401) }
+        if(rows.length == 0)  return res.status(401).json({"error": "incorrect username or password"})
         if(!await bcrypt.compare(req.body.password, rows[0].Password)) return res.status(401).json({"message": "incorrect username or passsword"})
 
         var token = jwt.sign({id: rows[0].ID}, process.env.TOKEN_SECRET, {expiresIn: "24h"})

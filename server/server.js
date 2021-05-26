@@ -34,7 +34,6 @@ app.use((error, req, res, next) => {
 const users = require('./routes/route_users')
 const login = require('./routes/route_account')
 const posts = require("./routes/route_posts")
-const { resolveSchema } = require("ajv/dist/compile")
 
 //linked routes (route middleware)
 app.use("/", [users, login, posts])

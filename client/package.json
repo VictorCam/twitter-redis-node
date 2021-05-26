@@ -5,10 +5,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "server": "nodemon ./server/server.js",
-    "pm": "pm2 start ./server/server.js -i 4",
-    "rpm": "pm2 delete all"
+    "lint": "vue-cli-service lint"
   },
   "dependencies": {
     "ajv": "^7.2.3",
@@ -38,7 +35,7 @@
     "@vue/cli-plugin-babel": "~5.0.0-alpha.7",
     "@vue/cli-plugin-eslint": "~5.0.0-alpha.7",
     "@vue/cli-plugin-router": "~5.0.0-alpha.7",
-    "@vue/cli-service": "~5.0.0-alpha.7",
+    "@vue/cli-service": "^5.0.0-beta.1",
     "@vue/compiler-sfc": "^3.0.7",
     "dotenv": "^8.2.0",
     "eslint": "^7.22.0",

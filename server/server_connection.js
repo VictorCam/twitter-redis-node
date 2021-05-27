@@ -2,9 +2,9 @@ const mysql = require('mysql2')
 
 const connectsql = mysql.createConnection({
   host: "localhost",
-  user: "root",
-  password: 'mukit',
-  database: "mysql"
+  user: "root", //note there can be priv levels for users in phpmyadmin
+  password: 'test',
+  database: "test"
 });
 
 connectsql.connect(function(err) {

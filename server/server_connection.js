@@ -1,19 +1,27 @@
-const mysql = require('mysql2')
+const mariadb = require('mariadb');
 
-const connectsql = mysql.createConnection({
-  host: "localhost",
-  user: "root", //note there can be priv levels for users in phpmyadmin
-  password: 'test',
-  database: "test"
-});
+//give lowest privilage level when connecting to database
+const pool = mariadb.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PWD,
+    database: process.env.DB_DB,
+    connectionLimit: 5
+})
 
-connectsql.connect(function(err) {
-  if(err) {
-    console.log("error with database")
+asyncFunction()
+
+async function asyncFunction() {
+  try {
+    var conn = await pool.getConnection();
+    const [res] = await conn.query("SELECT Post FROM user_post WHERE Post = 'a'");
+    // console.log("test", res);
   }
-  else {
-  console.log("connected to database")
+  catch (err) {
+    console.log("ended conn on err", err)
   }
-});
 
-module.exports = connectsql;
+  if(conn) return conn.end()
+}
+
+module.exports = pool;

@@ -7,7 +7,7 @@ require("dotenv").config()
 
 const corsOptions = { origin: 'http://localhost:8080', credentials: true }
 
-const fileOptions = { 
+const fileOptions = {
   dotfiles: "ignore",
   etag: true,
   extensions: ["png", "jpg", "jpeg"],

@@ -4,8 +4,6 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
     "server": "nodemon ./server/server.js",
     "pm": "pm2 start ./server/server.js -i 4",
     "rpm": "pm2 delete all"
@@ -27,9 +25,10 @@
     "helmet": "^4.6.0",
     "js-cookie": "^2.2.1",
     "jsonwebtoken": "^8.5.1",
+    "mariadb": "^2.5.3",
     "mysql2": "^2.2.5",
     "nanoid": "^3.1.23",
-    "sharp": "^0.28.3"
+    "pm2": "^4.5.6"
   },
   "devDependencies": {
     "nodemon": "^2.0.7"

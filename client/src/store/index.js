@@ -44,7 +44,7 @@ export default createStore({
   actions: {
     async login({ commit }, payload) {
       await axios.post("http://localhost:13377/login", payload, {withCredentials: true})
-      commit("NONE") 
+      commit("NONE")
       router.push('/posts')
     },
     async signup({ commit }, payload) {

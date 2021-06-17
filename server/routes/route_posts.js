@@ -27,7 +27,7 @@ const val_create_post = ajv.compile(create_post)
 const val_edit_post = ajv.compile(edit_post)
 const val_delete_post = ajv.compile(delete_post)
 
-  
+
 router.get("/posts", check_token(), async (req, res) => {
     try {
         var sql = "SELECT USER.ID, USER.Name, POST.POST_ID, POST.post, USER.icon FROM user_tables USER, user_post POST WHERE USER.ID = POST.ID"

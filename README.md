@@ -1,4 +1,4 @@
-# project-cc (codename: codecanine)
+# project-cc (codename: codecanine) [OUTDATED README]
 
 ## Project Setup
 ```

@@ -2,10 +2,11 @@ const mariadb = require('mariadb');
 
 //give lowest privilage level when connecting to database
 const pool = mariadb.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PWD,
-    database: process.env.DB_DB,
+    port: '3302',
+    host: "localhost",
+    user: "user",
+    password: "test",
+    database: "mysql",
     connectionLimit: 5
 })
 
@@ -14,8 +15,10 @@ asyncFunction()
 async function asyncFunction() {
   try {
     var conn = await pool.getConnection();
-    const [res] = await conn.query("SELECT Post FROM user_post WHERE Post = 'a'");
-    // console.log("test", res);
+    const [res] = await conn.query("SHOW VARIABLES WHERE Variable_name = 'hostname'");
+    console.log("v1", res);
+    const [res2] = await conn.query("SHOW VARIABLES WHERE Variable_name = 'port'");
+    console.log("v2", res2)
   }
   catch (err) {
     console.log("ended conn on err", err)

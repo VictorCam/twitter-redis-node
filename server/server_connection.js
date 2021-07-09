@@ -5,14 +5,23 @@ const sql = postgres({
   host: "localhost",
   username: 'postgres',
   password: 'test',
-  database: "postgres",
+  database: 'postgres',
+  port: 5430
 })
 
-async function test() {
-await sql`SELECT 1;`
-}
+// alter role postgres with password 'test';
+// in /etc/postgresql/13/main/pg_hba.conf write => host all postgres 172.17.0.1/32 md5
+// in /etc/postgresql/13/main/postgresql.conf write => listen_addresses = 'localhost, 172.17.0.2'
+// 172.17.0.2 (should be the IP of the machine)
 
+async function test() {
+test = await sql`SELECT inet_server_addr()`
+console.log("test", test)
+test = await sql`SELECT * FROM pg_settings WHERE name = 'port'`
+console.log("test", test)
+}
 test()
+
 
 //give lowest privilage level when connecting to database
 // const pool = mariadb.createPool({

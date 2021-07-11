@@ -3,16 +3,12 @@ const postgres = require('postgres')
 
 const sql = postgres({
   host: "localhost",
-  username: 'postgres',
+  username: 'puser',
   password: 'test',
-  database: 'postgres',
   port: 5430
 })
 
 // alter role postgres with password 'test';
-// in /etc/postgresql/13/main/pg_hba.conf write => host all postgres 172.17.0.1/32 md5
-// in /etc/postgresql/13/main/postgresql.conf write => listen_addresses = 'localhost, 172.17.0.2'
-// 172.17.0.2 (should be the IP of the machine)
 
 async function test() {
 test = await sql`SELECT inet_server_addr()`

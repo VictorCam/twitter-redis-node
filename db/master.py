@@ -21,17 +21,26 @@ def replace(file,searchExp,replaceExp):
             line = line.replace(searchExp,replaceExp)
         sys.stdout.write(line)
 
+#configure postgresql files
+file = open("../../etc/postgresql/13/main/pg_hba.conf", "a")
+file.write("host all puser 172.17.0.1/32 md5\n")
+file.close()
+file = open("../../etc/postgresql/13/main/postgresql.conf", "a")
+file.write('listen_addresses = \'localhost,' + get_ip_address("eth0") + '\'\n')
+file.close()
+
 #use port for apache2
 apache2_conf_dir = "../../etc/apache2/ports.conf"
-port_apache2_id = raw_input("enter unique port@apache2: ") # make sure to bind with docker (81:81)
+port_apache2_id = raw_input("enter unique port@apache2: ")
 replace(apache2_conf_dir, "Listen 80", "Listen " + port_apache2_id)
 
-#edit sql master file for passwords and ip assignment
+#setup scripts
+os.system('/usr/pgadmin4/bin/setup-web.sh')
+os.system("su postgres")
+# os.system("psql < master.sql")
 
-#restart service files that were edited
-os.system('systemctl restart mariadb')
+# #restart service files that were edited
+os.system('systemctl restart postgresql')
 os.system('systemctl restart apache2')
-
-# os.system("echo 'test' >> test.sql")
 
 print("==[DONE]==")

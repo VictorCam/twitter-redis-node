@@ -1,7 +1,3 @@
-# IMPORTANT REFERENECES
-# https://pgtune.leopard.in.ua/#/
-# https://medium.com/swlh/postgresql-replication-with-docker-c6a904becf77
-
 version: '3.3'
 services:
     postgres:
@@ -19,10 +15,20 @@ services:
         depends_on:
             - postgres
         ports:
-            - '81:80'
+            - '80:80'
         environment:
             - PGADMIN_DEFAULT_EMAIL=noob@gmail.com
             - PGADMIN_DEFAULT_PASSWORD=password
         volumes:
             - ./admin:/var/lib/pgadmin
         image: dpage/pgadmin4:latest
+
+
+# IMPORTANT REF
+# https://pgtune.leopard.in.ua/#/
+# https://medium.com/swlh/postgresql-replication-with-docker-c6a904becf77
+
+# IMPORTANT INFO
+# postgres password is test
+# puser password is test
+# (theres point in stealing this script kiddies lol)

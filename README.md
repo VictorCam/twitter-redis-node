@@ -1,27 +1,55 @@
-# project-cc (codename: codecanine) [OUTDATED README]
+# project-cc (codename: codecanine)
 
-## Project Setup
+## Project Setup (use sudo when needed)
+
+### A. database (./db)
 ```
-NOTE: this should all be on the base/root directory (use sudo when needed) (UPDATE THIS!)
+1. docker-compose up (MAKE SURE DOCKER IS RUNNING)
+```
+
+### B. server (./server)
+```
 1. npm install
 2. npm install -g nodemon
-3. npm install -g @vue/cli
-4. npm install -g pm2
-5. make .env file then write "TOKEN_SECRET = xxx"
-6. npm run serve (starts frontend for vue)
-7. npm run server (starts backend for database)
+3. npm install -g pm2
+4. make .env file with the following:
+
+    TOKEN_SECRET = xxx
+    COOKIE_PARSER_SECRET = xxx
+    BCRYPT_ROUNDS = 13
+    DB_HOST=xxx
+    DB_USER=xxx
+    DB_PWD=xxx
+    DB_DB=xxx
+
+5. npm run server (run nodejs)
 ```
 
-## Other Commands
+### C. client (./client)
 ```
-NOTE: (UPDATE THIS!)
-npm run build (Compiles and minifies for production)
-npm run lint (Lints and fixes files)
-vue ui (User interface)
-npm update OR npm ncu -u (fix vulerabilities)
+1. npm install
+2. npm install -g @vue/cli
+3. npm run serve (run vuejs)
 ```
 
-## Resources
-See [Configuration Reference](https://cli.vuejs.org/config/).
-See [Vue Developer Tools](https://github.com/vuejs/vue-devtools#vue-devtools).
+### REQUIRED INSTALLS
+https://nodejs.org/en/download/
+https://git-scm.com/downloads
+https://docs.docker.com/get-docker/
+
+### RECOMMENDED
+https://code.visualstudio.com/
+https://desktop.github.com/
+
+### VSCODE RECOMMENDED INSTALLS
+https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker
+https://marketplace.visualstudio.com/items?itemName=octref.vetur
+
+
+### other
+```
+npm run build (vuejs: Compiles and minifies for production)
+npm run lint (vuejs: Lints and fixes files)
+npm update OR npm ncu -u (npm: fix vulerabilities)
+```
 

@@ -20,7 +20,7 @@ services:
             - PGADMIN_DEFAULT_EMAIL=noob@gmail.com
             - PGADMIN_DEFAULT_PASSWORD=password
         volumes:
-            - ./admin:/var/lib/pgadmin
+            - ./pgadmin4.db:/var/lib/pgadmin/pgadmin4.db
         image: dpage/pgadmin4:latest
 
 

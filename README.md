@@ -2,12 +2,12 @@
 
 ## Project Setup (use sudo when needed)
 
-### 1. database (./db)
+### 1. DATABASE (./db)
 ```
 A. docker-compose up (MAKE SURE DOCKER IS RUNNING)
 ```
 
-### 2. server (./server)
+### 2. SERVER (./server)
 ```
 A. npm install
 B. npm install -g nodemon
@@ -25,7 +25,7 @@ D. make .env file with the following:
 E. npm run server (run nodejs)
 ```
 
-### 3. client (./client)
+### 3. CLIENT (./client)
 ```
 A. npm install
 B. npm install -g @vue/cli
@@ -33,21 +33,20 @@ C. npm run serve (run vuejs)
 ```
 
 ### REQUIRED INSTALLS
-[a Nodejs](https://nodejs.org/en/download/)
-[a Git](https://git-scm.com/downloads)
-[a Docker][https://docs.docker.com/get-docker/]
+[Nodejs](https://nodejs.org/en/download/)</br>
+[Git](https://git-scm.com/downloads)</br>
+[Docker](https://docs.docker.com/get-docker/)</br>
 
 
 ### RECOMMENDED
-[a VScode](https://code.visualstudio.com/)
-[a GitHub](https://desktop.github.com/)
-
-### VSCODE RECOMMENDED INSTALLS
-[a VScode (Docker)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)
-[a VScode (Vetur)](https://marketplace.visualstudio.com/items?itemName=octref.vetur)
+[VScode](https://code.visualstudio.com/)</br>
+[VScode (Docker)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)</br>
+[VScode (Vetur)](https://marketplace.visualstudio.com/items?itemName=octref.vetur)</br>
+[GitHub Desktop](https://desktop.github.com/)</br>
 
 
-### other
+
+### OTHER
 ```
 npm run build (vuejs: Compiles and minifies for production)
 npm run lint (vuejs: Lints and fixes files)

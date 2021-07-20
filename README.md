@@ -4,6 +4,7 @@
 
 ### 1. DATABASE (./db)
 ```
+NOTE: localhost:80 to access pgadmin4 (user&pass in docker-compose.yml)
 A. docker-compose up (MAKE SURE DOCKER IS RUNNING)
 ```
 

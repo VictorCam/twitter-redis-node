@@ -22,7 +22,7 @@ D. make .env file with the following:
     DB_PWD=xxx
     DB_DB=xxx
 
-E. npm run server (run nodejs)
+E. nodemon server.js (run nodejs)
 ```
 
 ### 3. CLIENT (./client)

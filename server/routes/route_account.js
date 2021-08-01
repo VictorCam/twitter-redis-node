@@ -3,13 +3,18 @@ const express = require("express")
 const cors = require("cors")
 const bcrypt = require('bcrypt')
 const formidable = require('formidable')
-const pool = require("../server_connection")
+const cql = require("../server_connection")
 const check_token = require("../middleware/check_token")
 const router = express.Router()
 const Ajv = require('ajv').default
 const ajv = new Ajv()
 require("dotenv").config()
 
+router.get("/test", async (req, res) => {
+    var test = await cql.execute('SELECT userid FROM store.shopping_cart')
+    // console.log(test)
+    return res.status(200).json({"success": test.rows})
+})
 
 const val_login = ajv.compile({
     type: 'object', required: ['username', 'password'], additionalProperties: false,
@@ -71,19 +76,20 @@ router.post("/signup", async (req, res) => {
         var hashedPassword = await bcrypt.hash(req.body.password, parseInt(process.env.BCRYPT_ROUNDS))
 
         //queries
-        var conn = await pool.getConnection()
-        await conn.beginTransaction()
-        var rows1 = await conn.query("SELECT Password FROM user_tables WHERE user_tables.name = ?", [req.body.username])
-        if(rows1.length == 1) { await conn.rollback(); return res.status(409).json({"error": "username is already taken"}) }
-        await conn.query("INSERT INTO user_tables(Name, Password, icon) VALUES(?, ?, ?)", [req.body.username, hashedPassword, "Flowchart.png"])
-        await conn.commit(); await conn.release()
+        const [rows1] = await sql.begin(async sql => {
+        const [rows1] = await sql`SELECT password FROM "USER" WHERE username = ${req.body.username}`
+        console.log(rows1)
+        return [rows1]
+        // if(rows1.length == 1) return res.status(409).json({"error": "username is already taken"})
+        // await sql`INSERT INTO user_tables(Name, Password, icon) VALUES(${req.body.username}, ${hashedPassword}, "Flowchart.png")`
+        })
+        console.log(rows1)
 
         //success
         console.log("account created")
         return res.status(200).json({"status": "ok", "message": "succesfully created account"})
     }
     catch(e) {
-        await conn.rollback(); conn.destroy()
         console.log("error in /signup route ==", e)
         return res.sendStatus(500)
     }

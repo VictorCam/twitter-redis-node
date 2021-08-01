@@ -13,7 +13,8 @@ A. docker-compose up (MAKE SURE DOCKER IS RUNNING)
 A. npm install
 B. npm install -g nodemon
 C. npm install -g pm2
-D. make .env file with the following:
+D. npm install -g npm-check-updates
+E. make .env file with the following:
 
     TOKEN_SECRET = xxx
     COOKIE_PARSER_SECRET = xxx
@@ -23,7 +24,7 @@ D. make .env file with the following:
     DB_PWD=xxx
     DB_DB=xxx
 
-E. nodemon server.js (run nodejs)
+F. nodemon (run nodejs)
 ```
 
 ### 3. CLIENT (./client)
@@ -51,6 +52,6 @@ C. npm run serve (run vuejs)
 ```
 npm run build (vuejs: Compiles and minifies for production)
 npm run lint (vuejs: Lints and fixes files)
-npm update OR npm ncu -u (npm: fix vulerabilities)
+npm update OR ncu -u (npm: update packages)
 ```
 

@@ -1,36 +1,19 @@
-version: '3.3'
+version: '2'
 services:
-    postgres:
-        container_name: postgres
+    cassandra:
+        container_name: cassandra
         ports:
-            - '5500:5432'
-        environment:
-            - POSTGRES_PASSWORD=test
+            - '9042:9042'
         volumes:
-            - './pgdata:/var/lib/postgresql/data'
-            - './rc_files:/root'
-        image: postgres
-    pgadmin:
-        container_name: pgadmin
-        depends_on:
-            - postgres
+            - ./cassdata:/var/lib/cassandra
+            - ./cassscripts:/scripts
+        image: cassandra
+    redis:
+        container_name: redis
         ports:
-            - '80:80'
-        environment:
-            - PGADMIN_DEFAULT_EMAIL=noob@gmail.com
-            - PGADMIN_DEFAULT_PASSWORD=password
+            - '6379:6379'
+        command: /usr/local/etc/redis/redis.conf
         volumes:
-            - ./pgadmin4.db:/var/lib/pgadmin/pgadmin4.db
-        image: dpage/pgadmin4:latest
-
-
-# IMPORTANT REF
-# https://pgtune.leopard.in.ua/#/
-# https://medium.com/swlh/postgresql-replication-with-docker-c6a904becf77
-
-# IMPORTANT INFO
-
-# postgresql: username is postgres password is test
-# postgresql: username is puser password is test
-
-# pgadmin4: username is noob@gmail.com AND password is password
+            - ./redisdata:/data
+            - ./redis.conf:/usr/local/etc/redis/redis.conf
+        image: redislabs/redismod

@@ -1,6 +1,5 @@
 // const Aerospike = require('aerospike')
 
-// console.log("ojji")
 // const config = {
 //     hosts: 'localhost:3000'
 //   }

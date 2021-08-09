@@ -1,19 +1,18 @@
 version: '2'
 services:
-    cassandra:
-        container_name: cassandra
+    aerospike:
+        container_name: aerospike
         ports:
-            - '9042:9042'
+            - '3000-3002:3000-3002'
         volumes:
-            - ./cassdata:/var/lib/cassandra
-            - ./cassscripts:/scripts
-        image: cassandra
-    redis:
-        container_name: redis
+            - './aerodata:/opt/aerospike/data/'
+            - './aeroetc:/opt/aerospike/etc/'
+        image: aerospike/aerospike-server:latest
+    elastic:
+        container_name: elastic
         ports:
-            - '6379:6379'
-        command: /usr/local/etc/redis/redis.conf
-        volumes:
-            - ./redisdata:/data
-            - ./redis.conf:/usr/local/etc/redis/redis.conf
-        image: redislabs/redismod
+            - '9200:9200'
+            - '9300:9300'
+        environment:
+            - discovery.type=single-node
+        image: elasticsearch:7.13.4

@@ -1,28 +1,31 @@
 cmd line
 =========
-redis-cli
-cqlsh
-
-
-redis
-=========
-https://raw.githubusercontent.com/redis/redis/6.0/redis.conf
-KEYS *
-DEL [key]
-
-cassandra
-=========
-desc keyspaces;
-desc tables;
-use [keyspace_name];
 
 
 PLAN
 =========
+set output table
+set output json
+
+
+show tables
+show sets
+show namespaces
+show bins
+
+I think I did hte developer thing on for aerospike?
 
 -frequently updated data
 counter data gets stored in redis then eventually stored in cass
 
--consistency on cass is set to all nodes for authentication
+-searching
+search data gets stored in redis NEVER stored in cass
+store in cass then SET keywords in redis then DEL (since it's quick)
+
+searching in comments section store in cass then SET it all in redis then DEL (since it's quick)
+
+-consistency
+cass is set to all nodes for authentication on a (seperate keyspace?)
+
 
 

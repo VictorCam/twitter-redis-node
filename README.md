@@ -4,27 +4,30 @@
 
 ### 1. DATABASE (./db)
 ```
-NOTE: localhost:80 to access pgadmin4 (user&pass in docker-compose.yml)
 A. docker-compose up (MAKE SURE DOCKER IS RUNNING)
 ```
 
-### 2. SERVER (./server)
+### 2. SERVER (./server) WIP
 ```
-A. npm install
-B. npm install -g nodemon
-C. npm install -g pm2
-D. npm install -g npm-check-updates
-E. make .env file with the following:
+1. apt update || apt install apt-file -y || apt-file update
+2. apt install vim curl wget git unzip -y
+3. curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.36.0/install.sh | bash
+5. . .bashrc
+
+
+A. npmjs.com/package/aerospike (follow requirements)
+B. npm install
+1. npm install -g node-gyp
+C. npm install -g nodemon
+D. npm install -g pm2
+E. npm install -g npm-check-updates
+F. make .env file with the following:
 
     TOKEN_SECRET = xxx
     COOKIE_PARSER_SECRET = xxx
     BCRYPT_ROUNDS = 13
-    DB_HOST=xxx
-    DB_USER=xxx
-    DB_PWD=xxx
-    DB_DB=xxx
 
-F. nodemon (run nodejs)
+G. nodemon (run nodejs)
 ```
 
 ### 3. CLIENT (./client)
@@ -38,14 +41,12 @@ C. npm run serve (run vuejs)
 [Nodejs](https://nodejs.org/en/download/)</br>
 [Git](https://git-scm.com/downloads)</br>
 [Docker](https://docs.docker.com/get-docker/)</br>
-
+[VScode](https://code.visualstudio.com/)</br>
+[VScode (Vetur)](https://marketplace.visualstudio.com/items?itemName=octref.vetur)</br>
 
 ### RECOMMENDED
-[VScode](https://code.visualstudio.com/)</br>
 [VScode (Docker)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)</br>
-[VScode (Vetur)](https://marketplace.visualstudio.com/items?itemName=octref.vetur)</br>
 [GitHub Desktop](https://desktop.github.com/)</br>
-
 
 
 ### OTHER

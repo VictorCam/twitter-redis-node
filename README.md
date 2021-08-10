@@ -1,6 +1,6 @@
 # Project-CodeCanine
 
-A work in progress project. Note that Windows users should use WSL2 terminal within VScode outside of the <b>mnt</b> directory for a better experience with this project due to slower speeds.</br></br> 
+A work in progress project. Note that Windows users should use WSL2 terminal within VScode and clone the project outside of the <b>mnt</b> directory for a better experience with this project due to slower speeds.</br></br> 
 
 ## 1. DATABASE (./db)
 

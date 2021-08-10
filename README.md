@@ -13,8 +13,8 @@ B. docker-compose up
 ---
 
 ## 2. SERVER (./server)
-WSL/LINUX : [install nvm nodejs](https://github.com/nvm-sh/nvm#installing-and-updating)</br>
-MAC: [install nodejs](https://nodejs.org/en/download/)</br>
+<b>WSL/LINUX:</b> [install nvm nodejs](https://github.com/nvm-sh/nvm#installing-and-updating)</br>
+<b>MAC:</b> [install nodejs](https://nodejs.org/en/download/)</br>
 
 A. [install aerospike prerequisites](https://github.com/aerospike/aerospike-client-nodejs#Prerequisites)</br>
 B. npm install</br>

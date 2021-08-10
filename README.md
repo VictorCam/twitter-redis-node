@@ -42,14 +42,19 @@ C. npm run serve (run vuejs)</br>
 ---
 
 ## OTHER
+(vuejs: Compiles and minifies for production)
 ```
-npm run build (vuejs: Compiles and minifies for production)
+npm run build
 ```
+(vuejs: Lints and fixes files)
 ```
-npm run lint (vuejs: Lints and fixes files)
+npm run lint
 ```
+(npm: update packages)
 ```
-npm update OR ncu -u OR npm install -g npm-check-updates (npm: update packages)
+npm install -g npm-check-updates
+npm ncu -u
+npm update
 ```
 
 

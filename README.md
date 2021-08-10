@@ -1,14 +1,19 @@
 # Project-CodeCanine
 
+A work in progress project. Note that Windows users should use WSL2 terminal within VScode outside of the <b>mnt</b> directory for a better experience with this project due to slower speeds.</br></br> 
+
 ## 1. DATABASE (./db)
+
+
+<b>Windows WSL:</b> Go to Settings>Resources>WSL Integration>Enable The Distro Installed</br>
+
 A. [install docker](https://github.com/docker/docker-install#dockerdocker-install) </br>
-B. (Windows) WSL ONLY: Settings>Resources>WSL Integration>Enable Distro Installed</br>
-C. docker-compose up
+B. docker-compose up
 
 ---
 
 ## 2. SERVER (./server)
-(Windows) WSL/LINUX : [install nvm nodejs](https://github.com/nvm-sh/nvm#installing-and-updating)</br>
+WSL/LINUX : [install nvm nodejs](https://github.com/nvm-sh/nvm#installing-and-updating)</br>
 MAC: [install nodejs](https://nodejs.org/en/download/)</br>
 
 A. [install aerospike prerequisites](https://github.com/aerospike/aerospike-client-nodejs#Prerequisites)</br>

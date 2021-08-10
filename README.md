@@ -2,12 +2,13 @@
 
 ## 1. DATABASE (./db)
 A. [install docker](https://github.com/docker/docker-install#dockerdocker-install) </br>
-B. docker-compose up
+B. (Windows) WSL ONLY: Settings>Resources>WSL Integration>Enable Distro Installed</br>
+C. docker-compose up
 
 ---
 
 ## 2. SERVER (./server)
-WSL/LINUX : [install nvm nodejs](https://github.com/nvm-sh/nvm#installing-and-updating)</br>
+(Windows) WSL/LINUX : [install nvm nodejs](https://github.com/nvm-sh/nvm#installing-and-updating)</br>
 MAC: [install nodejs](https://nodejs.org/en/download/)</br>
 
 A. [install aerospike prerequisites](https://github.com/aerospike/aerospike-client-nodejs#Prerequisites)</br>

@@ -1,6 +1,11 @@
 # Project-CodeCanine
 
-A work in progress project. Note that Windows users should use WSL2 terminal within VScode and clone the project outside of the <b>mnt</b> directory for a better experience with this project due to slower speeds.</br></br> 
+A work in progress project.
+
+
+## Note for Windows Users
+
+Windows users should use WSL2 terminal within VScode and clone the project outside of the <b>mnt</b> directory for a better experience with this project due to slower speeds. Download the WSL then within VScode press Ctrl + Shift + P and lookup "Remote-WSL: New WSL Window using Distro" and pick the distro and work you way down starting with the database.</br></br>
 
 ## 1. DATABASE (./db)
 

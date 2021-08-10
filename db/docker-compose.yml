@@ -8,11 +8,11 @@ services:
             - './aerodata:/opt/aerospike/data/'
             - './aeroetc:/opt/aerospike/etc/'
         image: aerospike/aerospike-server:latest
-    elastic:
-        container_name: elastic
-        ports:
-            - '9200:9200'
-            - '9300:9300'
-        environment:
-            - discovery.type=single-node
-        image: elasticsearch:7.13.4
+    # elastic:
+    #     container_name: elastic
+    #     ports:
+    #         - '9200:9200'
+    #         - '9300:9300'
+    #     environment:
+    #         - discovery.type=single-node
+    #     image: elasticsearch:7.13.4

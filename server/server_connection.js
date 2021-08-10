@@ -1,10 +1,14 @@
-// const Aerospike = require('aerospike')
+const Aerospike = require('aerospike')
 
-// const config = {
-//     hosts: 'localhost:3000'
-//   }
+const aql = new Aerospike.Client({
+    hosts: 'localhost:3000'
+})
 
-// const key = new Aerospike.Key('test', 'demo', 'demo')
+aql.connect((error) => { 
+    if (error) throw error
+    else console.log("connected to aerospike")
+})
 
-console.log("testing123")
-// module.exports = {aql};
+const key = new Aerospike.Key('test', 'demo', 'demo')
+
+// console.log("testing123")// module.exports = {aql};

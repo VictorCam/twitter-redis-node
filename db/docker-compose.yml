@@ -6,8 +6,10 @@ services:
             - '3000-3002:3000-3002'
         volumes:
             - './aerodata:/opt/aerospike/data/'
-            - './aeroetc:/opt/aerospike/etc/'
-        image: aerospike/aerospike-server:latest
+            - './aeroetc/:/opt/aerospike/etc/'
+            - './aeroetc/features.conf:/etc/aerospike/features.conf'
+        command: ['--config-file', '/opt/aerospike/etc/aerospike.conf']
+        image: aerospike/aerospike-server-enterprise:latest
     # elastic:
     #     container_name: elastic
     #     ports:

@@ -1,3 +1,24 @@
-TOKEN_SECRET = xxx
-COOKIE_PARSER_SECRET = xxx
-BCRYPT_ROUNDS = 13
+.DS_Store
+node_modules
+/dist
+/uploads
+
+# local env files
+.env
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

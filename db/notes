@@ -1,31 +1,36 @@
-cmd line
+aerospike best pratices
 =========
+https://docs.aerospike.com/docs/architecture/storage.html
 
 
-PLAN
+cmds aerospike
 =========
 set output table
 set output json
+set KEY_SEND TRUE
+set record_print_metadata true
+
+show namespaces - like db
+show sets - (HUGE) like tables
+//record like a row or entry
+show bins - like columns
+show indexes
+
+greedy enterpise ver) TRUNCATE <namespace_name>.<set_name> //similar to dropping a table
+greedy enterprise ver) DELETE FROM test.testset where PK= 'test'
+
+//gotta udpate ttl to 1 which is kinda really weird
+execute ttl.modify_zero_ttl(1) on test.testset
+
+insert using MAP('') or LIST('')
+https://docs.aerospike.com/docs/client/nodejs/usage/kvs/read.html
+https://medium.com/techclub/starting-out-with-aerospike-10ce0358e955
+https://stackoverflow.com/questions/45193957/how-to-modify-the-ttl-of-all-records-set-with-a-ttl-of-1-in-aerospike
+
+show modules
+remove module example1.lua
 
 
-show tables
-show sets
-show namespaces
-show bins
-
-I think I did hte developer thing on for aerospike?
-
--frequently updated data
-counter data gets stored in redis then eventually stored in cass
-
--searching
-search data gets stored in redis NEVER stored in cass
-store in cass then SET keywords in redis then DEL (since it's quick)
-
-searching in comments section store in cass then SET it all in redis then DEL (since it's quick)
-
--consistency
-cass is set to all nodes for authentication on a (seperate keyspace?)
-
-
-
+MODELING
+=============
+https://docs.aerospike.com/docs/operations/configure/consistency/index.html

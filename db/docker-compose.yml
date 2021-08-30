@@ -1,20 +1,13 @@
-version: '2'
+version: '3.3'
 services:
-    aerospike:
-        container_name: aerospike
+    dgraph:
         ports:
-            - '3000-3002:3000-3002'
+            - '8080:8080'
+            - '9080:9080'
         volumes:
-            - './aerodata:/opt/aerospike/data/'
-            - './aeroetc/:/opt/aerospike/etc/'
-            - './aeroetc/features.conf:/etc/aerospike/features.conf'
-        command: ['--config-file', '/opt/aerospike/etc/aerospike.conf']
-        image: aerospike/aerospike-server-enterprise:latest
-    # elastic:
-    #     container_name: elastic
-    #     ports:
-    #         - '9200:9200'
-    #         - '9300:9300'
-    #     environment:
-    #         - discovery.type=single-node
-    #     image: elasticsearch:7.13.4
+            - '~/dgraph:/dgraph'
+        image: 'dgraph/standalone:latest'
+    ratel:
+        ports:
+            - '8000:8000'
+        image: 'dgraph/ratel:latest'

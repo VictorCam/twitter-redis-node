@@ -1,36 +1,16 @@
-aerospike best pratices
+fd cluster
 =========
-https://docs.aerospike.com/docs/architecture/storage.html
+https://apple.github.io/foundationdb/configuration.html#foundationdb-conf
 
 
-cmds aerospike
-=========
-set output table
-set output json
-set KEY_SEND TRUE
-set record_print_metadata true
+fd cmds
+=======
+https://apple.github.io/foundationdb/command-line-interface.html
 
-show namespaces - like db
-show sets - (HUGE) like tables
-//record like a row or entry
-show bins - like columns
-show indexes
-
-greedy enterpise ver) TRUNCATE <namespace_name>.<set_name> //similar to dropping a table
-greedy enterprise ver) DELETE FROM test.testset where PK= 'test'
-
-//gotta udpate ttl to 1 which is kinda really weird
-execute ttl.modify_zero_ttl(1) on test.testset
-
-insert using MAP('') or LIST('')
-https://docs.aerospike.com/docs/client/nodejs/usage/kvs/read.html
-https://medium.com/techclub/starting-out-with-aerospike-10ce0358e955
-https://stackoverflow.com/questions/45193957/how-to-modify-the-ttl-of-all-records-set-with-a-ttl-of-1-in-aerospike
-
-show modules
-remove module example1.lua
+fdbcli --exec "configure new single memory ; status" (start the new database with single redundancy memory mode)
+'fdbcli' (open cli)
+'help'
 
 
-MODELING
-=============
-https://docs.aerospike.com/docs/operations/configure/consistency/index.html
+fd modeling
+===========

@@ -1,13 +1,11 @@
-version: '3.3'
+version: '3'
 services:
-    dgraph:
-        ports:
-            - '8080:8080'
-            - '9080:9080'
-        volumes:
-            - '~/dgraph:/dgraph'
-        image: 'dgraph/standalone:latest'
-    ratel:
-        ports:
-            - '8000:8000'
-        image: 'dgraph/ratel:latest'
+  fdbc:
+    image: foundationdb/foundationdb:latest
+    volumes:
+        # - ./data:/var/fdb/data/
+        - ./logs:/var/fdb/logs/
+        - ./conf/foundationdb.conf:/etc/foundationdb/foundationdb.conf
+        - ./conf/fdb.cluster:/var/fdb/fdb.cluster
+    ports:
+      - 4500:4500/tcp

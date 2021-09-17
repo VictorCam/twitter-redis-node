@@ -3,46 +3,40 @@ const express = require("express")
 const cors = require("cors")
 const bcrypt = require('bcrypt')
 const formidable = require('formidable')
-const cql = require("../server_connection")
+const {client, sclient} = require("../server_connection")
+const {nanoid} = require('nanoid')
 const check_token = require("../middleware/check_token")
 const router = express.Router()
-const Ajv = require('ajv').default
-const ajv = new Ajv()
+const Joi = require("joi")
 require("dotenv").config()
 
 router.get("/test", async (req, res) => {
-    var test = await cql.execute('SELECT userid FROM store.shopping_cart')
-    // console.log(test)
-    return res.status(200).json({"success": test.rows})
+
+    return res.status(200).json({"success": await client.get('framework')})
 })
 
-const val_login = ajv.compile({
-    type: 'object', required: ['username', 'password'], additionalProperties: false,
-    properties: {
-        username: { type: 'string', minLength: 1, maxLength: 100 },
-        password: { type: 'string', minLength: 1, maxLength: 100 }
-    }
-})
+
 router.post("/login", async (req, res) => {
     try {
         //set headers
         res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:8080', 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
+        //schema
+        const schema = Joi.object({
+            username: Joi.string().alphanum().min(1).max(20).required(),
+            password: Joi.string().alphanum().min(1).max(100).required(),
+        })
+
         //validate json
-        val_login(req.body)
-        if(val_login.errors) return res.status(422).json({"error": val_login.errors[0].dataPath, "message": val_login.errors[0].message})
+        var valid = schema.validate(req.body)
+        if(valid.error) return res.status(422).json({"error": "invalid or missing key value"})
 
-        //queries
-        var conn = await pool.getConnection()
-        var rows = await conn.query("SELECT ID, Password FROM user_tables WHERE user_tables.Name = ?", [req.body.username])
-        if(rows.length == 0)  return res.status(401).json({"error": "incorrect username or password"})
-        await conn.end()
-
-        //compare password
-        if(!await bcrypt.compare(req.body.password, rows[0].Password)) return res.status(401).json({"message": "incorrect username or passsword"})
+        //check if user does not exist and check the password
+        if(await client.exists("user:"+req.body.username) == 0) return res.status(409).json({"error": "username does not exist"})
+        if(!await bcrypt.compare(req.body.password, await client.hget("user:"+req.body.username, "password"))) return res.status(401).json({"message": "incorrect username or passsword"})
 
         //jwt + send cookies
-        var token = jwt.sign({id: rows[0].ID}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
+        var token = jwt.sign({userid: await client.hget("user:"+req.body.username, "userid")}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
         res.cookie('authorization', `bearer ${token}`, { httpOnly: true, sameSite: 'Strict'})
         res.cookie('auth_state', 'true', {signed: true})
 
@@ -50,43 +44,61 @@ router.post("/login", async (req, res) => {
         return res.status(200).json({"status": "ok", "token": token})
     }
     catch(e) {
-        conn.destroy()
         console.log("error in /login route ==", e)
         return res.sendStatus(500)
     }
 })
 
-const val_signup = ajv.compile({
-    type: 'object', required: ['username', 'password'], additionalProperties: false,
-    properties: {
-        username: { type: 'string', minLength: 1, maxLength: 100 },
-        password: { type: 'string', minLength: 1, maxLength: 100 }
-    }
-})
 router.post("/signup", async (req, res) => {
     try {
         //set headers
         res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
 
+        //schema
+        const schema = Joi.object({
+            username: Joi.string().alphanum().min(1).max(20).required(),
+            password: Joi.string().alphanum().min(1).max(100).required(),
+            email: Joi.string().regex(/^[@A-Za-z0-9]+$/).min(1).max(100).required()
+        })
+
         //validate json
-        val_signup(req.body)
-        if(val_signup.errors) return res.status(422).json({"error": val_signup.errors[0].dataPath, "message": val_signup.errors[0].message})
+        var valid = schema.validate(req.body)
+        if(valid.error) return res.status(422).json({"error": "invalid or missing key value"})
+
+        //SEARCH IF USERNAME OR EMAIL EXIST
+        // if(await client.exists("user:"+req.body.username) == 1) return res.status(409).json({"error": "username is already taken"})
 
         //hash password
-        var hashedPassword = await bcrypt.hash(req.body.password, parseInt(process.env.BCRYPT_ROUNDS))
+        var hashpass = await bcrypt.hash(req.body.password, parseInt(process.env.BCRYPT_ROUNDS))
 
-        //queries
-        const [rows1] = await sql.begin(async sql => {
-        const [rows1] = await sql`SELECT password FROM "USER" WHERE username = ${req.body.username}`
-        console.log(rows1)
-        return [rows1]
-        // if(rows1.length == 1) return res.status(409).json({"error": "username is already taken"})
-        // await sql`INSERT INTO user_tables(Name, Password, icon) VALUES(${req.body.username}, ${hashedPassword}, "Flowchart.png")`
-        })
-        console.log(rows1)
+        //create uid and create a userid key pointer 
+        var uid = nanoid(25)
+
+        var data = {
+            "username": req.body.username,
+            "email": req.body.email,
+            "userid": uid,
+            "password": hashpass,
+            "icon": "Flowchart.png",
+            "is_admin": 0,
+            "is_deleted": 0
+        }
+
+        var sdata = {
+            "username": req.body.username,
+            "email": req.body.email,
+            "userid": uid,
+        }
+
+        //loop userid username and email
+        sclient.connect()
+        for(const prop in sdata) await sclient.hset("userid"+uid, prop, sdata[prop])
+        sclient.disconnect()
+
+        //create user kvrocks
+        for(const prop in data) await client.hset("userid:"+uid, prop, data[prop])
 
         //success
-        console.log("account created")
         return res.status(200).json({"status": "ok", "message": "succesfully created account"})
     }
     catch(e) {
@@ -107,13 +119,13 @@ router.get("/user", check_token(false), (req, res) => {
 })
 
 
-const val_profile = ajv.compile({ type: 'integer' })
+// const val_profile = ajv.compile({ type: 'integer' })
 router.get("/profile/:id", check_token(), async (req, res) => {
     try {
         //set headers
 
         //validate json
-        val_profile(parseInt(req.params.id))
+        // val_profile(parseInt(req.params.id))
         if(val_profile.errors) return res.status(422).json({"error": val_profile.errors[0].message})
 
         //queries

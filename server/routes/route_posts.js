@@ -1,38 +1,51 @@
 const express = require("express")
 const router = express.Router()
 const cors = require("cors")
-const connectsql = require("../server_connection")
+const {client} = require("../server_connection")
 const check_token = require("../middleware/check_token")
-const Ajv = require('ajv').default
-const ajv = new Ajv()
+const Joi = require("joi")
+const {nanoid} = require('nanoid')
 
-const create_post = {
-    type: 'object', required: ['message'], additionalProperties: false,
-    properties: {
-        message: { type: 'string', minLength: 1, maxLength: 100 } 
-    }
-}
+// const edit_post = {
+//     type: 'object', required: ['message', 'post_id'], additionalProperties: false,
+//     properties: {
+//         message: { type: 'string', minLength: 1, maxLength: 100 },
+//         post_id: { type: 'integer' }
+//     }
+// }
 
-const edit_post = {
-    type: 'object', required: ['message', 'post_id'], additionalProperties: false,
-    properties: {
-        message: { type: 'string', minLength: 1, maxLength: 100 },
-        post_id: { type: 'integer' }
-    }
-}
+// const delete_post = { type: 'integer' }
 
-const delete_post = { type: 'integer' }
-
-const val_create_post = ajv.compile(create_post)
-const val_edit_post = ajv.compile(edit_post)
-const val_delete_post = ajv.compile(delete_post)
+// const val_create_post = ajv.compile(create_post)
+// const val_edit_post = ajv.compile(edit_post)
+// const val_delete_post = ajv.compile(delete_post)
 
 
 router.get("/posts", check_token(), async (req, res) => {
     try {
-        var sql = "SELECT USER.ID, USER.Name, POST.POST_ID, POST.post, USER.icon FROM user_tables USER, user_post POST WHERE USER.ID = POST.ID"
-        var [rows, fields] = await connectsql.promise().query(sql)
-        return res.status(200).json(rows)
+        // var posts = await client.keys("post:*")
+        // console.log(posts)
+        // return res.status(200).json(posts)
+    }
+    catch(e) {
+        console.log("error in /posts route ==", e)
+        return res.sendStatus(500)
+    }
+})
+
+router.get("/user_posts/:page/:amount", check_token(), async (req, res) => {
+    try {
+        //we should do like at least 50 at a time
+        //get the size here of list (prevent out of bounds)
+
+        var posts = await client.lrange("user_post:"+req.userid, (req.params.amount*req.params.page), (req.params.amount*req.params.page)+req.params.amount-1)
+
+        for(var i = 0; i < posts.length; i++) {
+            console.log("test")
+            console.log(await client.hgetall("post:"+posts[i]))
+        }
+
+        return res.status(200).json(posts)
     }
     catch(e) {
         console.log("error in /posts route ==", e)
@@ -44,12 +57,29 @@ router.post("/create_post", check_token(), async (req, res) => {
     try {
         res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        val_create_post(req.body)
-        if(val_create_post.errors) return res.status(422).json({"error": val_create_post.errors[0].dataPath, "message": val_create_post.errors[0].message})
+        //schema
+        const schema = Joi.object({
+            post: Joi.string().min(1).max(100).required()
+        })
 
-        var sql = "INSERT INTO user_post(ID, Post) VALUES(?, ?)"
-        var [rows, fields] = await connectsql.promise().query(sql, [req.id, req.body.message])
-        return res.status(200).json({"post": req.body.message})
+        //validate json
+        console.log(req.body)
+        var valid = schema.validate(req.body)
+        if(valid.error) return res.status(422).json({"error": "invalid or missing key value"})
+
+        var uid = nanoid(25)
+        var data = {
+            "userid": req.userid,
+            "post": req.body.post
+        }
+
+        //create post
+        for(const prop in data) await client.hset("post:"+uid, prop, data[prop])
+
+        //connect post to user
+        client.lpush("user_post:"+req.userid, uid)
+        
+        return res.status(200).json({"post": req.body.post})
     }
     catch(e) {
         console.log("error in /create_post route ==", e)

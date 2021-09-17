@@ -4,13 +4,12 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "node": "nodemon --legacy-watch",
+    "node": "nodemon",
     "rpm": "pm2 delete all"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "ajv": "^8.6.2",
     "axios": "^0.21.1",
     "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.5",
@@ -20,8 +19,12 @@
     "express": "^4.17.1",
     "formidable": "^1.2.2",
     "helmet": "^4.6.0",
+    "ioredis": "^4.27.9",
+    "joi": "^17.4.2",
     "js-cookie": "^2.2.1",
     "jsonwebtoken": "^8.5.1",
-    "nanoid": "^3.1.23"
+    "kafkajs": "^1.15.0",
+    "nanoid": "^3.1.23",
+    "redis-modules-sdk": "^0.9.8"
   }
 }

@@ -2,6 +2,22 @@
 
 A work in progress project.
 
+//a
+
+//https://redis.io/commands/MONITOR
+
+//tmp potential stack
+kvrocks, kafka, (temp: redis modules search+json+graph), seaweedfs
+
+//max people allowed to follow is 5000
+//comparision between 5000 x 5000 n(o+m) sinter
+
+//tmp
+dpkg -i package_file.deb
+service foundationdb start
+apt remove foundationdb-clients
+apt remove foundationdb-server
+https://www.foundationdb.org/download/download-6.3.15/
 ## 1. DATABASE (./db)
 
 A. [install docker](https://github.com/docker/docker-install#dockerdocker-install) </br>
@@ -57,5 +73,6 @@ npm install -g npm-check-updates
 npm ncu -u
 npm update
 ```
+//woof
 
 

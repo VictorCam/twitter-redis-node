@@ -1,0 +1,55 @@
+==negate exclusives==
+REDIS: ==search by username and/or tag and/or score== HASH:FPOST:xxx
+userid=KV
+username
+postname
+tags --is_scrap can be implemented client side
+score
+image [small]
+is_exclusive --if 0:false then allow=>search and if 1:true then remove=>search
+post=KV
+
+KVROCKS: HASH:USERID:xxx
+post:xxx
+userid
+username
+email
+image
+desc
+join_date -UNIX?
+is_verified
+is_admin- delete, update, verify
+is_superadmin, admin/unadmin, delete, update, modify, verify,
+is_deleted
+
+
+KVROCKS: HASH:POST:xxx
+username
+filecontent
+postname
+text
+score
+tags
+views
+is_exclusive
+is_sketch
+comment_settings [redis graph]
+likes [likes->users]
+dislikes [dislikes->users HIDDEN] 
+[post->comments]
+
+
+KVROCKS: KEY
+
+==
+https://stackoverflow.com/questions/23507200/good-practices-for-designing-monthly-subscription-system-in-database
+==
+
+==check if username or email is taken [login]==
+redis: search username or email
+kvrocks: if(user||email) disallow : make account
+
+==updating a users personal information==
+redis: update hash username and/or email
+kvrocks: update userid username and/or email
+

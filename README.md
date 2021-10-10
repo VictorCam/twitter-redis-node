@@ -26,12 +26,11 @@ F. nodemon (run nodejs server)</br>
 
 ## 3. CLIENT (./client)
 A. npm install</br>
-B. npm install -g @vue/cli</br>
-C. npm run serve (run vuejs)</br>
+B. npm run dev (run astro)</br>
 
 ---
 
-## ALL REQUIRED INSTALLS
+## ALL HELPFUL/IMPORTANT INSTALLS
 [Git](https://git-scm.com/downloads)</br>
 [Docker](https://docs.docker.com/get-docker/)</br>
 [VScode](https://code.visualstudio.com/)</br>
@@ -41,14 +40,6 @@ C. npm run serve (run vuejs)</br>
 ---
 
 ## OTHER
-vuejs: Compiles and minifies for production
-```
-npm run build
-```
-vuejs: Lints and fixes files
-```
-npm run lint
-```
 npm: update packages
 ```
 npm install -g npm-check-updates

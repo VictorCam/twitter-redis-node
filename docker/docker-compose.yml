@@ -1,0 +1,35 @@
+version: '3.3'
+services:
+    # ssdb:
+    #     ports:
+    #         - '8888:8888'
+    #     image: leobuskin/ssdb-docker:latest
+    kvrocks:
+        ports:
+            - '6666:6666'
+        image: kvrocks/kvrocks:latest
+    redis:
+        # command: redis-server /data/redis-server/redis.conf
+        # volumes:
+            # - ./redis.conf:/data/redis-server/redis.conf
+        ports:
+            - '6379:6379'
+        image: redislabs/redismod:latest
+        # expose:
+        #     - '6379'
+    # cluster:
+    #     ports:
+    #         - '7000-7005:7000-7005'
+    #     image: grokzen/redis-cluster:latest
+    # envoy:
+    #     ports:
+    #         - '9999:9999'
+    #         - '6969:6969'
+    #         - '10000:10000'
+    #     volumes:
+    #         - ./envoy.yaml:/etc/envoy/envoy.yaml
+    #     image: envoyproxy/envoy:v1.18-latest
+    #     depends_on:
+    #         - cluster
+    #     links:
+    #         - cluster

@@ -3,16 +3,21 @@ const express = require("express")
 const cors = require("cors")
 const bcrypt = require('bcrypt')
 const formidable = require('formidable')
-const {client, sclient} = require("../server_connection")
+const {client, rclient} = require("../server_connection")
 const {nanoid} = require('nanoid')
 const check_token = require("../middleware/check_token")
 const router = express.Router()
 const Joi = require("joi")
 require("dotenv").config()
 
+//note to self getting a value that comes from a differnt
+//type causes an error to occur
+
 router.get("/test", async (req, res) => {
 
-    return res.status(200).json({"success": await client.get('framework')})
+    // var result = await client.hexists("post:8e4vYfI36BfvRs5MVUMaXtTUN", "userid")
+    // console.log(result)
+    return res.status(200).json({"success": "test"})
 })
 
 
@@ -21,7 +26,7 @@ router.post("/login", async (req, res) => {
         //set headers
         res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:8080', 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //schema
+        //schema (username can be email or password)
         const schema = Joi.object({
             username: Joi.string().alphanum().min(1).max(20).required(),
             password: Joi.string().alphanum().min(1).max(100).required(),
@@ -29,14 +34,23 @@ router.post("/login", async (req, res) => {
 
         //validate json
         var valid = schema.validate(req.body)
-        if(valid.error) return res.status(422).json({"error": "invalid or missing key value"})
+        if(valid.error) return res.status(422).json({"error": "invalid or missing json key value"})
 
-        //check if user does not exist and check the password
-        if(await client.exists("user:"+req.body.username) == 0) return res.status(409).json({"error": "username does not exist"})
-        if(!await bcrypt.compare(req.body.password, await client.hget("user:"+req.body.username, "password"))) return res.status(401).json({"message": "incorrect username or passsword"})
+        //get userid from username/email/phone
+        var results = await client.pipeline()
+        .get(`username:${req.body.username}`)
+        .get(`email:${req.body.username}`)
+        .get(`phone:${req.body.username}`)
+        .exec()
+
+        var userid = results[0][1] || results[1][1] || results[2][1]
+
+        //check if userid does not exist and check the password is correct
+        if(!userid) return res.status(409).json({"error": "username does not exist"})
+        if(!await bcrypt.compare(req.body.password, await client.hget(`userid:${userid}`, "password"))) return res.status(401).json({"message": "incorrect username or passsword"})
 
         //jwt + send cookies
-        var token = jwt.sign({userid: await client.hget("user:"+req.body.username, "userid")}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
+        var token = jwt.sign({userid: userid}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
         res.cookie('authorization', `bearer ${token}`, { httpOnly: true, sameSite: 'Strict'})
         res.cookie('auth_state', 'true', {signed: true})
 
@@ -49,7 +63,7 @@ router.post("/login", async (req, res) => {
     }
 })
 
-router.post("/signup", async (req, res) => {
+router.post("/register", async (req, res) => {
     try {
         //set headers
         res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
@@ -58,45 +72,49 @@ router.post("/signup", async (req, res) => {
         const schema = Joi.object({
             username: Joi.string().alphanum().min(1).max(20).required(),
             password: Joi.string().alphanum().min(1).max(100).required(),
-            email: Joi.string().regex(/^[@A-Za-z0-9]+$/).min(1).max(100).required()
+            email: Joi.string().regex(/^[.@A-Za-z0-9]+$/).min(1).max(100).required(),
+            phone: Joi.string().alphanum().min(1).max(15).required()
         })
 
         //validate json
         var valid = schema.validate(req.body)
         if(valid.error) return res.status(422).json({"error": "invalid or missing key value"})
 
-        //SEARCH IF USERNAME OR EMAIL EXIST
-        // if(await client.exists("user:"+req.body.username) == 1) return res.status(409).json({"error": "username is already taken"})
-
+        //check if username and email exists
+        var results = await client.pipeline()
+        .get(`username:${req.body.username}`)
+        .get(`email:${req.body.email}`)
+        .get(`phone:${req.body.phone}`)
+        .exec()
+        if(results[0][1] || results[1][1] || results[2][1]) return res.status(422).json({"error": "username, email, or phone already exists"})
+        
         //hash password
         var hashpass = await bcrypt.hash(req.body.password, parseInt(process.env.BCRYPT_ROUNDS))
 
-        //create uid and create a userid key pointer 
-        var uid = nanoid(25)
+        //create userid 
+        var userid = nanoid(25)
 
-        var data = {
-            "username": req.body.username,
-            "email": req.body.email,
-            "userid": uid,
-            "password": hashpass,
-            "icon": "Flowchart.png",
-            "is_admin": 0,
-            "is_deleted": 0
-        }
-
-        var sdata = {
-            "username": req.body.username,
-            "email": req.body.email,
-            "userid": uid,
-        }
-
-        //loop userid username and email
-        sclient.connect()
-        for(const prop in sdata) await sclient.hset("userid"+uid, prop, sdata[prop])
-        sclient.disconnect()
-
-        //create user kvrocks
-        for(const prop in data) await client.hset("userid:"+uid, prop, data[prop])
+        //take username and email keys
+        await client.pipeline()
+        .set(`username:${req.body.username}`, userid)
+        .set(`email:${req.body.email}`, userid)
+        .set(`phone:${req.body.phone}`, userid)
+        .hset(`userid:${userid}`,
+        [
+            "username", req.body.username,
+            "email", req.body.email,
+            "userid", userid,
+            "password", hashpass,
+            "icon", "Flowchart.png",
+            "icon_frame", 0,
+            "is_admin", 0,
+            "is_sadmin", 0,
+            "is_deleted", 0,
+            "is_verified", 0,
+            "join_date", Math.floor(new Date().getTime() / 1000),
+            "desc", "",
+        ])
+        .exec()
 
         //success
         return res.status(200).json({"status": "ok", "message": "succesfully created account"})

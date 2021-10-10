@@ -53,3 +53,13 @@ kvrocks: if(user||email) disallow : make account
 redis: update hash username and/or email
 kvrocks: update userid username and/or email
 
+
+//get the post permission if allowed to post certain things
+//add this feature later
+
+//should belong to one section of a shard
+//if we delete a post we can at least delete the post
+//perhaps the nestedcomment and znestedcomments
+
+
+# We will run it with docker-compose up --build -d --scale redis=3. It will bring up 5 containers (1 worker, 1 Envoy Proxy and 3 Redis).

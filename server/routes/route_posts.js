@@ -1,7 +1,7 @@
 const express = require("express")
 const router = express.Router()
 const cors = require("cors")
-const {client} = require("../server_connection")
+const {client, sclient, rclient} = require("../server_connection")
 const check_token = require("../middleware/check_token")
 const Joi = require("joi")
 const {nanoid} = require('nanoid')
@@ -16,16 +16,10 @@ const {nanoid} = require('nanoid')
 
 // const delete_post = { type: 'integer' }
 
-// const val_create_post = ajv.compile(create_post)
-// const val_edit_post = ajv.compile(edit_post)
-// const val_delete_post = ajv.compile(delete_post)
-
-
 router.get("/posts", check_token(), async (req, res) => {
     try {
-        // var posts = await client.keys("post:*")
-        // console.log(posts)
-        // return res.status(200).json(posts)
+        // console.log(req.userid)
+        // rclient.hset(`spost:${req.userid}`,)
     }
     catch(e) {
         console.log("error in /posts route ==", e)
@@ -33,24 +27,26 @@ router.get("/posts", check_token(), async (req, res) => {
     }
 })
 
-router.get("/user_posts/:page/:amount", check_token(), async (req, res) => {
+router.get("/user_posts", check_token(), async (req, res) => {
     try {
-        //we should do like at least 50 at a time
-        //get the size here of list (prevent out of bounds)
+        var fuserid = await client.get(`username:${req.body.username}`)
+        if(!fuserid) return res.status(200).json({"error": "user does not exist"})
+            
+        //note to self
+        //check if req.body.username exists do diff logic
+        //check if req.body.tags exists do diff logic
+        //check if both req.body exists do diff logic
 
-        var posts = await client.lrange("user_post:"+req.userid, (req.params.amount*req.params.page), (req.params.amount*req.params.page)+req.params.amount-1)
-
-        for(var i = 0; i < posts.length; i++) {
-            console.log("test")
-            console.log(await client.hgetall("post:"+posts[i]))
-        }
-
-        return res.status(200).json(posts)
+        sclient.connect()
+        var results = await sclient.search("spost", `@userid:{${fuserid}} @tags:{${req.body.tags}}`, {limit: {first: 0, num: 50} })
+        if(results == 0) return res.status(200).json({"results": "wOOF no posts found :("})
+        return res.status(200).json({"results": results})
     }
     catch(e) {
         console.log("error in /posts route ==", e)
         return res.sendStatus(500)
-    }
+    } 
+    finally { sclient.disconnect() }
 })
 
 router.post("/create_post", check_token(), async (req, res) => {
@@ -62,24 +58,39 @@ router.post("/create_post", check_token(), async (req, res) => {
             post: Joi.string().min(1).max(100).required()
         })
 
-        //validate json
-        console.log(req.body)
-        var valid = schema.validate(req.body)
-        if(valid.error) return res.status(422).json({"error": "invalid or missing key value"})
-
+        //validate json & make new post uid
+        // var valid = schema.validate(req.body)
+        // if(valid.error) return res.status(422).json({"error": "invalid or missing key value"})
+        
+        //uid for unique post id and for comment id
         var uid = nanoid(25)
-        var data = {
-            "userid": req.userid,
-            "post": req.body.post
-        }
+
+        //create indexed post
+        await rclient.hset(`spost:${uid}`, 
+        [
+            "userid", req.userid,
+            "score", 0,
+            "tags", req.body.tags,
+            "simage", "test.png",
+            "postname", req.body.postname
+        ])
 
         //create post
-        for(const prop in data) await client.hset("post:"+uid, prop, data[prop])
-
-        //connect post to user
-        client.lpush("user_post:"+req.userid, uid)
+        await client.hset(`post:${uid}`,
+        [
+            "filecontent", "test.png",
+            "userid", req.userid,
+            "views", 0,
+            "postname", req.body.postname,
+            "score", 0,
+            "desc", req.body.desc,
+            "tags", req.body.tags,
+            "commentperm", req.body.commentperm,
+            "zcomments", 0
+        ])
+        //we'll add zcomments when a post actually gets made
         
-        return res.status(200).json({"post": req.body.post})
+        return res.status(200).json({"post": req.body.desc, "postid": uid})
     }
     catch(e) {
         console.log("error in /create_post route ==", e)
@@ -120,5 +131,4 @@ router.delete("/delete_post/:post", check_token(), async (req, res) => {
 })
 
 router.use(cors());
-
 module.exports = router;

@@ -31,12 +31,13 @@ app.use((error, req, res, next) => {
 })
 
 //imported routes
-const users = require('./routes/route_users')
-const login = require('./routes/route_account')
+const users = require("./routes/route_users")
+const login = require("./routes/route_account")
 const posts = require("./routes/route_posts")
+const comment = require("./routes/route_comment")
 
 //linked routes (route middleware)
-app.use("/", [users, login, posts])
+app.use("/", [users, login, posts, comment])
 
 
 //port

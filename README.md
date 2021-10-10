@@ -2,10 +2,11 @@
 
 A woof in progress project. 
 
-## 1. Docker (./docker)
+## 1. DOCKER (./docker)
 
 A. [install docker](https://github.com/docker/docker-install#dockerdocker-install) </br>
 B. docker-compose up
+
 ---
 
 ## 2. SERVER (./server)

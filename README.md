@@ -29,6 +29,7 @@ F. nodemon (run nodejs server)</br>
 A. npm install</br>
 B. npm run dev (run astro)</br>
 
+
 ---
 
 ## ALL HELPFUL/IMPORTANT INSTALLS
@@ -37,7 +38,7 @@ B. npm run dev (run astro)</br>
 [VScode](https://code.visualstudio.com/)</br>
 [VScode (Vetur)](https://marketplace.visualstudio.com/items?itemName=octref.vetur)</br>
 [VScode (Docker)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)</br>
-//include live-server for serving index files
+
 ---
 
 ## OTHER

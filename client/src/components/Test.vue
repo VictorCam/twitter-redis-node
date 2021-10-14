@@ -29,14 +29,14 @@ export default {
     const form = reactive({...jform}) //form signup
 
     async function onSubmit() { //method
-        var test = await fetch('/bear', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ hungry: true })
-    })
-    console.log(test)
+      var test = await fetch('http://localhost:13377/test', {
+      method: 'GET', headers: {'Content-Type': 'application/json','mode': 'cors'}})
+
+      console.log(test)
+
+      var test = await fetch('http://localhost:13377/test', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'mode': 'cors'}})
+    
     // console.log("test", state)
     //   store.dispatch('signup', form) //api call
       Object.assign(form, jform)

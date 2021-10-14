@@ -14,7 +14,7 @@ require("dotenv").config()
 //type causes an error to occur
 
 router.get("/test", async (req, res) => {
-
+    //set headers
     // var result = await client.hexists("post:8e4vYfI36BfvRs5MVUMaXtTUN", "userid")
     // console.log(result)
     return res.status(200).json({"success": "test"})

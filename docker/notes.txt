@@ -62,4 +62,7 @@ kvrocks: update userid username and/or email
 //perhaps the nestedcomment and znestedcomments
 
 
+//I like this solution because no external dependency is needed. Also I found base64 version is useuful too. crypto.randomBytes(3*4).toString('base64') //=> '9uzHqCOWI9Kq2Jdw'
+//maybe I'll consider replacing nanoid with the built in crypto module from nodejs
+
 # We will run it with docker-compose up --build -d --scale redis=3. It will bring up 5 containers (1 worker, 1 Envoy Proxy and 3 Redis).

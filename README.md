@@ -4,7 +4,7 @@ A woof in progress project.
 
 ## 1. DOCKER (./docker)
 
-A. [install docker](https://github.com/docker/docker-install#dockerdocker-install) </br>
+A. [install docker](https://docs.docker.com/get-docker/) </br>
 B. docker-compose up
 
 ---
@@ -37,7 +37,7 @@ B. npm run dev (run astro)</br>
 [VScode](https://code.visualstudio.com/)</br>
 [VScode (Vetur)](https://marketplace.visualstudio.com/items?itemName=octref.vetur)</br>
 [VScode (Docker)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)</br>
-
+//include live-server for serving index files
 ---
 
 ## OTHER

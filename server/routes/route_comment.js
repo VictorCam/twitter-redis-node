@@ -19,7 +19,7 @@ router.post("/comment", check_token(), async (req, res) => {
         // if(valid.error) return res.status(422).json({"error": "invalid or missing key value"})
 
         if(!await client.hexists(`post:${req.body.postid}`, "userid")) return res.json({"error": "post does not exist"})
-    
+        
         var commentid = nanoid(25)
         await client.pipeline()
         .zadd(`comments:${req.body.postid}`, Math.floor(new Date().getTime() / 1000), commentid)
@@ -107,7 +107,7 @@ router.get("/getcomments", check_token(), async (req, res) => {
                     "username": userinfo[1],
                     "comment":  result[i*2][1][1],
                     "likes": parseInt(result[i*2][1][2]),
-                    "has_ncomments": result[(i*2)+1][1]
+                    "has_ncomments": result[(i*2)+1][1],
                 })
             }
         }

@@ -35,9 +35,10 @@ const users = require("./routes/route_users")
 const login = require("./routes/route_account")
 const posts = require("./routes/route_posts")
 const comment = require("./routes/route_comment")
+const draw = require("./routes/route_draw")
 
 //linked routes (route middleware)
-app.use("/", [users, login, posts, comment])
+app.use("/", [users, login, posts, comment, draw])
 
 
 //port

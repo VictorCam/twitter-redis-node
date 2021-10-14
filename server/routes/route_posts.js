@@ -86,7 +86,6 @@ router.post("/create_post", check_token(), async (req, res) => {
             "desc", req.body.desc,
             "tags", req.body.tags,
             "commentperm", req.body.commentperm,
-            "zcomments", 0
         ])
         //we'll add zcomments when a post actually gets made
         

@@ -27,7 +27,7 @@ F. nodemon (run nodejs server)</br>
 
 ## 3. CLIENT (./client)
 A. npm install</br>
-B. npm run dev (run astro)</br>
+B. npm run dev (run sveltekit)</br>
 
 
 ---
@@ -36,7 +36,7 @@ B. npm run dev (run astro)</br>
 [Git](https://git-scm.com/downloads)</br>
 [Docker](https://docs.docker.com/get-docker/)</br>
 [VScode](https://code.visualstudio.com/)</br>
-[VScode (Vetur)](https://marketplace.visualstudio.com/items?itemName=octref.vetur)</br>
+[VScode (Svelte)](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode)</br>
 [VScode (Docker)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)</br>
 
 ---

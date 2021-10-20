@@ -1,6 +1,6 @@
 <script>
-import { onMount } from "svelte";
-import {register, registerapi} from "../stores/auth"
+import {onMount} from "svelte";
+import {registerapi} from "../stores/auth"
 
 onMount(() => {
 })

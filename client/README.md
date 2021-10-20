@@ -1,42 +1,38 @@
-# Welcome to [Astro](https://astro.build)
+# create-svelte
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/snowpackjs/astro/tree/latest/examples/starter)
+Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte);
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Creating a project
 
-## 🚀 Project Structure
+If you're seeing this, you've probably already done this step. Congrats!
 
-Inside of your Astro project, you'll see the following folders and files:
+```bash
+# create a new project in the current directory
+npm init svelte@next
 
-```
-/
-├── public/
-│   ├── robots.txt
-│   └── favicon.ico
-├── src/
-│   ├── components/
-│   │   └── Tour.astro
-│   └── pages/
-│       └── index.astro
-└── package.json
+# create a new project in my-app
+npm init svelte@next my-app
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+> Note: the `@next` is temporary
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Developing
 
-Any static assets, like images, can be placed in the `public/` directory.
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
-## 🧞 Commands
+```bash
+npm run dev
 
-All commands are run from the root of the project, from a terminal:
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
+```
 
-| Command         | Action                                      |
-|:----------------|:--------------------------------------------|
-| `npm install`   | Installs dependencies                       |
-| `npm run dev`   | Starts local dev server at `localhost:3000` |
-| `npm run build` | Build your production site to `./dist/`     |
+## Building
 
-## 👀 Want to learn more?
+Before creating a production version of your app, install an [adapter](https://kit.svelte.dev/docs#adapters) for your target environment. Then:
 
-Feel free to check [our documentation](https://github.com/snowpackjs/astro) or jump into our [Discord server](https://astro.build/chat).
+```bash
+npm run build
+```
+
+> You can preview the built app with `npm run preview`, regardless of whether you installed an adapter. This should _not_ be used to serve your app in production.

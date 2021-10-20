@@ -1,18 +1,20 @@
 {
-  "name": "@example/starter",
+  "name": "client",
   "version": "0.0.1",
-  "private": true,
   "scripts": {
-    "dev": "astro dev",
-    "start": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview"
+    "dev": "svelte-kit dev",
+    "build": "svelte-kit build",
+    "preview": "svelte-kit preview",
+    "lint": "eslint --ignore-path .gitignore ."
   },
   "devDependencies": {
-    "astro": "^0.20.11"
+    "@sveltejs/kit": "next",
+    "eslint": "^7.32.0",
+    "eslint-plugin-svelte3": "^3.2.1",
+    "svelte": "^3.42.6"
   },
+  "type": "module",
   "dependencies": {
-    "@astrojs/renderer-vue": "^0.1.8",
-    "vue-server-renderer": "^2.6.14"
+    "axios": "^0.23.0"
   }
 }

@@ -5,9 +5,14 @@ export const load = ({session}) => {
 }
 </script>
 
+<script>
+import Header from '../components/Header.svelte'
+</script>
+
 <style>
 </style>
 {#if false}<slot/>{/if}
 
+<Header/>
 <h1>Secure ROUTE</h1>
 <!-- {JSON.stringify(session)} -->

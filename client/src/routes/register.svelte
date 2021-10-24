@@ -1,3 +1,10 @@
+<script context="module">
+    export const load = ({session}) => {
+        if(session.auth) return { status: 301, redirect: `/secure` }
+        return {}
+    }
+</script>
+
 <script>
 import axios from 'axios'
 import {goto} from '$app/navigation'

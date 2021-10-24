@@ -1,6 +1,5 @@
 <script context="module">
 export const load = ({session}) => {
-    console.log("load session:", session)
     if(!session.auth) return { status: 301, redirect: `/login` }
     return {}
 }

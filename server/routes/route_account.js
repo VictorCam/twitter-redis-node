@@ -24,7 +24,7 @@ router.get("/test", async (req, res) => {
 router.post("/login", async (req, res) => {
     try {
         //set headers
-        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:3000', 'Accept': 'application/json', 'Content-Type': 'application/json'})
+        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
         //schema (username can be email or password)
         // const schema = Joi.object({
@@ -49,10 +49,9 @@ router.post("/login", async (req, res) => {
         if(!userid) return res.status(409).json({"error": "username does not exist"})
         if(!await bcrypt.compare(req.body.password, await client.hget(`userid:${userid}`, "password"))) return res.status(401).json({"message": "incorrect username or passsword"})
 
-        //jwt + send cookies
+        //jwt + send auth cookie
         var token = jwt.sign({userid: userid}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
         res.cookie('authorization', `bearer ${token}`, { httpOnly: true, sameSite: 'Strict'})
-        res.cookie('auth_state', 'true', {signed: true})
 
         //success
         return res.status(200).json({"status": "ok", "token": token})
@@ -66,7 +65,7 @@ router.post("/login", async (req, res) => {
 router.post("/register", async (req, res) => {
     try {
         //set headers
-        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:3000', 'Accept': 'application/json', 'Content-Type': 'application/json'})
+        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
         //schema
         // const schema = Joi.object({
@@ -125,9 +124,8 @@ router.post("/register", async (req, res) => {
 })
 
 router.get("/logout", (req, res) => {
-    res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:3000'})
+    res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API})
     res.clearCookie('authorization')
-    res.cookie('auth_state', 'false')
     return res.sendStatus(200)
 })
 

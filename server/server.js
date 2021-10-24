@@ -5,7 +5,7 @@ const helmet = require("helmet")
 const app = express()
 require("dotenv").config()
 
-const corsOptions = { origin: 'http://localhost:3000', credentials: true }
+const corsOptions = { origin: process.env.CLIENT_API, credentials: true }
 
 const fileOptions = {
   dotfiles: "ignore",

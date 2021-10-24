@@ -5,7 +5,7 @@ module.exports = function() {
   return function (req, res, next) {
     res.set({
     'Access-Control-Allow-Credentials': true,
-    'Access-Control-Allow-Origin': 'http://localhost:3000',
+    'Access-Control-Allow-Origin': process.env.CLIENT_API,
     'Access-Control-Allow-Headers': 'Authorization'
     })
 
@@ -30,8 +30,6 @@ module.exports = function() {
 }
 
 function no_auth(req, res, next) {
-  console.log("no auth")
   res.clearCookie('authorization')
-  res.cookie('auth_state', 'false')
   return res.status(401).json({"Error": "auth not found"})
 }

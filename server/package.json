@@ -25,8 +25,9 @@
     "jsonwebtoken": "^8.5.1",
     "kafkajs": "^1.15.0",
     "nanoid": "^3.1.23",
-    "nodemon": "^2.0.13",
+    "nodemon": "^2.0.14",
     "prerender-node": "^3.2.5",
+    "rate-limiter-flexible": "^2.3.1",
     "redis-modules-sdk": "^0.9.8",
     "wrtc": "^0.4.7"
   }

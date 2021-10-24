@@ -5,7 +5,7 @@ module.exports = function() {
   return function (req, res, next) {
     res.set({
     'Access-Control-Allow-Credentials': true,
-    'Access-Control-Allow-Origin': 'http://localhost:8080',
+    'Access-Control-Allow-Origin': 'http://localhost:3000',
     'Access-Control-Allow-Headers': 'Authorization'
     })
 

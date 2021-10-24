@@ -1,5 +1,4 @@
 <script>
-
 </script>
 {#if false}<slot/>{/if}
 

@@ -24,17 +24,17 @@ router.get("/test", async (req, res) => {
 router.post("/login", async (req, res) => {
     try {
         //set headers
-        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:8080', 'Accept': 'application/json', 'Content-Type': 'application/json'})
+        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:3000', 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
         //schema (username can be email or password)
-        const schema = Joi.object({
-            username: Joi.string().alphanum().min(1).max(20).required(),
-            password: Joi.string().alphanum().min(1).max(100).required(),
-        })
+        // const schema = Joi.object({
+        //     username: Joi.string().alphanum().min(1).max(20).required(),
+        //     password: Joi.string().alphanum().min(1).max(100).required(),
+        // })
 
-        //validate json
-        var valid = schema.validate(req.body)
-        if(valid.error) return res.status(422).json({"error": "invalid or missing json key value"})
+        // //validate json
+        // var valid = schema.validate(req.body)
+        // if(valid.error) return res.status(422).json({"error": "invalid or missing json key value"})
 
         //get userid from username/email/phone
         var results = await client.pipeline()
@@ -66,19 +66,22 @@ router.post("/login", async (req, res) => {
 router.post("/register", async (req, res) => {
     try {
         //set headers
-        res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
+        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:3000', 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
         //schema
-        const schema = Joi.object({
-            username: Joi.string().alphanum().min(1).max(20).required(),
-            password: Joi.string().alphanum().min(1).max(100).required(),
-            email: Joi.string().regex(/^[.@A-Za-z0-9]+$/).min(1).max(100).required(),
-            phone: Joi.string().alphanum().min(1).max(15).required()
-        })
+        // const schema = Joi.object({
+        //     username: Joi.string().alphanum().min(1).max(20).required(),
+        //     password: Joi.string().alphanum().min(1).max(100).required(),
+        //     email: Joi.string().regex(/^[.@A-Za-z0-9]+$/).min(1).max(100).required(),
+        //     phone: Joi.string().alphanum().min(1).max(15).required()
+        // })
 
         //validate json
-        var valid = schema.validate(req.body)
-        if(valid.error) return res.status(422).json({"error": "invalid or missing key value"})
+        // var valid = schema.validate(req.body)
+        // if(valid.error) return res.status(422).json({"error": "invalid or missing key value"})
+
+        //hash password first to prevent duplicate users with multiple requests
+        var hashpass = await bcrypt.hash(req.body.password, parseInt(process.env.BCRYPT_ROUNDS))
 
         //check if username and email exists
         var results = await client.pipeline()
@@ -87,14 +90,10 @@ router.post("/register", async (req, res) => {
         .get(`phone:${req.body.phone}`)
         .exec()
         if(results[0][1] || results[1][1] || results[2][1]) return res.status(422).json({"error": "username, email, or phone already exists"})
-        
-        //hash password
-        var hashpass = await bcrypt.hash(req.body.password, parseInt(process.env.BCRYPT_ROUNDS))
 
-        //create userid 
         var userid = nanoid(25)
 
-        //take username and email keys
+        //create userid
         await client.pipeline()
         .set(`username:${req.body.username}`, userid)
         .set(`email:${req.body.email}`, userid)
@@ -126,7 +125,7 @@ router.post("/register", async (req, res) => {
 })
 
 router.get("/logout", (req, res) => {
-    res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:8080'})
+    res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': 'http://localhost:3000'})
     res.clearCookie('authorization')
     res.cookie('auth_state', 'false')
     return res.sendStatus(200)

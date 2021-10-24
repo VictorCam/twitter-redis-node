@@ -2,9 +2,12 @@
 import { onMount } from "svelte";
 import {fetchPokemon, pokemon} from "../stores/pokestore"
 
-onMount(() => {
-    fetchPokemon()
-})
+
+// https://svelte.dev/repl/3011c3a4416c43018c82fcfac875bf60?version=3.38.2
+// onMount(() => {
+//     fetchPokemon()
+// })
+fetchPokemon()
 </script>
 {#if false}<slot/>{/if}
 

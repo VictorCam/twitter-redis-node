@@ -49,15 +49,14 @@ router.get("/user_posts", check_token(), async (req, res) => {
     finally { sclient.disconnect() }
 })
 
-router.post("/create_post", check_token(), async (req, res) => {
+router.post("/post", check_token(), async (req, res) => {
     try {
         res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
 
         //schema
-        const schema = Joi.object({
-            post: Joi.string().min(1).max(100).required()
-        })
-
+        // const schema = Joi.object({
+        //     post: Joi.string().min(1).max(100).required()
+        // })
         //validate json & make new post uid
         // var valid = schema.validate(req.body)
         // if(valid.error) return res.status(422).json({"error": "invalid or missing key value"})
@@ -85,9 +84,9 @@ router.post("/create_post", check_token(), async (req, res) => {
             "score", 0,
             "desc", req.body.desc,
             "tags", req.body.tags,
-            "commentperm", req.body.commentperm,
+            "canComment", req.body.canComment,
+            "canCommentImg", req.body.canCommentImg
         ])
-        //we'll add zcomments when a post actually gets made
         
         return res.status(200).json({"post": req.body.desc, "postid": uid})
     }

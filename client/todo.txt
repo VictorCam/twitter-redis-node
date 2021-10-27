@@ -1,1 +1,8 @@
-1. learn grid
+1. learn css/css manipulation
+2. learn grid
+(DONT FORGET STATUS CODE FOR ERRORS NODEJS!)
+
+
+
+//interesting post
+//https://blog.carbonfive.com/using-redis-sorted-sets-to-build-a-scalable-real-time-web-waiting-list/

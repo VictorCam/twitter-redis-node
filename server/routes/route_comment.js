@@ -101,7 +101,7 @@ router.get("/comment", check_token(), async (req, res) => {
         return res.status(200).json(commentlist)
     }
     catch (e) {
-        console.log("error in /getcomments route ==", e)
+        console.log("error in /comment route ==", e)
         return res.sendStatus(500)   
     }
 })
@@ -134,7 +134,7 @@ router.get("/ncomment", check_token(), async (req, res) => {
         return res.status(200).json(commentlist)
     }
     catch (e) {
-        console.log("error in /getncomments route ==", e)
+        console.log("error in /ncomment route ==", e)
         return res.sendStatus(500)   
     }
 })
@@ -221,7 +221,7 @@ router.put("/ncomment", check_token(), async (req, res) => {
         return res.status(200).json({"status": "ok"})
     }
     catch(e) {
-        console.log("error in /editcomment route ==", e)
+        console.log("error in /ncomment route ==", e)
         return res.sendStatus(500)   
     }
 })
@@ -236,6 +236,7 @@ router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => 
         if(req.userid != userid) return res.json({"error": "you do not own this comment or comment does not exist"})
 
         //recommended to use unlink (kvrocks does not support yet but upstash does)
+        //[cannot implement]: get the list of ncomments and delete it (not viable/worth it) 
         await client.pipeline()
         .del(`comment:${req.params.commentid}`)
         .zrem(`comments:${req.params.postid}`, req.params.commentid)
@@ -245,7 +246,7 @@ router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => 
         return res.status(200).json({"status": "ok"})
     }
     catch(e) {
-        console.log("error in /editcomment route ==", e)
+        console.log("error in /comment/:/: route ==", e)
         return res.sendStatus(500)   
     }
 })
@@ -267,7 +268,7 @@ router.delete("/ncomment/:commentid/:ncommentid", check_token(), async (req, res
         return res.status(200).json({"status": "ok"})
     }
     catch(e) {
-        console.log("error in /editcomment route ==", e)
+        console.log("error in /ncomment/:/: route ==", e)
         return res.sendStatus(500)   
     }
 })

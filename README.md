@@ -20,6 +20,7 @@ E. make .env file with the following:
     TOKEN_SECRET = xxx
     COOKIE_PARSER_SECRET = xxx
     BCRYPT_ROUNDS = 13
+    CLIENT_API = http://localhost:3000
 
 F. nodemon (run nodejs server)</br>
 
@@ -27,7 +28,11 @@ F. nodemon (run nodejs server)</br>
 
 ## 3. CLIENT (./client)
 A. npm install</br>
-B. npm run dev (run sveltekit)</br>
+B. make .env file with the following:
+
+    VITE_SERVER="http://localhost:13377"
+    
+C. npm run dev (run sveltekit)</br>
 
 
 ---
@@ -38,6 +43,7 @@ B. npm run dev (run sveltekit)</br>
 [VScode](https://code.visualstudio.com/)</br>
 [VScode (Svelte)](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode)</br>
 [VScode (Docker)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)</br>
+[Postman](https://www.postman.com/downloads/)</br>
 
 ---
 

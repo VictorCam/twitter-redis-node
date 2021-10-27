@@ -40,15 +40,15 @@ router.post("/ncomment", check_token(), async (req, res) => {
         //missing headers
         //missing schema
 
-        var results = await client.pipeline()
+        var cidlist = await client.pipeline()
         .hexists(`post:${req.body.postid}`, "userid")
         .hmget(`comment:${req.body.commentid}`, `postid`, `ncomments_size`)
         .exec()
 
         
-        if(!results[0][1]) return res.json({"error": "post does not exist"})
-        if(results[1][1][0] != req.body.postid) return res.json({"error": "comment does not exist" })
-        if(results[1][1][1] >= 500) return res.json({"error": "comment has reached max reply limit"})
+        if(!cidlist[0][1]) return res.json({"error": "post does not exist"})
+        if(cidlist[1][1][0] != req.body.postid) return res.json({"error": "comment does not exist" })
+        if(cidlist[1][1][1] >= 500) return res.json({"error": "comment has reached max reply limit"})
 
         var ncommentid = nanoid(25)
         
@@ -66,12 +66,7 @@ router.post("/ncomment", check_token(), async (req, res) => {
     }
 })
 
-//for ncomment and comment
-//maybe we secretly let users delete comments
-//so we avoid extra api calls to the backend
-//can imagine attacker doing nasty attacks
-//could create tons of comments and mass delete
-//then mass query a ton of empty data
+//api redesign to check if ncomments 
 
 router.get("/comment", check_token(), async (req, res) => {
     try {
@@ -86,35 +81,24 @@ router.get("/comment", check_token(), async (req, res) => {
         var type = ("liked" == req.query.type) ? "comments_liked:" : "comments:"
         var start = parseInt(req.query.amount)*parseInt(req.query.page)+parseInt(req.query.page)
         var end = parseInt(req.query.amount)*((parseInt(req.query.page)+1))+parseInt(req.query.page)
-        var results = await client.zrange(type+req.query.postid, start, end)
+        var cidlist = await client.zrange(type+req.query.postid, start, end)
 
         var pipe = client.pipeline()
-        for (let i = 0; i < results.length; i++) { 
-            pipe.hmget(`comment:${results[i]}`, "userid", "comment", "likes", "postid", "ncomments_size", "isupdated")
-            pipe.exists(`ncomments:${results[i]}`)
+        for (let i = 0; i < cidlist.length; i++) { 
+            pipe.hgetall(`comment:${cidlist[i]}`)
         }
-        var result = await pipe.exec()
+        var cdata = await pipe.exec()
 
-        var array = []
-        for (let i = 0; i < results.length; i++) {
-            if(result[i*2][1][0]) {
-            var userinfo = await client.hmget(`userid:${result[i*2][1][0]}`, "icon", "username")
-                array.push({
-                    "postid": result[i*2][1][3],
-                    "commentid": results[i],
-                    "userid": result[i*2][1][0],
-                    "icon": userinfo[0],
-                    "username": userinfo[1],
-                    "comment":  result[i*2][1][1],
-                    "likes": parseInt(result[i*2][1][2]),
-                    "has_ncomments": result[(i*2)+1][1],
-                    "ncomments_size": parseInt(result[i*2][1][4]),
-                    "isupdated": parseInt(result[i*2][1][5])
-                })
-            }
+        var commentlist = []
+        for (let i = 0; i < cidlist.length; i++) {
+            var userinfo = await client.hmget(`userid:${cdata[0][1].userid}`, "icon", "username")
+            cdata[i][1]["commentid"] = cidlist[i]
+            cdata[i][1]["icon"] = userinfo[0]
+            cdata[i][1]["username"] = userinfo[1]
+            commentlist.push(cdata[i][1])
         }
         
-        return res.status(200).json(array)
+        return res.status(200).json(commentlist)
     }
     catch (e) {
         console.log("error in /getcomments route ==", e)
@@ -130,34 +114,72 @@ router.get("/ncomment", check_token(), async (req, res) => {
 
         var start = parseInt(req.query.amount)*parseInt(req.query.page)+parseInt(req.query.page)
         var end = parseInt(req.query.amount)*((parseInt(req.query.page)+1))+parseInt(req.query.page)
-        var results = await client.zrange(`ncomments:${req.query.commentid}`, start, end)
+        var cidlist = await client.zrange(`ncomments:${req.query.commentid}`, start, end)
 
         var pipe = client.pipeline()
-        for (let i = 0; i < results.length; i++) { 
-            pipe.hgetall(`ncomment:${results[i]}`)
+        for (let i = 0; i < cidlist.length; i++) { 
+            pipe.hgetall(`ncomment:${cidlist[i]}`)
         }
-        var result = await pipe.exec()
+        var cdata = await pipe.exec()
 
-        var array = []
-        for (let i = 0; i < results.length; i++) {
-            if(result[i][1].userid) {
-            var userinfo = await client.hmget(`userid:${result[i][1].userid}`, "icon", "username")
-                array.push({
-                    "userid": result[i][1].userid,
-                    "icon": userinfo[0],
-                    "username": userinfo[1],
-                    "comment":  result[i][1].ncomment,
-                    "likes": parseInt(result[i][1].likes),
-                    "isupdated": parseInt(result[i][1].isupdated)
-                })
-            }
+        var commentlist = []
+        for (let i = 0; i < cidlist.length; i++) {
+            var userinfo = await client.hmget(`userid:${cdata[i][1].userid}`, "icon", "username")
+            cdata[i][1]["ncommentid"] = cidlist[i]
+            cdata[i][1]["icon"] = userinfo[0]
+            cdata[i][1]["username"] = userinfo[1]
+            commentlist.push(cdata[i][1])
         }
         
-        return res.status(200).json(array)
+        return res.status(200).json(commentlist)
     }
     catch (e) {
         console.log("error in /getncomments route ==", e)
         return res.sendStatus(500)   
+    }
+})
+
+router.get("/comment/:commentid", check_token(), async (req, res) => {
+    try {
+
+        //missing headers
+        //missing schema
+
+        var comment = await client.hgetall(`comment:${req.params.commentid}`)
+        if(!comment) return res.json({"error": "comment does not exist"})
+
+        var userid = await client.hmget(`userid:${comment.userid}`, ["icon", "username"])
+        comment["commentid"] = req.params.commentid
+        comment["icon"] = userid[0]
+        comment["username"] = userid[1]
+
+        return res.status(200).json(comment)
+    }
+    catch(e) {
+        console.log("error in /comment/: route ==", e)
+        return res.sendStatus(500)      
+    }
+})
+
+router.get("/ncomment/:ncommentid", check_token(), async (req, res) => {
+    try {
+
+        //missing headers
+        //missing schema
+
+        var ncomment = await client.hgetall(`ncomment:${req.params.ncommentid}`)
+        if(!ncomment) return res.json({"error": "ncomment does not exist"})
+
+        var userid = await client.hmget(`userid:${ncomment.userid}`, ["icon", "username"])
+        ncomment["ncommentid"] = req.params.ncommentid
+        ncomment["icon"] = userid[0]
+        ncomment["username"] = userid[1]
+
+        return res.status(200).json(ncomment)
+    }
+    catch(e) {
+        console.log("error in /ncomment/: route ==", e)
+        return res.sendStatus(500)      
     }
 })
 
@@ -175,7 +197,7 @@ router.put("/comment", check_token(), async (req, res) => {
         //missing schema
         
         var userid = await client.hget(`comment:${req.body.commentid}`, "userid")
-        if(req.userid != userid) return res.json({"error": "you do not own this post or it does not exist"})
+        if(req.userid != userid) return res.json({"error": "you do not own this comment or comment does not exist"})
 
         await client.hmset(`comment:${req.body.commentid}`, ["comment", req.body.comment, "isupdated", 1])
         return res.status(200).json({"status": "ok"})
@@ -191,9 +213,9 @@ router.put("/ncomment", check_token(), async (req, res) => {
 
         //missing headers
         //missing schema
-        
+
         var userid = await client.hget(`ncomment:${req.body.ncommentid}`, "userid")
-        if(req.userid != userid) return res.json({"error": "you do not own this post or it does not exist"})
+        if(req.userid != userid) return res.json({"error": "you do not own this comment or comment does not exist"})
 
         await client.hmset(`ncomment:${req.body.ncommentid}`, ["comment", req.body.comment, "isupdated", 1])
         return res.status(200).json({"status": "ok"})
@@ -211,7 +233,7 @@ router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => 
         //missing schema
         
         var userid = await client.hget(`comment:${req.params.commentid}`, "userid")
-        if(req.userid != userid) return res.json({"error": "you do not own this post or it does not exist"})
+        if(req.userid != userid) return res.json({"error": "you do not own this comment or comment does not exist"})
 
         //recommended to use unlink (kvrocks does not support yet but upstash does)
         await client.pipeline()
@@ -230,12 +252,11 @@ router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => 
 
 router.delete("/ncomment/:commentid/:ncommentid", check_token(), async (req, res) => {
     try {
-
         //missing headers
         //missing schema
         
         var userid = await client.hget(`ncomment:${req.params.ncommentid}`, "userid")
-        if(req.userid != userid) return res.json({"error": "you do not own this post or it does not exist"})
+        if(req.userid != userid) return res.json({"error": "you do not own this comment or comment does not exist"})
 
         //recommended to use unlink (kvrocks does not support yet but upstash does)
         await client.pipeline()
@@ -253,4 +274,4 @@ router.delete("/ncomment/:commentid/:ncommentid", check_token(), async (req, res
 
 router.use(cors())
 
-module.exports = router;
+module.exports = router

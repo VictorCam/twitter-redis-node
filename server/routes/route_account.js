@@ -10,17 +10,6 @@ const router = express.Router()
 const Joi = require("joi")
 require("dotenv").config()
 
-//note to self getting a value that comes from a differnt
-//type causes an error to occur
-
-router.get("/test", async (req, res) => {
-    //set headers
-    // var result = await client.hexists("post:8e4vYfI36BfvRs5MVUMaXtTUN", "userid")
-    // console.log(result)
-    return res.status(200).json({"success": "test"})
-})
-
-
 router.post("/login", async (req, res) => {
     try {
         //set headers
@@ -129,12 +118,6 @@ router.get("/logout", (req, res) => {
     return res.sendStatus(200)
 })
 
-router.get("/user", check_token(false), (req, res) => {
-    return res.status(200).json(req.id.toString())
-})
-
-
-// const val_profile = ajv.compile({ type: 'integer' })
 router.get("/profile/:id", check_token(), async (req, res) => {
     try {
         //set headers
@@ -155,28 +138,6 @@ router.get("/profile/:id", check_token(), async (req, res) => {
     catch(e) {
         conn.destroy()
         console.log("error in /profile route ==", e)
-        return res.sendStatus(500)
-    }
-})
-
-router.post("/profile_pic", check_token(), async (req, res) => { //unsecure method of saving and not async and not using streams
-    try {
-        const form = new formidable.IncomingForm()
-        form.parse(req)
-        form.on('fileBegin', async function (name, file) {
-            file.path = './uploads/' + file.name //prevent image collissions
-
-            //queries
-            var conn = await pool.getConnection()
-            await conn.query("UPDATE user_tables SET icon = (?) WHERE user_tables.ID = (?)", [file.name, req.id])
-            await conn.release()
-
-            return res.sendStatus(200)
-        })
-    }
-    catch(e) {
-        conn.destroy()
-        console.log("error in /profile_pic route ==", e)
         return res.sendStatus(500)
     }
 })

@@ -4,8 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "node": "nodemon",
-    "rpm": "pm2 delete all"
+    "node": "nodemon"
   },
   "author": "",
   "license": "ISC",

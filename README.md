@@ -14,15 +14,14 @@ B. docker-compose up
 A. [install nodejs](https://nodejs.org/en/download/) </br>
 B. npm install</br>
 C. npm install -g nodemon</br>
-D. npm install -g pm2</br>
-E. make .env file with the following:
+D. make .env file with the following:
 
     TOKEN_SECRET = xxx
     COOKIE_PARSER_SECRET = xxx
     BCRYPT_ROUNDS = 13
     CLIENT_API = http://localhost:3000
 
-F. nodemon (run nodejs server)</br>
+E. nodemon (run nodejs server)</br>
 
 ---
 

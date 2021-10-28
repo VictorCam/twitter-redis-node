@@ -66,9 +66,7 @@ router.post("/ncomment", check_token(), async (req, res) => {
     }
 })
 
-//api redesign to check if ncomments 
-
-router.get("/comment", check_token(), async (req, res) => {
+router.get("/comment", async (req, res) => {
     try {
 
         //missing headers
@@ -106,7 +104,7 @@ router.get("/comment", check_token(), async (req, res) => {
     }
 })
 
-router.get("/ncomment", check_token(), async (req, res) => {
+router.get("/ncomment", async (req, res) => {
     try {
 
         //missing headers
@@ -139,7 +137,7 @@ router.get("/ncomment", check_token(), async (req, res) => {
     }
 })
 
-router.get("/comment/:commentid", check_token(), async (req, res) => {
+router.get("/comment/:commentid", async (req, res) => {
     try {
 
         //missing headers
@@ -161,7 +159,7 @@ router.get("/comment/:commentid", check_token(), async (req, res) => {
     }
 })
 
-router.get("/ncomment/:ncommentid", check_token(), async (req, res) => {
+router.get("/ncomment/:ncommentid", async (req, res) => {
     try {
 
         //missing headers

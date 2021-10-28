@@ -43,6 +43,7 @@ C. npm run dev (run sveltekit)</br>
 [VScode (Svelte)](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode)</br>
 [VScode (Docker)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)</br>
 [Postman](https://www.postman.com/downloads/)</br>
+[AnotherRedisDesktopManager](https://github.com/qishibo/AnotherRedisDesktopManager)</br>
 
 ---
 

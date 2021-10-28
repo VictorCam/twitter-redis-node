@@ -112,7 +112,7 @@ router.post("/register", async (req, res) => {
     }
 })
 
-router.get("/logout", (req, res) => {
+router.post("/logout", (req, res) => {
     res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API})
     res.clearCookie('authorization')
     return res.sendStatus(200)
@@ -120,23 +120,10 @@ router.get("/logout", (req, res) => {
 
 router.get("/profile/:id", check_token(), async (req, res) => {
     try {
-        //set headers
 
-        //validate json
-        // val_profile(parseInt(req.params.id))
-        if(val_profile.errors) return res.status(422).json({"error": val_profile.errors[0].message})
-
-        //queries
-        var conn = await pool.getConnection()
-        var rows = await conn.query("SELECT * FROM user_tables WHERE ID = ?", [req.params.id])
-        if(rows.length == 1) return res.status(200).json(rows[0])
-        if(rows.length == 0) return res.status(200).json({"message": "no user found"})
-        await conn.release()
-
-        return res.sendStatus(500) //fall over here if something happens
+        return res.sendStatus(200)
     }
     catch(e) {
-        conn.destroy()
         console.log("error in /profile route ==", e)
         return res.sendStatus(500)
     }

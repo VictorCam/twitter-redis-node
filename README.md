@@ -37,6 +37,11 @@ C. npm run dev (run sveltekit)</br>
 
 ---
 
+## 4. POSTMAN (./postman)
+A. [Import JSON(s)](https://learning.postman.com/docs/getting-started/importing-and-exporting-data/)
+
+---
+
 ## ALL HELPFUL/IMPORTANT INSTALLS
 [Git](https://git-scm.com/downloads)</br>
 [Docker](https://docs.docker.com/get-docker/)</br>

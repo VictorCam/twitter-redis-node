@@ -31,5 +31,5 @@ module.exports = function() {
 
 function no_auth(req, res, next) {
   res.clearCookie('authorization')
-  return res.status(401).json({"Error": "auth not found"})
+  return res.status(401).json({"error": "auth not found"})
 }

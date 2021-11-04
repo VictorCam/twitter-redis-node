@@ -65,27 +65,29 @@ router.post("/post", check_token(), async (req, res) => {
         var uid = nanoid(25)
 
         //create indexed post
-        await rclient.hset(`spost:${uid}`, 
-        [
-            "userid", req.userid,
-            "score", 0,
-            "tags", req.body.tags,
-            "simage", "test.png",
-            "postname", req.body.postname
-        ])
+        //rename this later
+        // await rclient.hset(`spost:${uid}`, 
+        // [
+        //     "userid", req.userid,
+        //     "score", 0,
+        //     "tags", req.body.tags,
+        //     "simage", req.body.image,
+        //     "postname", req.body.postname
+        // ])
 
         //create post
         await client.hset(`post:${uid}`,
         [
-            "filecontent", "test.png",
-            "userid", req.userid,
             "views", 0,
-            "postname", req.body.postname,
             "score", 0,
+            "userid", req.userid,
+            "image", req.body.image,
+            "name", req.body.name,
             "desc", req.body.desc,
             "tags", req.body.tags,
-            "canComment", req.body.canComment,
-            "canCommentImg", req.body.canCommentImg
+            "can_comment", req.body.can_comment,
+            "can_comment_img", req.body.can_comment_img,
+            "can_comment_sticker", req.body.can_comment_sticker
         ])
         
         return res.status(200).json({"post": req.body.desc, "postid": uid})

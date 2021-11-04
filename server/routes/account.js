@@ -118,16 +118,5 @@ router.post("/logout", (req, res) => {
     return res.sendStatus(200)
 })
 
-router.get("/profile/:id", check_token(), async (req, res) => {
-    try {
-
-        return res.sendStatus(200)
-    }
-    catch(e) {
-        console.log("error in /profile route ==", e)
-        return res.sendStatus(500)
-    }
-})
-
 router.use(cors())
 module.exports = router

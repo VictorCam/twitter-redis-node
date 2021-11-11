@@ -1,4 +1,4 @@
-version: '3.3'
+version: '2'
 services:
     # master:
     #     image: chrislusf/seaweedfs:dev # use a remote dev image
@@ -41,14 +41,12 @@ services:
     #         - master
     #         - volume
     #         - filer
-    # ssdb:
-    #     ports:
-    #         - '8888:8888'
-    #     image: leobuskin/ssdb-docker:latest
     kvrocks:
         ports:
             - '6666:6666'
         image: kvrocks/kvrocks:latest
+        # volumes:
+        #     - ./kvrocks.conf:/kvrocks/conf/kvrocks.conf
     redis:
         # command: redis-server /data/redis-server/redis.conf
         # volumes:
@@ -56,21 +54,13 @@ services:
         ports:
             - '6379:6379'
         image: redislabs/redismod:latest
+        depends_on:
+            - kvrocks
+        links:
+            - kvrocks
+
         # expose:
         #     - '6379'
-    # cluster:
-    #     ports:
-    #         - '7000-7005:7000-7005'
-    #     image: grokzen/redis-cluster:latest
-    # envoy:
-    #     ports:
-    #         - '9999:9999'
-    #         - '6969:6969'
-    #         - '10000:10000'
-    #     volumes:
-    #         - ./envoy.yaml:/etc/envoy/envoy.yaml
-    #     image: envoyproxy/envoy:v1.18-latest
-    #     depends_on:
-    #         - cluster
-    #     links:
-    #         - cluster
+
+# consider caddy for serving static files
+# consider caddy for encryption for kvrocks???

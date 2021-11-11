@@ -20,7 +20,6 @@ D. make .env file with the following:
     COOKIE_PARSER_SECRET = xxx
     BCRYPT_ROUNDS = 13
     CLIENT_API = http://localhost:3000
-    UPSTASH = xxx
 
 E. nodemon (run nodejs server)</br>
 

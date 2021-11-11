@@ -1,0 +1,24 @@
+LIKE TWITTER BUT DIFFERENT
+
+
+//100 as the limit for pub-sub
+//INBOX
+pub-sub = notifications only
+//persist in the inbox
+mentions/likes/re = pub-sub?
+
+//total (101)
+
+
+10000 //LIMIT! (maybe more :D)
+
+//TIMELINE
+grab one user at a time user a UNIX timestamp
+
+we can skip a user if we are tired of seeing their posts or we can go to their recommended list
+
+(alt: we could do the users recommended list as well to be mixed in)
+
+double check the joi schemas
+
+

@@ -10,20 +10,28 @@ const router = express.Router()
 const Joi = require("joi")
 require("dotenv").config()
 
+//FIND STICKERS BY INDEXING THE ONES THEY ALREADY HAVE
+
 router.post("/login", async (req, res) => {
     try {
         //set headers
         res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //schema (username can be email or password)
-        // const schema = Joi.object({
-        //     username: Joi.string().alphanum().min(1).max(20).required(),
-        //     password: Joi.string().alphanum().min(1).max(100).required(),
-        // })
+        //avoid colons in the username
+        //allow letter numbers and common special chracters in password
+        const schema = Joi.object().keys({
+            username: Joi.string().regex(/^[a-zA-Z0-9_]*$/).min(1).max(30).required(),
+            password: Joi.string().regex(/^[a-zA-Z0-9_]*$/).min(1).max(100).required()
+        })
 
-        // //validate json
-        // var valid = schema.validate(req.body)
-        // if(valid.error) return res.status(422).json({"error": "invalid or missing json key value"})
+        //validate json
+        var valid = schema.validate(req.body)
+        if(valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "username") res.status(400).json({error: "Username must be between 1 and 30 characters and only contain letters, numbers, and underscores"})
+            if(label == "password") res.status(400).json({error: "Password must be between 1 and 100 characters and only contain letters, numbers, and underscores"})
+            return res.status(400).json({error: "Something went wrong"})
+        }
 
         //get userid from username/email/phone
         var results = await client.pipeline()
@@ -34,15 +42,14 @@ router.post("/login", async (req, res) => {
 
         var userid = results[0][1] || results[1][1] || results[2][1]
 
-        //check if userid does not exist and check the password is correct
-        if(!userid) return res.status(409).json({"error": "username does not exist"})
+        //check if username or password exist
+        if(!userid) return res.status(401).json({"error": "invalid username or password"})
         if(!await bcrypt.compare(req.body.password, await client.hget(`userid:${userid}`, "password"))) return res.status(401).json({"message": "incorrect username or passsword"})
 
         //jwt + send auth cookie
         var token = jwt.sign({userid: userid}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
         res.cookie('authorization', `bearer ${token}`, { httpOnly: true, sameSite: 'Strict'})
 
-        //success
         return res.status(200).json({"status": "ok", "token": token})
     }
     catch(e) {
@@ -53,20 +60,25 @@ router.post("/login", async (req, res) => {
 
 router.post("/register", async (req, res) => {
     try {
-        //set headers
         res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //schema
-        // const schema = Joi.object({
-        //     username: Joi.string().alphanum().min(1).max(20).required(),
-        //     password: Joi.string().alphanum().min(1).max(100).required(),
-        //     email: Joi.string().regex(/^[.@A-Za-z0-9]+$/).min(1).max(100).required(),
-        //     phone: Joi.string().alphanum().min(1).max(15).required()
-        // })
+        //DONT FORGET AREA CODE LATER ON
+        const schema = Joi.object().keys({
+            username: Joi.string().alphanum().min(5).max(30).required(),
+            password: Joi.string().regex(/^[a-zA-Z0-9!@#$%^&*]{10,100}$/).required(),
+            email: Joi.string().email().min(3).max(100).required(),
+            phone: Joi.string().regex(/^[0-9]{10}$/).required(),
+        })
 
-        //validate json
-        // var valid = schema.validate(req.body)
-        // if(valid.error) return res.status(422).json({"error": "invalid or missing key value"})
+        var valid = schema.validate(req.body)
+        if(valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "username") return res.status(400).json({error: "Username must be between 5 and 30 characters and only contain letters, numbers, and underscores"})
+            if(label == "password") return res.status(400).json({error: "Password must be between 10 and 100 characters and only contain letters, numbers, and underscores"})
+            if(label == "email") return res.status(400).json({error: "Email must be between 3 and 100 characters and must be a valid email"})
+            if(label == "phone") return res.status(400).json({error: "Phone must be a valid phone number"})
+            return res.status(500).json({error: "Something went wrong"})
+        }
 
         //hash password first to prevent duplicate users with multiple requests
         var hashpass = await bcrypt.hash(req.body.password, parseInt(process.env.BCRYPT_ROUNDS))

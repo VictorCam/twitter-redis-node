@@ -8,9 +8,20 @@ const {nanoid} = require('nanoid')
 
 router.post("/comment", check_token(), async (req, res) => {
     try {
+        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //missing headers
-        //missing schema
+        var schema = Joi.object().keys({
+            postid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
+            comment: Joi.string().min(1).max(1000).required()
+        })
+
+        var valid = schema.validate(req.body)
+        if(valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "postid") return res.status(400).json({error: "Invalid postid"})
+            if(label == "comment") return res.status(400).json({error: "Comment should be between 1 to 1000 characters"})
+            return res.status(400).json({error: "Something went wrong"})
+        }
 
         var cperm = await client.hmget(`post:${req.body.postid}`, ["userid", "can_comment", "can_comment_img", "can_comment_sticker"])
 
@@ -40,9 +51,22 @@ router.post("/comment", check_token(), async (req, res) => {
 
 router.post("/ncomment", check_token(), async (req, res) => {
     try {
+        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //missing headers
-        //missing schema
+        var schema = Joi.object().keys({
+            postid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
+            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
+            comment: Joi.string().min(1).max(1000).required()
+        })
+
+        var valid = schema.validate(req.body)
+        if(valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "postid") return res.status(400).json({error: "Invalid postid"})
+            if(label == "commentid") return res.status(400).json({error: "Invalid commentid"})
+            if(label == "comment") return res.status(400).json({error: "Comment should be between 1 to 1000 characters"})
+            return res.status(400).json({error: "Something went wrong"})
+        }
 
         var cidlist = await client.pipeline()
         .hmget(`post:${req.body.postid}`, ["userid", "can_comment", "can_comment_img", "can_comment_sticker"])
@@ -75,20 +99,31 @@ router.post("/ncomment", check_token(), async (req, res) => {
     }
 })
 
+//allow stickers as well like in telegram!
+
 router.get("/comment", async (req, res) => {
     try {
+        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+        
+        var schema = Joi.object().keys({
+            amount: Joi.number().integer().min(0).required(),
+            page: Joi.number().integer().min(0).required(),
+            postid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required()
+        })
 
-        //missing headers
-        //missing schema
+        //validate schema
+        var valid = schema.validate(req.query)
+        if(valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "amount") return res.status(400).json({error: "Invalid amount"})
+            if(label == "page") return res.status(400).json({error: "Invalid page"})
+            if(label == "postid") return res.status(400).json({error: "Invalid postid"})
+            return res.status(400).json({error: "Something went wrong"})
+        }
 
-        //liked version needs to be reversed on the likes
-        //allow owner to delete both nested and original comments
-        //allow stickers as well like in telegram!
-
-        var type = ("liked" == req.query.type) ? "comments_liked:" : "comments:"
         var start = parseInt(req.query.amount)*parseInt(req.query.page)+parseInt(req.query.page)
         var end = parseInt(req.query.amount)*((parseInt(req.query.page)+1))+parseInt(req.query.page)
-        var cidlist = await client.zrange(type+req.query.postid, start, end)
+        var cidlist = ("like" == req.query.type) ? await client.zrevrange("comments_liked:"+req.query.postid,start,end) : await client.zrange("comments:"+req.query.postid,start,end)
 
         if(cidlist.length == 0) return res.json({"error": "postid does not exist"})
 
@@ -117,9 +152,22 @@ router.get("/comment", async (req, res) => {
 
 router.get("/ncomment", async (req, res) => {
     try {
+        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //missing headers
-        //missing schema
+        var schema = Joi.object().keys({
+            amount: Joi.number().integer().min(0).required(),
+            page: Joi.number().integer().min(0).required(),
+            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required()
+        })
+
+        var valid = schema.validate(req.query)
+        if(valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "amount") return res.status(400).json({error: "Invalid amount"})
+            if(label == "page") return res.status(400).json({error: "Invalid page"})
+            if(label == "commentid") return res.status(400).json({error: "Invalid commentid"})
+            return res.status(400).json({error: "Something went wrong"})
+        }
 
         var start = parseInt(req.query.amount)*parseInt(req.query.page)+parseInt(req.query.page)
         var end = parseInt(req.query.amount)*((parseInt(req.query.page)+1))+parseInt(req.query.page)
@@ -152,9 +200,19 @@ router.get("/ncomment", async (req, res) => {
 
 router.get("/comment/:commentid", async (req, res) => {
     try {
+        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //missing headers
-        //missing schema
+        var schema = Joi.object().keys({
+            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required()
+        })
+
+        //validate schema
+        var valid = schema.validate(req.params)
+        if(valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "commentid") return res.status(400).json({error: "Invalid commentid"})
+            return res.status(400).json({error: "Something went wrong"})
+        }
 
         var comment = await client.hgetall(`comment:${req.params.commentid}`)
         if(!comment.hasOwnProperty('userid')) return res.json({"error": "commentid does not exist"})
@@ -174,9 +232,20 @@ router.get("/comment/:commentid", async (req, res) => {
 
 router.get("/ncomment/:ncommentid", async (req, res) => {
     try {
+        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //missing headers
-        //missing schema
+        //req.params.ncommentid should be a valid ncommentid of length 25
+        var schema = Joi.object().keys({
+            ncommentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required()
+        })
+
+        //validate schema
+        var valid = schema.validate(req.params)
+        if(valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "ncommentid") return res.status(400).json({error: "Invalid ncommentid"})
+            return res.status(400).json({error: "Something went wrong"})
+        }
 
         var ncomment = await client.hgetall(`ncomment:${req.params.ncommentid}`)
         if(!ncomment.hasOwnProperty('userid')) return res.json({"error": "ncommentid does not exist"})
@@ -203,11 +272,20 @@ use likes and timestamp and check which is relatively popular
 
 router.put("/comment", check_token(), async (req, res) => {
     try {
+        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //missing headers
-        //missing schema
+        var schema = Joi.object().keys({
+            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
+            comment: Joi.string().min(1).max(1000).required()
+        })
 
-        //sidestep owner checking if you own the post
+        var valid = schema.validate(req.body)
+        if(valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "commentid") return res.status(400).json({error: "Invalid commentid"})
+            if(label == "comment") return res.status(400).json({error: "Invalid comment"})
+            return res.status(400).json({error: "Something went wrong"})
+        }
         
         var userid = await client.hget(`comment:${req.body.commentid}`, "userid")
         if(req.userid != userid) return res.json({"error": "you do not own this comment or commentid does not exist"})
@@ -223,11 +301,20 @@ router.put("/comment", check_token(), async (req, res) => {
 
 router.put("/ncomment", check_token(), async (req, res) => {
     try {
+        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //missing headers
-        //missing schema
+        var schema = Joi.object().keys({
+            ncommentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
+            comment: Joi.string().min(1).max(1000).required()
+        })
 
-         //sidestep owner checking if you own the post
+        var valid = schema.validate(req.body)
+        if(valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "ncommentid") return res.status(400).json({error: "Invalid ncommentid"})
+            if(label == "comment") return res.status(400).json({error: "Invalid comment"})
+            return res.status(400).json({error: "Something went wrong"})
+        }
 
         var userid = await client.hget(`ncomment:${req.body.ncommentid}`, "userid")
         if(req.userid != userid) return res.json({"error": "you do not own this comment or commentid does not exist"})
@@ -246,16 +333,25 @@ router.put("/ncomment", check_token(), async (req, res) => {
 
 router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => {
     try {
+        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //missing headers
-        //missing schema
+        var schema = Joi.object().keys({
+            postid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
+            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required()
+        })
+
+        var valid = schema.validate(req.params)
+        if(valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "postid") return res.status(400).json({error: "Invalid postid"})
+            if(label == "commentid") return res.status(400).json({error: "Invalid commentid"})
+            return res.status(400).json({error: "Something went wrong"})
+        }
         
         var exists = await client.pipeline()
         .hmget(`comment:${req.params.commentid}`, "userid", "postid")
         .exists(`comments:${req.params.postid}`)
         .exec()
-
-        //sidestep owner checking if you own the post
 
         if(!exists[1][1]) return res.json({"error": "the postid does not exist"})
         if(!exists[0][1][0]) return res.json({"error": "the commentid does not exist"})
@@ -269,7 +365,7 @@ router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => 
         .zrem(`comments:${req.params.postid}`, req.params.commentid)
         .zrem(`comments_liked:${req.params.postid}`, req.params.commentid)
         .exec()
-        
+
         return res.status(200).json({"status": "ok"})
     }
     catch(e) {
@@ -280,16 +376,25 @@ router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => 
 
 router.delete("/ncomment/:commentid/:ncommentid", check_token(), async (req, res) => {
     try {
-        //missing headers
-        //missing schema
+        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+
+        var schema = Joi.object().keys({
+            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
+            ncommentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required()
+        })
+
+        var valid = schema.validate(req.params)
+        if(valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "commentid") return res.status(400).json({error: "Invalid commentid"})
+            if(label == "ncommentid") return res.status(400).json({error: "Invalid ncommentid"})
+            return res.status(400).json({error: "Something went wrong"})
+        }
 
         var exists = await client.pipeline()
         .hmget(`ncomment:${req.params.ncommentid}`, ["userid", "ncommentsid"])
         .exists(`ncomments:${req.params.commentid}`)
         .exec()
-
-
-        //sidestep owner checking if you own the post
 
         if(!exists[1][1]) return res.json({"error": "the commentid does not exist"})
         if(!exists[0][1][0]) return res.json({"error": "the ncommentid does not exist"})

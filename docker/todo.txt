@@ -1,8 +1,11 @@
 1. learn css/css manipulation
 2. learn grid
-(DONT FORGET STATUS CODE FOR ERRORS NODEJS!)
 
 
+
+
+# regex checker
+http://redos-checker.surge.sh/
 
 //interesting post
 //https://blog.carbonfive.com/using-redis-sorted-sets-to-build-a-scalable-real-time-web-waiting-list/
@@ -12,3 +15,11 @@ https://www.youtube.com/watch?v=AryZSCeKU9Y
 //ft.drop [index] && ft._list
 //https://stackoverflow.com/questions/53832663/how-to-write-a-query-to-both-include-and-exclude-tags-in-redisearch#comment94525695_53833329
 // redisgraph/redis shortcut for comment/like/retweet/follower+following/mentions
+
+# do testing with the permissions
+# add check cases on postman for api responses
+# add check cases for the query params in comments and ncomments
+
+# (DONT FORGET STATUS CODES FOR ERRORS NODEJS!)
+
+# potentially use CADDY as a webserver

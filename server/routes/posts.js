@@ -53,14 +53,48 @@ router.post("/post", check_token(), async (req, res) => {
     try {
         res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //schema
-        // const schema = Joi.object({
-        //     post: Joi.string().min(1).max(100).required()
-        // })
-        //validate json & make new post uid
-        // var valid = schema.validate(req.body)
-        // if(valid.error) return res.status(422).json({"error": "invalid or missing key value"})
-        
+
+        //image is prefixed with .png or .jpg
+        //name is between 1 to 100 characters
+        //tags can be around 2000 characters
+        //desc can be have between 0 to 5000 characters
+        //can_comment can only be a 1 or 0
+        //can_comment_img can only be a 1 or 0
+        //can_comment_sticker can only be a 1 or 0
+        //can_like can only be a 1 or 0
+        //can_rehowl can only be a 1 or 0
+        const schema = Joi.object().keys({
+            image: Joi.string().min(1).max(100).required(),
+            name: Joi.string().min(1).max(100).required(),
+            tags: Joi.string().min(1).max(2000).required(),
+            desc: Joi.string().min(0).max(5000).required(),
+            can_comment: Joi.number().integer().min(0).max(1).required(),
+            can_comment_img: Joi.number().integer().min(0).max(1).required(),
+            can_comment_sticker: Joi.number().integer().min(0).max(1).required(),
+            can_like: Joi.number().integer().min(0).max(1).required(),
+            can_rehowl: Joi.number().integer().min(0).max(1).required()
+        })
+
+
+        //validate schema
+        var valid = schema.validate(req.body)
+        if(valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "image") return res.status(200).json({"error": "image must be a string between 1 and 100 characters"})
+            if(label == "name") return res.status(200).json({"error": "name must be a string between 1 and 100 characters"})
+            if(label == "tags") return res.status(200).json({"error": "tags must be a string between 100 and 5000 characters"})
+            if(label == "desc") return res.status(200).json({"error": "desc must be a string between 0 and 5000 characters"})
+            if(label == "can_comment") return res.status(200).json({"error": "can_comment must be a number between 0 and 1"})
+            if(label == "can_comment_img") return res.status(200).json({"error": "can_comment_img must be a number between 0 and 1"})
+            if(label == "can_comment_sticker") return res.status(200).json({"error": "can_comment_sticker must be a number between 0 and 1"})
+            if(label == "can_like") return res.status(200).json({"error": "can_like must be a number between 0 and 1"})
+            if(label == "can_rehowl") return res.status(200).json({"error": "can_rehowl must be a number between 0 and 1"})
+
+            return res.status(500).json({"error": "something went wrong"})
+        }
+
+
+
         //uid for unique post id and for comment id
         var uid = nanoid(25)
 

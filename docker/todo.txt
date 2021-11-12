@@ -19,6 +19,10 @@ https://www.youtube.com/watch?v=AryZSCeKU9Y
 # do testing with the permissions
 # add check cases on postman for api responses
 # add check cases for the query params in comments and ncomments
+# update later: but reply back to the user with a more general/vauge response
+
+# for usernames make sure to limit guessing a lot after a certain number of attempts
+# to a certain username
 
 # (DONT FORGET STATUS CODES FOR ERRORS NODEJS!)
 

@@ -1,95 +1,12 @@
 {
 	"info": {
 		"_postman_id": "8f6aa684-57c1-48c5-971f-b4c03735c8fe",
-		"name": "CodeCanine Posts/Comments",
+		"name": "2CC Posts/Comments",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "login (nonexisting)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.environment.set(\"auth\", pm.response.json().token)"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"username\": \"xxx\",\r\n    \"password\": \"1\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{url}}/login",
-					"host": [
-						"{{url}}"
-					],
-					"path": [
-						"login"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "register (john)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.environment.set(\"auth\", pm.response.json().token)"
-						],
-						"type": "text/javascript"
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"username\": \"test1\",\r\n    \"email\": \"1\",\r\n    \"password\": \"1\",\r\n    \"phone\": \"1\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{url}}/register",
-					"host": [
-						"{{url}}"
-					],
-					"path": [
-						"register"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "login (john)",
+			"name": "login (bob)",
 			"event": [
 				{
 					"listen": "test",
@@ -106,7 +23,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"username\": \"test1\",\r\n    \"password\": \"1\"\r\n}",
+					"raw": "{\r\n    \"username\": \"bob\",\r\n    \"password\": \"1111111111\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -150,7 +67,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"image\": \"post.png\",\r\n    \"name\": \"Shawnty Like A Melody\",\r\n    \"tags\": \"in, my, head\",\r\n    \"desc\": \"singing like\",\r\n    \"can_comment\": 1,\r\n    \"can_comment_img\": 1,\r\n    \"can_comment_sticker\": 1\r\n}",
+					"raw": "{\r\n    \"image\": \"post.png\",\r\n    \"name\": \"Shawnty Like A Melody\",\r\n    \"tags\": \"in, my, head\",\r\n    \"desc\": \"singing like\",\r\n    \"can_comment\": 1,\r\n    \"can_comment_img\": 1,\r\n    \"can_comment_sticker\": 1,\r\n    \"can_like\": 1,\r\n    \"can_rehowl\": 1\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -516,7 +433,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{url}}/comment?amount=14&postid={{postid}}&page=0",
+					"raw": "{{url}}/comment?type=like&amount=14&page=0&postid={{postid}}",
 					"host": [
 						"{{url}}"
 					],
@@ -526,20 +443,19 @@
 					"query": [
 						{
 							"key": "type",
-							"value": "liked",
-							"disabled": true
+							"value": "like"
 						},
 						{
 							"key": "amount",
 							"value": "14"
 						},
 						{
-							"key": "postid",
-							"value": "{{postid}}"
-						},
-						{
 							"key": "page",
 							"value": "0"
+						},
+						{
+							"key": "postid",
+							"value": "{{postid}}"
 						}
 					]
 				}
@@ -778,53 +694,7 @@
 			"response": []
 		},
 		{
-			"name": "register (jane)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.environment.set(\"auth\", pm.response.json().token)"
-						],
-						"type": "text/javascript"
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"username\": \"test2\",\r\n    \"email\": \"2\",\r\n    \"password\": \"1\",\r\n    \"phone\": \"2\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{url}}/register",
-					"host": [
-						"{{url}}"
-					],
-					"path": [
-						"register"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "login (jane)",
+			"name": "login (alice)",
 			"event": [
 				{
 					"listen": "test",
@@ -841,7 +711,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"username\": \"test2\",\r\n    \"password\": \"1\"\r\n}",
+					"raw": "{\r\n    \"username\": \"alice\",\r\n    \"password\": \"1111111111\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -992,7 +862,7 @@
 			"response": []
 		},
 		{
-			"name": "login (john)",
+			"name": "login (bob)",
 			"event": [
 				{
 					"listen": "test",
@@ -1009,7 +879,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"username\": \"test1\",\r\n    \"password\": \"1\"\r\n}",
+					"raw": "{\r\n    \"username\": \"bob\",\r\n    \"password\": \"1111111111\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"

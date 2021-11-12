@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken")
 const express = require("express")
 const cors = require("cors")
 const bcrypt = require('bcrypt')
-const formidable = require('formidable')
 const {client, rclient} = require("../server_connection")
 const {nanoid} = require('nanoid')
 const check_token = require("../middleware/check_token")
@@ -17,20 +16,20 @@ router.post("/login", async (req, res) => {
         //set headers
         res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //avoid colons in the username
-        //allow letter numbers and common special chracters in password
+        //uesrname is going to allow email thus @ . are allowed
+        //dont forget that username can contain a number
         const schema = Joi.object().keys({
-            username: Joi.string().regex(/^[a-zA-Z0-9_]*$/).min(1).max(30).required(),
-            password: Joi.string().regex(/^[a-zA-Z0-9_]*$/).min(1).max(100).required()
+            username: Joi.string().regex(/^[a-zA-Z0-9@._-]{1,200}$/).required(),
+            password: Joi.string().regex(/^[a-zA-Z0-9!@#$%^&*_-]{10,100}$/).required(),
         })
 
         //validate json
         var valid = schema.validate(req.body)
         if(valid.error) {
             var label = valid.error.details[0].context.label
-            if(label == "username") res.status(400).json({error: "Username must be between 1 and 30 characters and only contain letters, numbers, and underscores"})
-            if(label == "password") res.status(400).json({error: "Password must be between 1 and 100 characters and only contain letters, numbers, and underscores"})
-            return res.status(400).json({error: "Something went wrong"})
+            if(label == "username") return res.status(400).json({"error": "invalid characters in username"})
+            if(label == "password") return res.status(400).json({"error": "invalid characters in password"})
+            return res.status(400).json({"error": "something went wrong"})
         }
 
         //get userid from username/email/phone
@@ -43,8 +42,8 @@ router.post("/login", async (req, res) => {
         var userid = results[0][1] || results[1][1] || results[2][1]
 
         //check if username or password exist
-        if(!userid) return res.status(401).json({"error": "invalid username or password"})
-        if(!await bcrypt.compare(req.body.password, await client.hget(`userid:${userid}`, "password"))) return res.status(401).json({"message": "incorrect username or passsword"})
+        if(!userid) return res.status(401).json({"error": "username, email, or phone is not found"})
+        if(!await bcrypt.compare(req.body.password, await client.hget(`userid:${userid}`, "password"))) return res.status(401).json({"error": "invalid password"})
 
         //jwt + send auth cookie
         var token = jwt.sign({userid: userid}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
@@ -63,25 +62,23 @@ router.post("/register", async (req, res) => {
         res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
         //DONT FORGET AREA CODE LATER ON
+        //DONT FORGET SOME USERS WILL ENTER - on the phone number
         const schema = Joi.object().keys({
-            username: Joi.string().alphanum().min(5).max(30).required(),
-            password: Joi.string().regex(/^[a-zA-Z0-9!@#$%^&*]{10,100}$/).required(),
-            email: Joi.string().email().min(3).max(100).required(),
+            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required(),
+            password: Joi.string().regex(/^[a-zA-Z0-9!@#$%^&*_-]{10,100}$/).required(),
+            email: Joi.string().email().min(5).max(200).required(),
             phone: Joi.string().regex(/^[0-9]{10}$/).required(),
         })
 
         var valid = schema.validate(req.body)
         if(valid.error) {
             var label = valid.error.details[0].context.label
-            if(label == "username") return res.status(400).json({error: "Username must be between 5 and 30 characters and only contain letters, numbers, and underscores"})
-            if(label == "password") return res.status(400).json({error: "Password must be between 10 and 100 characters and only contain letters, numbers, and underscores"})
-            if(label == "email") return res.status(400).json({error: "Email must be between 3 and 100 characters and must be a valid email"})
-            if(label == "phone") return res.status(400).json({error: "Phone must be a valid phone number"})
-            return res.status(500).json({error: "Something went wrong"})
+            if(label == "username") return res.status(400).json({"error": "username must be between 1 and 30 characters and only contain letters, numbers, and underscores"})
+            if(label == "password") return res.status(400).json({"error": "password must be between 10 and 100 characters and can only contain 'a-z A-Z 0-9 ! @ # $ % ^ & * _ -' only"})
+            if(label == "email") return res.status(400).json({"error": "email must be between 5 and 100 characters and must be a valid email"})
+            if(label == "phone") return res.status(400).json({"error": "phone must be a valid phone number"})
+            return res.status(500).json({"error": "something went wrong"})
         }
-
-        //hash password first to prevent duplicate users with multiple requests
-        var hashpass = await bcrypt.hash(req.body.password, parseInt(process.env.BCRYPT_ROUNDS))
 
         //check if username and email exists
         var results = await client.pipeline()
@@ -89,7 +86,14 @@ router.post("/register", async (req, res) => {
         .get(`email:${req.body.email}`)
         .get(`phone:${req.body.phone}`)
         .exec()
-        if(results[0][1] || results[1][1] || results[2][1]) return res.status(422).json({"error": "username, email, or phone already exists"})
+
+        if(results[0][1]) return res.status(400).json({"error": "username already exists"})
+        if(results[1][1]) return res.status(400).json({"error": "email already exists"})
+        if(results[2][1]) return res.status(400).json({"error": "phone number already exists"})
+
+        //hash password first to prevent duplicate users with multiple requests
+        var hashpass = await bcrypt.hash(req.body.password, parseInt(process.env.BCRYPT_ROUNDS))
+
 
         var userid = nanoid(25)
 

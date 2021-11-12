@@ -18,9 +18,9 @@ router.post("/comment", check_token(), async (req, res) => {
         var valid = schema.validate(req.body)
         if(valid.error) {
             var label = valid.error.details[0].context.label
-            if(label == "postid") return res.status(400).json({error: "Invalid postid"})
-            if(label == "comment") return res.status(400).json({error: "Comment should be between 1 to 1000 characters"})
-            return res.status(400).json({error: "Something went wrong"})
+            if(label == "postid") return res.status(400).json({"error": "Invalid postid"})
+            if(label == "comment") return res.status(400).json({"error": "Comment should be between 1 to 1000 characters"})
+            return res.status(400).json({"error": "Something went wrong"})
         }
 
         var cperm = await client.hmget(`post:${req.body.postid}`, ["userid", "can_comment", "can_comment_img", "can_comment_sticker"])
@@ -62,10 +62,10 @@ router.post("/ncomment", check_token(), async (req, res) => {
         var valid = schema.validate(req.body)
         if(valid.error) {
             var label = valid.error.details[0].context.label
-            if(label == "postid") return res.status(400).json({error: "Invalid postid"})
-            if(label == "commentid") return res.status(400).json({error: "Invalid commentid"})
-            if(label == "comment") return res.status(400).json({error: "Comment should be between 1 to 1000 characters"})
-            return res.status(400).json({error: "Something went wrong"})
+            if(label == "postid") return res.status(400).json({"error": "Invalid postid"})
+            if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
+            if(label == "comment") return res.status(400).json({"error": "Comment should be between 1 to 1000 characters"})
+            return res.status(400).json({"error": "Something went wrong"})
         }
 
         var cidlist = await client.pipeline()
@@ -115,10 +115,10 @@ router.get("/comment", async (req, res) => {
         var valid = schema.validate(req.query)
         if(valid.error) {
             var label = valid.error.details[0].context.label
-            if(label == "amount") return res.status(400).json({error: "Invalid amount"})
-            if(label == "page") return res.status(400).json({error: "Invalid page"})
-            if(label == "postid") return res.status(400).json({error: "Invalid postid"})
-            return res.status(400).json({error: "Something went wrong"})
+            if(label == "amount") return res.status(400).json({"error": "Invalid amount"})
+            if(label == "page") return res.status(400).json({"error": "Invalid page"})
+            if(label == "postid") return res.status(400).json({"error": "Invalid postid"})
+            return res.status(400).json({"error": "Something went wrong"})
         }
 
         var start = parseInt(req.query.amount)*parseInt(req.query.page)+parseInt(req.query.page)
@@ -163,10 +163,10 @@ router.get("/ncomment", async (req, res) => {
         var valid = schema.validate(req.query)
         if(valid.error) {
             var label = valid.error.details[0].context.label
-            if(label == "amount") return res.status(400).json({error: "Invalid amount"})
-            if(label == "page") return res.status(400).json({error: "Invalid page"})
-            if(label == "commentid") return res.status(400).json({error: "Invalid commentid"})
-            return res.status(400).json({error: "Something went wrong"})
+            if(label == "amount") return res.status(400).json({"error": "Invalid amount"})
+            if(label == "page") return res.status(400).json({"error": "Invalid page"})
+            if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
+            return res.status(400).json({"error": "Something went wrong"})
         }
 
         var start = parseInt(req.query.amount)*parseInt(req.query.page)+parseInt(req.query.page)
@@ -210,8 +210,8 @@ router.get("/comment/:commentid", async (req, res) => {
         var valid = schema.validate(req.params)
         if(valid.error) {
             var label = valid.error.details[0].context.label
-            if(label == "commentid") return res.status(400).json({error: "Invalid commentid"})
-            return res.status(400).json({error: "Something went wrong"})
+            if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
+            return res.status(400).json({"error": "Something went wrong"})
         }
 
         var comment = await client.hgetall(`comment:${req.params.commentid}`)
@@ -243,8 +243,8 @@ router.get("/ncomment/:ncommentid", async (req, res) => {
         var valid = schema.validate(req.params)
         if(valid.error) {
             var label = valid.error.details[0].context.label
-            if(label == "ncommentid") return res.status(400).json({error: "Invalid ncommentid"})
-            return res.status(400).json({error: "Something went wrong"})
+            if(label == "ncommentid") return res.status(400).json({"error": "Invalid ncommentid"})
+            return res.status(400).json({"error": "Something went wrong"})
         }
 
         var ncomment = await client.hgetall(`ncomment:${req.params.ncommentid}`)
@@ -282,9 +282,9 @@ router.put("/comment", check_token(), async (req, res) => {
         var valid = schema.validate(req.body)
         if(valid.error) {
             var label = valid.error.details[0].context.label
-            if(label == "commentid") return res.status(400).json({error: "Invalid commentid"})
-            if(label == "comment") return res.status(400).json({error: "Invalid comment"})
-            return res.status(400).json({error: "Something went wrong"})
+            if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
+            if(label == "comment") return res.status(400).json({"error": "Invalid comment"})
+            return res.status(400).json({"error": "Something went wrong"})
         }
         
         var userid = await client.hget(`comment:${req.body.commentid}`, "userid")
@@ -311,9 +311,9 @@ router.put("/ncomment", check_token(), async (req, res) => {
         var valid = schema.validate(req.body)
         if(valid.error) {
             var label = valid.error.details[0].context.label
-            if(label == "ncommentid") return res.status(400).json({error: "Invalid ncommentid"})
-            if(label == "comment") return res.status(400).json({error: "Invalid comment"})
-            return res.status(400).json({error: "Something went wrong"})
+            if(label == "ncommentid") return res.status(400).json({"error": "Invalid ncommentid"})
+            if(label == "comment") return res.status(400).json({"error": "Invalid comment"})
+            return res.status(400).json({"error": "Something went wrong"})
         }
 
         var userid = await client.hget(`ncomment:${req.body.ncommentid}`, "userid")
@@ -343,9 +343,9 @@ router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => 
         var valid = schema.validate(req.params)
         if(valid.error) {
             var label = valid.error.details[0].context.label
-            if(label == "postid") return res.status(400).json({error: "Invalid postid"})
-            if(label == "commentid") return res.status(400).json({error: "Invalid commentid"})
-            return res.status(400).json({error: "Something went wrong"})
+            if(label == "postid") return res.status(400).json({"error": "Invalid postid"})
+            if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
+            return res.status(400).json({"error": "Something went wrong"})
         }
         
         var exists = await client.pipeline()
@@ -386,9 +386,9 @@ router.delete("/ncomment/:commentid/:ncommentid", check_token(), async (req, res
         var valid = schema.validate(req.params)
         if(valid.error) {
             var label = valid.error.details[0].context.label
-            if(label == "commentid") return res.status(400).json({error: "Invalid commentid"})
-            if(label == "ncommentid") return res.status(400).json({error: "Invalid ncommentid"})
-            return res.status(400).json({error: "Something went wrong"})
+            if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
+            if(label == "ncommentid") return res.status(400).json({"error": "Invalid ncommentid"})
+            return res.status(400).json({"error": "Something went wrong"})
         }
 
         var exists = await client.pipeline()

@@ -88,7 +88,7 @@ router.post("/ncomment", check_token(), async (req, res) => {
         await client.pipeline()
         .hincrby(`comment:${req.body.commentid}`, "ncommentl_size", 1)
         .zadd(`ncommentl:${req.body.commentid}`, Math.floor(new Date().getTime() / 1000), ncommentid)
-        .hset(`ncomment:${ncommentid}`, ["userid", req.userid, "ncomment", req.body.comment, "ncommentid", req.body.commentid, "likes", 0, "isupdated", 0])
+        .hset(`ncomment:${ncommentid}`, ["userid", req.userid, "ncomment", req.body.comment, "ncommentlid", req.body.commentid, "likes", 0, "isupdated", 0])
         .exec()
         
         return res.status(200).json({"comment": req.body.comment, "ncommentid": ncommentid, "ncomments": req.body.commentid})
@@ -104,12 +104,15 @@ router.post("/ncomment", check_token(), async (req, res) => {
 router.get("/comment", async (req, res) => {
     try {
         res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
-        
+
         var schema = Joi.object().keys({
             amount: Joi.number().integer().min(0).required(),
             page: Joi.number().integer().min(0).required(),
-            postid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required()
+            postid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
+            type: Joi.string().valid("like", "reg").required()
         })
+
+        //dies when it gets a type
 
         //validate schema
         var valid = schema.validate(req.query)
@@ -118,6 +121,7 @@ router.get("/comment", async (req, res) => {
             if(label == "amount") return res.status(400).json({"error": "Invalid amount"})
             if(label == "page") return res.status(400).json({"error": "Invalid page"})
             if(label == "postid") return res.status(400).json({"error": "Invalid postid"})
+            if(label == "type") return res.status(400).json({"error": "Invalid type"})
             return res.status(400).json({"error": "Something went wrong"})
         }
 
@@ -392,7 +396,7 @@ router.delete("/ncomment/:commentid/:ncommentid", check_token(), async (req, res
         }
 
         var exists = await client.pipeline()
-        .hmget(`ncomment:${req.params.ncommentid}`, ["userid", "ncommentid"])
+        .hmget(`ncomment:${req.params.ncommentid}`, ["userid", "ncommentlid"])
         .exists(`ncommentl:${req.params.commentid}`)
         .exec()
 

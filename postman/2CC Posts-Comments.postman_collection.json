@@ -433,7 +433,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{url}}/comment?type=like&amount=14&page=0&postid={{postid}}",
+					"raw": "{{url}}/comment?type=reg&amount=14&page=0&postid={{postid}}",
 					"host": [
 						"{{url}}"
 					],
@@ -443,7 +443,8 @@
 					"query": [
 						{
 							"key": "type",
-							"value": "like"
+							"value": "reg",
+							"description": "\"like\" or \"reg\""
 						},
 						{
 							"key": "amount",
@@ -497,7 +498,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{url}}/comment?amount=14&page=0&postid=xxx",
+					"raw": "{{url}}/comment?type=like&amount=14&page=0&postid=xxx",
 					"host": [
 						"{{url}}"
 					],
@@ -507,8 +508,7 @@
 					"query": [
 						{
 							"key": "type",
-							"value": "liked",
-							"disabled": true
+							"value": "like"
 						},
 						{
 							"key": "amount",
@@ -755,7 +755,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"image\": \"post.png\",\r\n    \"name\": \"im scp2ccc\",\r\n    \"tags\": \"hello, testing, tags\",\r\n    \"desc\": \"my cool desc\",\r\n    \"can_comment\": 1,\r\n    \"can_comment_img\": 1,\r\n    \"can_comment_sticker\": 1\r\n}",
+					"raw": "{\r\n    \"image\": \"post.png\",\r\n    \"name\": \"im scp2ccc\",\r\n    \"tags\": \"hello, testing, tags\",\r\n    \"desc\": \"my cool desc\",\r\n    \"can_comment\": 1,\r\n    \"can_comment_img\": 1,\r\n    \"can_comment_sticker\": 1,\r\n    \"can_like\": 1,\r\n    \"can_rehowl\": 1\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"

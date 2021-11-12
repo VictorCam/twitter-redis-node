@@ -35,10 +35,10 @@ const users = require("./routes/users")
 const login = require("./routes/account")
 const posts = require("./routes/posts")
 const comment = require("./routes/comment")
-const draw = require("./routes/draw")
+const follow = require("./routes/follow")
 
 //linked routes
-app.use("/", [users, login, posts, comment, draw])
+app.use("/", [users, login, posts, comment, follow])
 
 
 //port

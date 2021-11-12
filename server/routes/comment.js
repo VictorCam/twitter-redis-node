@@ -35,9 +35,9 @@ router.post("/comment", check_token(), async (req, res) => {
         var commentid = nanoid(25)
 
         await client.pipeline()
-        .zadd(`commentl:${req.body.postid}`, Math.floor(new Date().getTime() / 1000), commentid)
+        .zadd(`commentl:${req.body.postid}`, Math.floor(Date.now() / 1000), commentid)
         .zadd(`commentl_like:${req.body.postid}`, 0, commentid)
-        .hset(`comment:${commentid}`, ["userid", req.userid, "comment", req.body.comment, "postid", req.body.postid, "likes", 0, "ncommentl_size", 0, "isupdated", 0, "timestamp", Math.floor(new Date().getTime() / 1000)])
+        .hset(`comment:${commentid}`, ["userid", req.userid, "comment", req.body.comment, "postid", req.body.postid, "likes", 0, "ncommentl_size", 0, "isupdated", 0, "timestamp", Math.floor(Date.now() / 1000)])
         .exec()
 
         return res.status(200).json({"comment": req.body.comment, "commentid": commentid})
@@ -87,7 +87,7 @@ router.post("/ncomment", check_token(), async (req, res) => {
         
         await client.pipeline()
         .hincrby(`comment:${req.body.commentid}`, "ncommentl_size", 1)
-        .zadd(`ncommentl:${req.body.commentid}`, Math.floor(new Date().getTime() / 1000), ncommentid)
+        .zadd(`ncommentl:${req.body.commentid}`, Math.floor(Date.now() / 1000), ncommentid)
         .hset(`ncomment:${ncommentid}`, ["userid", req.userid, "ncomment", req.body.comment, "ncommentlid", req.body.commentid, "likes", 0, "isupdated", 0])
         .exec()
         

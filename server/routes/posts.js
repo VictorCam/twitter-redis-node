@@ -123,6 +123,8 @@ router.post("/post", check_token(), async (req, res) => {
             "can_comment_img", req.body.can_comment_img,
             "can_comment_sticker", req.body.can_comment_sticker
         ])
+
+        await client.zadd(`postl:${uid}`, Math.floor(Date.now() / 1000), uid)
         
         return res.status(200).json({"post": req.body.desc, "postid": uid})
     }

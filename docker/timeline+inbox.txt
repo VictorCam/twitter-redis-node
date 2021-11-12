@@ -1,7 +1,7 @@
 LIKE TWITTER BUT DIFFERENT
 
 
-//100 as the limit for pub-sub
+//200 as the limit for pub-sub
 //INBOX
 pub-sub = notifications only
 //persist in the inbox
@@ -10,7 +10,7 @@ mentions/likes/re = pub-sub?
 //total (101)
 
 
-10000 //LIMIT! (maybe more :D)
+10000 //UNIX FOLLOWING LIMIT? (maybe more)
 
 //TIMELINE
 grab one user at a time user a UNIX timestamp

@@ -20,6 +20,7 @@ router.get("/posts", check_token(), async (req, res) => {
     try {
         // console.log(req.userid)
         // rclient.hset(`spost:${req.userid}`,)
+
     }
     catch(e) {
         console.log("error in /posts route ==", e)
@@ -31,7 +32,8 @@ router.get("/user_posts", check_token(), async (req, res) => {
     try {
         var fuserid = await client.get(`username:${req.body.username}`)
         if(!fuserid) return res.status(200).json({"error": "user does not exist"})
-            
+        
+
         //note to self
         //check if req.body.username exists do diff logic
         //check if req.body.tags exists do diff logic
@@ -89,7 +91,6 @@ router.post("/post", check_token(), async (req, res) => {
             if(label == "can_comment_sticker") return res.status(200).json({"error": "can_comment_sticker must be a number between 0 and 1"})
             if(label == "can_like") return res.status(200).json({"error": "can_like must be a number between 0 and 1"})
             if(label == "can_rehowl") return res.status(200).json({"error": "can_rehowl must be a number between 0 and 1"})
-
             return res.status(500).json({"error": "something went wrong"})
         }
 
@@ -124,7 +125,7 @@ router.post("/post", check_token(), async (req, res) => {
             "can_comment_sticker", req.body.can_comment_sticker
         ])
 
-        await client.zadd(`postl:${uid}`, Math.floor(Date.now() / 1000), uid)
+        await client.zadd(`postl:${req.userid}`, Math.floor(Date.now() / 1000), uid)
         
         return res.status(200).json({"post": req.body.desc, "postid": uid})
     }

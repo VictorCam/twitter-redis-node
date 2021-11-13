@@ -277,7 +277,7 @@ use likes and timestamp and check which is relatively popular
 router.put("/comment", check_token(), async (req, res) => {
     try {
         res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
-
+        
         var schema = Joi.object().keys({
             commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
             comment: Joi.string().min(1).max(1000).required()

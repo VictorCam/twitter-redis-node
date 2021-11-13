@@ -16,31 +16,32 @@ require("dotenv").config()
 //case where users have 20 followers
 
 //follow a user
-router.post("/follow", async (req, res) => {
+router.post("/following", check_token(), async (req, res) => {
     try {
         res.set({"Access-Control-Allow-Origin": "*"})
 
-        // console.log("follow triggered")
-        // console.log("t1", Date.now())
-        // console.log("t2", new Date().getTime())
-        // console.log("ft2/1000", Math.floor(Date.now() / 1000))
-        // console.log("ft3/1000", Math.floor(new Date().getTime() / 1000))
+        //create a zset with the userid of the original user
+        var followid = await client.get(`username:${req.body.username}`)
 
-        return res.status(200).json({"ok": "boomer"})
+        //check if followid matches your id
+        if(followid == req.userid) return res.status(400).json({"error": "you can't follow yourself"})
 
-        //create a zset with the userid
+        //check if the user is already following the user???
 
+        //add the the new user to your following list and vice versa
+        await client.pipeline()
+        .zadd(`following:${req.userid}`, Math.floor(Date.now() / 1000), followid)
+        .zadd(`followers:${followid}`, Math.floor(Date.now() / 1000), req.userid)
+        .exec()
 
+        return res.status(200).json({"status": "ok"})
 
-
-
-    } catch (error) {
-        console.log(error)
-        res.status(500).send(error)
+    } 
+    catch (e) {
+        console.log(e)
+        return res.status(500).send("error in /following")
     }
 })
-
-//
 
 router.use(cors())
 module.exports = router

@@ -125,8 +125,10 @@ router.get("/comment", async (req, res) => {
             return res.status(400).json({"error": "Something went wrong"})
         }
 
-        var start = parseInt(req.query.amount)*parseInt(req.query.page)+parseInt(req.query.page)
-        var end = parseInt(req.query.amount)*((parseInt(req.query.page)+1))+parseInt(req.query.page)
+        var amount = valid.value.amount
+        var page = valid.value.page
+        var start = amount*page+page
+        var end = amount*((page+1))+page
         var cidlist = ("like" == req.query.type) ? await client.zrevrange("commentl_like:"+req.query.postid,start,end) : await client.zrange("commentl:"+req.query.postid,start,end)
 
         if(cidlist.length == 0) return res.json({"error": "postid does not exist"})
@@ -172,9 +174,11 @@ router.get("/ncomment", async (req, res) => {
             if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
             return res.status(400).json({"error": "Something went wrong"})
         }
-
-        var start = parseInt(req.query.amount)*parseInt(req.query.page)+parseInt(req.query.page)
-        var end = parseInt(req.query.amount)*((parseInt(req.query.page)+1))+parseInt(req.query.page)
+        
+        var amount = valid.value.amount
+        var page = valid.value.page
+        var start = amount*page+page
+        var end = amount*(page+1)+page
         var cidlist = await client.zrange(`ncommentl:${req.query.commentid}`, start, end)
 
         if(cidlist.length == 0) return res.json({"error": "commentid does not exist"})

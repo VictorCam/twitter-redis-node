@@ -7,6 +7,7 @@ const {nanoid} = require('nanoid')
 const check_token = require("../middleware/check_token")
 const router = express.Router()
 const Joi = require("joi")
+const { Redis } = require("redis-modules-sdk")
 require("dotenv").config()
 
 //case where users don't have any followers
@@ -22,6 +23,9 @@ router.post("/following", check_token(), async (req, res) => {
 
         //create a zset with the userid of the original user
         var followid = await client.get(`username:${req.body.username}`)
+
+        //return when a followid does not exist
+        if(!followid) return res.status(400).json({"error": "user does not exist"})
 
         //check if followid matches your id
         if(followid == req.userid) return res.status(400).json({"error": "you can't follow yourself"})
@@ -42,6 +46,14 @@ router.post("/following", check_token(), async (req, res) => {
         return res.status(500).send("error in /following")
     }
 })
+
+//test route
+router.get("/test", check_token(), async (req, res) => {
+
+    return res.status(200).json({"status": "ok"})
+    
+})
+
 
 router.use(cors())
 module.exports = router

@@ -1,6 +1,5 @@
 # NODE MODULE FILES
 node_modules
-redis-stable
 
 # LOCAL ENV FILES
 .env

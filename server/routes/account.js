@@ -116,6 +116,7 @@ router.post("/register", async (req, res) => {
             "is_verified", 0,
             "join_date", Math.floor(Date.now() / 1000),
             "desc", "",
+            "postl_index", 0
         ])
         .exec()
 

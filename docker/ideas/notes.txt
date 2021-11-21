@@ -45,6 +45,11 @@ KVROCKS: KEY
 https://stackoverflow.com/questions/23507200/good-practices-for-designing-monthly-subscription-system-in-database
 ==
 
+//interesting read
+==
+https://redis.io/topics/latency
+==
+
 ==check if username or email is taken [login]==
 redis: search username or email
 kvrocks: if(user||email) disallow : make account

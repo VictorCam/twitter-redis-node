@@ -366,7 +366,7 @@ router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => 
         if(exists[0][1][1] != req.params.postid) return res.json({"error": "the commentid has no relationship with the postid"})
         if(req.userid != exists[0][1][0]) return res.json({"error": "you do not own this comment"})
 
-        //recommended to use unlink (kvrocks does not support yet but upstash does)
+        //recommended to use unlink (when deleting large keys)
         //[cannot implement]: get the list of ncomments and delete it (not viable/worth it) 
         await client.pipeline()
         .del(`comment:${req.params.commentid}`)

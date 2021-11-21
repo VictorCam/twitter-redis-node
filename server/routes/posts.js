@@ -6,16 +6,6 @@ const check_token = require("../middleware/check_token")
 const Joi = require("joi")
 const {nanoid} = require('nanoid')
 
-// const edit_post = {
-//     type: 'object', required: ['message', 'post_id'], additionalProperties: false,
-//     properties: {
-//         message: { type: 'string', minLength: 1, maxLength: 100 },
-//         post_id: { type: 'integer' }
-//     }
-// }
-
-// const delete_post = { type: 'integer' }
-
 router.get("/posts", check_token(), async (req, res) => {
     try {
         // console.log(req.userid)
@@ -33,6 +23,9 @@ router.get("/user_posts", check_token(), async (req, res) => {
         var fuserid = await client.get(`username:${req.body.username}`)
         if(!fuserid) return res.status(200).json({"error": "user does not exist"})
         
+        //get the 15 posts by rank
+        var posts = await client.zrevrange(`postl:${fuserid}`, 0, 15)
+        if(!posts) return res.status(200).json({"error": "user does not have any posts"})
 
         //note to self
         //check if req.body.username exists do diff logic
@@ -110,7 +103,8 @@ router.post("/post", check_token(), async (req, res) => {
         //     "postname", req.body.postname
         // ])
 
-        //create post
+        //create post and increment userid post_size
+
         await client.hset(`post:${uid}`,
         [
             "views", 0,
@@ -135,16 +129,10 @@ router.post("/post", check_token(), async (req, res) => {
     }
 })
 
-router.put("/edit_post", check_token(), async (req, res) => {
+router.put("/post", check_token(), async (req, res) => {
     try {
         res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        val_edit_post(req.body)
-        if(val_edit_post.errors) return res.status(422).json({"error": val_edit_post.errors[0].dataPath, "message": val_edit_post.errors[0].message})
-        
-        var sql = "UPDATE user_post SET Post = (?) WHERE user_post.POST_ID = (?) AND user_post.ID = (?)"
-        var [rows, fields] = await connectsql.promise().query(sql, [req.body.message, req.body.post_id, req.id])
-        res.sendStatus(200)
     }
     catch(e) {
         console.log("error in /edit_post route ==", e)
@@ -152,14 +140,29 @@ router.put("/edit_post", check_token(), async (req, res) => {
     }
 })
 
-router.delete("/delete_post/:post", check_token(), async (req, res) => {
+router.delete("/post/:postid", check_token(), async (req, res) => {
     try {
-        val_delete_post(parseInt(req.params.post))
-        if(val_delete_post.errors) return res.status(422).json({"error": val_delete_post.errors[0].message})
 
-        const sql = "DELETE FROM user_post WHERE user_post.POST_ID = (?)" //note: must check if user owns this post
-        var [rows, fields] = await connectsql.promise().query(sql, [req.params.post])
-        res.sendStatus(200)
+
+        //(IMPOSSIBLE because the post will be deleted before a new post can be made)
+        //post does exist but postl does not exist
+
+        //check if post exists (if the post exists then the postl should exist (no need to check))
+        var userid = await client.hget(`post:${req.params.postid}`, "userid")
+
+        if(!userid) return res.status(200).json({"error": "post does not exist"})
+        if(userid != req.userid) return res.status(200).json({"error": "you are not the user who created this post"})
+
+        //delete post:postid and postl:userid
+        var exists = await client.pipeline()
+        .del(`post:${req.params.postid}`)
+        .zrem(`postl:${userid}`, req.params.postid)
+        .zcard(`postl:${userid}`)
+        .exec()
+
+        //update the index of the userid postl_index
+        await client.hset(`userid:${userid}`, "postl_index", exists[2][1])
+        return res.status(200).json({"status": "ok"})
     }
     catch(e) {
         console.log("error in /delete_post route ==", e)

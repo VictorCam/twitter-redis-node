@@ -91,7 +91,8 @@ router.get("/feed", check_token(), async (req, res) => {
             var results = await pipe.exec()
             console.log("RESULT", results)
             console.log("\n\n")
-            delete results[0][0];
+            results[0].shift();
+            results[1].shift();
             posts.push({"username": userdata[0], "icon": userdata[1], "userid": followers[i], "unread": unread, "posts": results})
         }
 

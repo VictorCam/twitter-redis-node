@@ -3,66 +3,74 @@ const cors = require("cors")
 const {client, rclient} = require("../server_connection")
 const {nanoid} = require('nanoid')
 const check_token = require("../middleware/check_token")
+const pagination = require("../middleware/pagination")
 const router = express.Router()
 const Joi = require("joi")
 require("dotenv").config()
 
+//we need to rethink this
 //a route that sets a cookie with 15 userid's (we first need to pick a selection)
-router.post("/selection", check_token(), async (req, res) => {
+router.post("/selection", check_token(), pagination(), async (req, res) => {
+    try {
+        //get the size of the following list
+        var following_size = await client.zcard(`following:${req.userid}`)
+        if(req.start >= following_size) return res.status(400).json({"error": "you have no more followers to see"})
+        
+        var followid = await client.zrevrange(`following:${req.userid}`, req.start, req.end, "withscores")
 
-    //limit by 15
-    var amount = parseInt(req.query.amount)
-    var page = parseInt(req.query.page)
-    var start = amount*page+page
-    var end = amount*((page+1))+page
+        if(!followid) return res.status(400).json({"error": "you don't have any followers"})
 
-    var followid = await client.zrevrange(`following:${req.userid}`, start, end, "withscores")
+        cookiearr = []
+        result = []
+        jdata = {}
+        console.log(followid)
+        for(var i = 0; i < followid.length; i+=2) {
+            //get the userid from the followid
+            // var userdata = await client.hmget(`userid:${followid[i]}`, "username", "icon")
 
-    if(!followid) return res.status(400).json({"error": "you don't have any followers"})
+            var userdata = await client.hmget(`userid:${followid[i]}`, "username", "icon", "postl_index")
+            var postl_index = parseInt(userdata[2])
+            var index = parseInt(followid[i+1])
 
-    cookiearr = []
-    result = []
-    jdata = {}
-    // console.log(followid)
-    for(var i = 0; i < followid.length; i+=2) {
-        //get the userid from the followid
-        // var userdata = await client.hmget(`userid:${followid[i]}`, "username", "icon")
+            //OPTIMIZE HERE
+            //get the size of the userid's postl
+            var postl_size = await client.zcard(`postl:${followid[i]}`)
 
-        var userdata = await client.hmget(`userid:${followid[i]}`, "username", "icon", "postl_index")
-        var postl_index = parseInt(userdata[2])
-        var index = parseInt(followid[i+1])
+            var read = index
+            console.log("test", index)
 
-        //OPTIMIZE HERE
-        //get the size of the userid's postl
-        var postl_size = await client.zcard(`postl:${followid[i]}`)
+            if(postl_index > index) {
+                // console.log("if1", userdata[0])
+                read = postl_index-index
+            }
+            if(postl_index < index) {
+                // console.log("if2", userdata[0])
+                read = index-postl_index
+            }
 
-        var read = index
+            //DO COOOKIE STUFF HERE
+            if(postl_size-read != 0) {
+                cookiearr.push(followid[i], postl_size, read)
+            }
 
-        if(postl_index > index) {
-            // console.log("if1", userdata[0])
-            read = postl_index-index
+            // cookiearr.push({"un": userdata[0], "i": userdata[1], "id": })
+
+            // console.log("end", userdata[0])
+            result.push({"username": userdata[0], "icon": userdata[1], "userid": followid[i], "read": read, "unread": postl_size-read})
         }
-        if(postl_index < index) {
-            // console.log("if2", userdata[0])
-            read = index-postl_index
-        }
 
-        //DO COOOKIE STUFF HERE
-        if(postl_size-read != 0) {
-            cookiearr.push(followid[i], postl_size, read)
-        }
+        res.cookie("followers", cookiearr, { signed: true, httpOnly: true })
 
-        // cookiearr.push({"un": userdata[0], "i": userdata[1], "id": })
-
-        // console.log("end", userdata[0])
-        result.push({"username": userdata[0], "icon": userdata[1], "userid": followid[i], "read": read, "unread": postl_size-read})
+        res.status(200).json(result)
     }
-
-    res.cookie("followers", cookiearr, { signed: true, httpOnly: true })
-
-    res.status(200).json(result)
+    catch(e) {
+        console.log("error in selection", e)
+        return res.status(500).json({"error": "something went wrong"})
+    }
 })
 
+//we need to rethink this a bit
+//add pagination() here?
 router.get("/feed", check_token(), async (req, res) => {
     try {
         //we get 15 posts from each user and userid data using
@@ -74,26 +82,27 @@ router.get("/feed", check_token(), async (req, res) => {
         //when the cookie is empty we will call the selection route again to get new users
         var followers = req.signedCookies.followers
 
-        // console.log(followers)
+        var unread = followers[i+1]-followers[i+2]
+        var post_amount = Math.floor(60/(followers.length/3))
 
         var posts = []
         for(var i = 0; i < followers.length; i+=3) {
-            var unread = followers[i+1]-followers[i+2]
-            console.log("unread", unread)
+            
             var postl = await client.zrange(`postl:${followers[i]}`, followers[i+2], followers[i+1], "WITHSCORES")
-            console.log("postl", postl)
+            var userdata = await client.hmget(`userid:${followers[i]}`, ["username", "icon"])
 
             var pipe = client.pipeline()
-            var userdata = await client.hmget(`userid:${followers[i]}`, "username", "icon")
             for(var j = 0; j < postl.length; j+=2) {
                 pipe.hgetall(`post:${postl[j]}`)
             }
+
             var results = await pipe.exec()
-            console.log("RESULT", results)
-            console.log("\n\n")
-            results[0].shift();
-            results[1].shift();
-            posts.push({"username": userdata[0], "icon": userdata[1], "userid": followers[i], "unread": unread, "posts": results})
+            for(var j = 0; j < results.length; j++) {
+                var result = results[j][1]
+                result.username = userdata[0]
+                result.icon = userdata[1]
+                posts.push(result)
+            }
         }
 
         return res.status(200).json(posts)
@@ -105,14 +114,65 @@ router.get("/feed", check_token(), async (req, res) => {
     }
 })
 
-router.get("/feed/:userid", check_token(), async (req, res) => {
+router.get("/feed/:userid", check_token(), pagination(), async (req, res) => {
     try {
         //for people who want to get the feed from a specific user
-        return res.status(200).json("test")
+        var userid = req.params.userid
 
+        //check if you ar following that user
+        var following = await client.zscore(`following:${req.userid}`, userid)
+        if(!following) return res.status(400).json({"error": "you are not following that user"})
+
+
+        var postl_size = await client.zcard(`postl:${userid}`)
+
+        //printthe following score
+
+        //ROAD AHEAD!!!
+        //we want to get the zrange and we need this
+        //=========================
+        var read = following
+        if(postl_index > index) {
+            // console.log("if1", userdata[0])
+            read = postl_index-index
+        }
+        if(postl_index < index) {
+            // console.log("if2", userdata[0])
+            read = index-postl_index
+        }
+        //=========================
+
+        //check if postl_size start is bigger than the amount of posts you want to get
+        // if(req.start >= postl_size) return res.status(400).json({"error": "you have no more posts to see"})
+        
+
+        //NOTE HERE IS WHERE WE WILL NEED (THE INDEX LOGIC LIKE IN SELECTION)
+
+        // var postl = await client.zrange(`postl:${userid}`, req.start, req.end)
+        // var userdata = await client.hmget(`userid:${userid}`, ["username", "icon"])
+
+        // //update the following of the userid
+        // // console.log("update to remove", postl.length)
+        // // await client.zincrby(`following:${req.userid}`, postl.length-1, userid)
+
+        // var pipe = client.pipeline()
+        // for(var i = 0; i < postl.length; i++) {
+        //     pipe.hgetall(`post:${postl[i]}`)
+        // }
+
+        // var results = await pipe.exec()
+        // var posts = []
+        // for(var i = 0; i < results.length; i++) {
+        //     var result = results[i][1]
+        //     result.username = userdata[0]
+        //     result.icon = userdata[1]
+        //     posts.push(result)
+        // }
+
+        return res.status(200).json("e")
     }
     catch(e) {
-        console.log("error in get timeline", e)
+        console.log("error in get feed", e)
         return res.status(500).send("error occured")
     }
 })

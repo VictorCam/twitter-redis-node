@@ -3,6 +3,7 @@ const router = express.Router()
 const cors = require("cors")
 const {client, sclient, rclient} = require("../server_connection")
 const check_token = require("../middleware/check_token")
+const pagination = require("../middleware/pagination")
 const Joi = require("joi")
 const {nanoid} = require('nanoid')
 
@@ -101,35 +102,31 @@ router.post("/ncomment", check_token(), async (req, res) => {
 
 //allow stickers as well like in telegram!
 
-router.get("/comment", async (req, res) => {
+router.get("/comment", pagination(), async (req, res) => {
     try {
         res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
         var schema = Joi.object().keys({
-            amount: Joi.number().integer().min(0).required(),
-            page: Joi.number().integer().min(0).required(),
             postid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
             type: Joi.string().valid("like", "reg").required()
         })
-
-        //dies when it gets a type
 
         //validate schema
         var valid = schema.validate(req.query)
         if(valid.error) {
             var label = valid.error.details[0].context.label
-            if(label == "amount") return res.status(400).json({"error": "Invalid amount"})
-            if(label == "page") return res.status(400).json({"error": "Invalid page"})
             if(label == "postid") return res.status(400).json({"error": "Invalid postid"})
             if(label == "type") return res.status(400).json({"error": "Invalid type"})
             return res.status(400).json({"error": "Something went wrong"})
         }
 
-        var amount = valid.value.amount
-        var page = valid.value.page
-        var start = amount*page+page
-        var end = amount*((page+1))+page
-        var cidlist = ("like" == req.query.type) ? await client.zrevrange("commentl_like:"+req.query.postid,start,end) : await client.zrange("commentl:"+req.query.postid,start,end)
+        //check the size of the commentl
+        var commentl_size = await client.zcard("commentl:"+req.query.postid)
+
+        //check if the start > commentl_size
+        if(req.start >= commentl_size) return res.json({"error": "you have no more posts to see"})
+
+        var cidlist = ("like" == req.query.type) ? await client.zrevrange("commentl_like:"+req.query.postid,req.start,req.end) : await client.zrange("commentl:"+req.query.postid,req.start,req.end)
 
         if(cidlist.length == 0) return res.json({"error": "postid does not exist"})
 
@@ -156,30 +153,28 @@ router.get("/comment", async (req, res) => {
     }
 })
 
-router.get("/ncomment", async (req, res) => {
+router.get("/ncomment", pagination(), async (req, res) => {
     try {
-        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+        res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
         var schema = Joi.object().keys({
-            amount: Joi.number().integer().min(0).required(),
-            page: Joi.number().integer().min(0).required(),
             commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required()
         })
 
         var valid = schema.validate(req.query)
         if(valid.error) {
             var label = valid.error.details[0].context.label
-            if(label == "amount") return res.status(400).json({"error": "Invalid amount"})
-            if(label == "page") return res.status(400).json({"error": "Invalid page"})
             if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
-            return res.status(400).json({"error": "Something went wrong"})
+            return res.status(400).json({"error": "something went wrong"})
         }
+
+        //check the size of the commentl
+        var ncommentl_size = await client.zcard("ncommentl:"+req.query.commentid)
+
+        //check if start > ncommentl_size 
+        if(req.start >= ncommentl_size) return res.json({"error": "no more comments to see"})
         
-        var amount = valid.value.amount
-        var page = valid.value.page
-        var start = amount*page+page
-        var end = amount*(page+1)+page
-        var cidlist = await client.zrange(`ncommentl:${req.query.commentid}`, start, end)
+        var cidlist = await client.zrange(`ncommentl:${req.query.commentid}`, req.start, req.end)
 
         if(cidlist.length == 0) return res.json({"error": "commentid does not exist"})
 

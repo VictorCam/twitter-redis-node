@@ -31,7 +31,6 @@ app.use((error, req, res, next) => {
 })
 
 //imported routes
-const users = require("./routes/users")
 const login = require("./routes/account")
 const posts = require("./routes/posts")
 const comment = require("./routes/comment")
@@ -39,7 +38,7 @@ const follow = require("./routes/follow")
 const feed = require("./routes/feed")
 
 //linked routes
-app.use("/", [users, login, posts, comment, follow, feed])
+app.use("/", [login, posts, comment, follow, feed])
 
 
 //port

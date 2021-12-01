@@ -11,22 +11,22 @@
   "dependencies": {
     "@trubavuong/seaweedfs": "^3.0.1",
     "bcrypt": "^5.0.1",
-    "cookie-parser": "^1.4.5",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dayjs": "^1.10.7",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "formidable": "^2.0.1",
     "helmet": "^4.6.0",
-    "ioredis": "^4.28.0",
-    "joi": "^17.4.2",
+    "ioredis": "^4.28.2",
+    "joi": "^17.4.3",
     "js-cookie": "^3.0.1",
     "jsonwebtoken": "^8.5.1",
     "nanoid": "^3.1.30",
     "nodemon": "^2.0.15",
     "prerender-node": "^3.4.0",
-    "rate-limiter-flexible": "^2.3.4",
-    "redis-modules-sdk": "^1.0.1",
+    "rate-limiter-flexible": "^2.3.6",
+    "redis-modules-sdk": "^1.1.0",
     "wrtc": "^0.4.7"
   }
 }

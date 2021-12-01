@@ -1,68 +1,24 @@
 const express = require("express")
 const cors = require("cors")
 const {client, rclient} = require("../server_connection")
-const {nanoid} = require('nanoid')
 const check_token = require("../middleware/check_token")
 const pagination = require("../middleware/pagination")
 const router = express.Router()
 const Joi = require("joi")
 require("dotenv").config()
 
-//we need to rethink this
-//a route that sets a cookie with 15 userid's (we first need to pick a selection)
-//dont forget we need to check if we are blocking a user when people rehowl something
-
-router.post("/selection", check_token(), pagination(), async (req, res) => {
-    try {
-        //get the size of the following list
-        var following_size = await client.zcard(`following:${req.userid}`)
-
-        if(!following_size) return res.status(400).send("You are not following anyone")
-        if(req.start >= following_size) return res.status(400).json({"error": "you have no more followers to see"})
-
-        var followid = await client.zrevrange(`following:${req.userid}`, req.start, req.end, "withscores")
-
-        if(!followid) return res.status(400).json({"error": "you don't have any followers"})
-
-        result = []
-        for(var i = 0; i < followid.length; i+=2) {
-            var pres = await client.pipeline()
-            .hmget(`userid:${followid[i]}`, "username", "icon")
-            .zcount(`postl:${followid[i]}`, followid[i+1], "+inf")
-            .exec()
-
-            result.push({
-                "username": pres[0][1][0],
-                "icon": pres[0][1][1],
-                "unread": pres[1][1]
-            })
-        }
-
-        res.status(200).json(result)
-    }
-    catch(e) {
-        console.log("error in selection", e)
-        return res.status(500).json({"error": "something went wrong"})
-    }
-})
-
 router.get("/feed", check_token(), pagination(), async (req, res) => {
     try {
         //just make sure that joi doesnt go past 99999999 for page
 
         var followid = await client.zrevrange(`following:${req.userid}`, req.start, req.end, "withscores")
-
         if(!followid) return res.status(400).json({"error": "you don't have any followers"})
-
         var post_quantity = Math.floor(60 / (followid.length / 2))
 
         var posts = []
-        // console.log(followid)
         for(var j = 0; j < followid.length; j+=2) {
-            console.log(followid[j])
             var postl = await client.zrangebyscore(`postl:${followid[j]}`, followid[j+1], "+inf", "withscores", "limit", 0, post_quantity)
 
-            //get the rank of the first postl array
             if(postl.length != 0) {
                 var pres = await client.pipeline()
                 .zadd(`following:${req.userid}`, parseInt(postl[postl.length-1])+1, followid[j])
@@ -81,9 +37,7 @@ router.get("/feed", check_token(), pagination(), async (req, res) => {
                     result.icon = pres[1][1][1]
                     posts.push(result)
                 }
-                console.log(results)
             }
-            
         }
         return res.status(200).json(posts)
     }
@@ -136,20 +90,6 @@ router.get("/feed/:userid", check_token(), pagination(), async (req, res) => {
         return res.status(500).send("error occured")
     }
 })
-
-//grab 25 users and set it as a cookie
- 
-//use cookie to get postl of the userid of all 25 users (pipelined loop)
-
-//[PERHAPS USE A INCREMENTING HASH TO REDUCE TIME COMPLEXITY]
-
-//then we get the posts from the postl pipelined results (loop)
-
-//we remove the users who do not have any posts
-
-//[MISSING CASE WHERE 25 USERS HAVE NO POSTS!]
-//[MISSING CASE WHERE 1 USER HAS 1 POST HAS A POST!]
-
 
 router.use(cors())
 module.exports = router

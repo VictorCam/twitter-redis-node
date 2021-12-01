@@ -2,15 +2,10 @@ const express = require("express")
 const cors = require("cors")
 const {client, rclient} = require("../server_connection")
 const check_token = require("../middleware/check_token")
+const pagination = require("../middleware/pagination")
 const router = express.Router()
 const Joi = require("joi")
 require("dotenv").config()
-
-//case where users don't have any followers
-//case where users have a few followers
-//case where users have a lot of followers
-//case where users don't have 15 followers
-//case where users have 20 followers
 
 //follow a user
 router.post("/follow", check_token(), async (req, res) => {
@@ -70,17 +65,15 @@ router.post("/unfollow", check_token(), async (req, res) => {
     }
 })
 
-
-router.get("/following", check_token(), async (req, res) => {
+router.get("/following/:username", check_token(), async (req, res) => {
     try {
         res.set("Access-Control-Allow-Origin", "*")
 
         //DONT FORGET THIS LOGIC FOR LOCKED ACCOUNTS!
         //check if you are allowed to see the following list
         //if you are not allowed to see the following list, return that this account is locked
-
         //get the username
-        var userid = await client.get(`username:${req.query.username}`)
+        var userid = await client.get(`username:${req.params.username}`)
 
         //check if the username exists
         if(!userid) return res.status(400).json({"error": "user does not exist"})
@@ -123,6 +116,42 @@ router.get("/following", check_token(), async (req, res) => {
     catch(e) {
         console.log(e)
         return res.status(500).send("error in get /follow")
+    }
+})
+
+//dont forget we need to check if we are blocking a user when people rehowl something
+//dont forget to check if we are blocking a user when people rehowl something
+//also for blocking we need to remove the person
+router.get("/following", check_token(), pagination(), async (req, res) => {
+    try {
+        //get the size of the following list
+        var following_size = await client.zcard(`following:${req.userid}`)
+        if(!following_size) return res.status(400).send("You are not following anyone")
+        if(req.start >= following_size) return res.status(400).json({"error": "you have no more followers to see"})
+
+        var followid = await client.zrevrange(`following:${req.userid}`, req.start, req.end, "withscores")
+        if(!followid) return res.status(400).json({"error": "you don't have any followers"})
+
+        result = []
+        for(var i = 0; i < followid.length; i+=2) {
+            var pres = await client.pipeline()
+            .hmget(`userid:${followid[i]}`, "username", "icon", "icon_frame")
+            .zcount(`postl:${followid[i]}`, followid[i+1], "+inf")
+            .exec()
+
+            result.push({
+                "username": pres[0][1][0],
+                "icon": pres[0][1][1],
+                "icon_frame": pres[0][1][2],
+                "unread": pres[1][1]
+            })
+        }
+
+        res.status(200).json(result)
+    }
+    catch(e) {
+        console.log("error in selection", e)
+        return res.status(500).json({"error": "something went wrong"})
     }
 })
 

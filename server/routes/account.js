@@ -110,13 +110,11 @@ router.post("/register", async (req, res) => {
             "password", hashpass,
             "icon", "Flowchart.png",
             "icon_frame", 0,
-            "is_admin", 0,
-            "is_sadmin", 0,
+            "admin_level", 0,
             "is_deleted", 0,
             "is_verified", 0,
             "join_date", Math.floor(Date.now() / 1000),
-            "desc", "",
-            "postl_index", 0
+            "desc", ""
         ])
         .exec()
 

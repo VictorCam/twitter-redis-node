@@ -1,9 +1,6 @@
-const jwt = require("jsonwebtoken")
 const express = require("express")
 const cors = require("cors")
-const bcrypt = require('bcrypt')
 const {client, rclient} = require("../server_connection")
-const {nanoid} = require('nanoid')
 const check_token = require("../middleware/check_token")
 const router = express.Router()
 const Joi = require("joi")
@@ -32,12 +29,9 @@ router.post("/follow", check_token(), async (req, res) => {
         var following = await client.zscore(`following:${req.userid}`, followid)
         if(following) return res.status(400).json({"error": "you are already following this user"})
 
-        //get the post size from the userid
-        var postl_size = await client.zcard(`postl:${followid}`)
-
         //add the the new user to your following list and vice versa
         await client.pipeline()
-        .zadd(`following:${req.userid}`, postl_size, followid)
+        .zadd(`following:${req.userid}`, Math.floor(Date.now() / 1000), followid)
         .zadd(`followers:${followid}`, Math.floor(Date.now() / 1000), req.userid)
         .exec()
 

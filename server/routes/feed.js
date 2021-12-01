@@ -34,8 +34,7 @@ router.post("/selection", check_token(), pagination(), async (req, res) => {
             result.push({
                 "username": pres[0][1][0],
                 "icon": pres[0][1][1],
-                "unread": pres[1][1],
-                "userid": followid[i]
+                "unread": pres[1][1]
             })
         }
 
@@ -47,11 +46,46 @@ router.post("/selection", check_token(), pagination(), async (req, res) => {
     }
 })
 
-router.get("/feed", check_token(), async (req, res) => {
+router.get("/feed", check_token(), pagination(), async (req, res) => {
     try {
-        //use most of the code for feed just loop through the amount of users we have
-        //and the grab around 50 posts from all users in total
-        return res.status(200).json("test")
+        //just make sure that joi doesnt go past 99999999 for page
+
+        var followid = await client.zrevrange(`following:${req.userid}`, req.start, req.end, "withscores")
+
+        if(!followid) return res.status(400).json({"error": "you don't have any followers"})
+
+        var post_quantity = Math.floor(60 / (followid.length / 2))
+
+        var posts = []
+        // console.log(followid)
+        for(var j = 0; j < followid.length; j+=2) {
+            console.log(followid[j])
+            var postl = await client.zrangebyscore(`postl:${followid[j]}`, followid[j+1], "+inf", "withscores", "limit", 0, post_quantity)
+
+            //get the rank of the first postl array
+            if(postl.length != 0) {
+                var pres = await client.pipeline()
+                .zadd(`following:${req.userid}`, parseInt(postl[postl.length-1])+1, followid[j])
+                .hmget(`userid:${followid[j]}`, "username", "icon")
+                .exec()
+
+                var pres2 = client.pipeline()
+                for(var i = 0; i < postl.length; i+=2) {
+                    pres2.hgetall(`post:${postl[i]}`)
+                }
+                var results = await pres2.exec()
+
+                for(var i = 0; i < results.length; i++) {
+                    var result = results[i][1]
+                    result.username = pres[1][1][0]
+                    result.icon = pres[1][1][1]
+                    posts.push(result)
+                }
+                console.log(results)
+            }
+            
+        }
+        return res.status(200).json(posts)
     }
     catch(e) {
         console.log("error in get timeline", e)

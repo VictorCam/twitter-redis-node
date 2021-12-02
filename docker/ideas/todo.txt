@@ -2,8 +2,6 @@
 2. learn grid
 
 
-
-
 # regex checker
 http://redos-checker.surge.sh/
 
@@ -27,7 +25,5 @@ https://www.youtube.com/watch?v=AryZSCeKU9Y
 # (DONT FORGET STATUS CODES FOR ERRORS NODEJS!)
 
 # potentially use CADDY as a webserver
-
-
 #IMPORTANT OPTIMIZATION!
 https://stackoverflow.com/questions/32854616/redis-sorted-set-find-item-by-property-value

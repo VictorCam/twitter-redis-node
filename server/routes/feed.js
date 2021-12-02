@@ -15,30 +15,37 @@ router.get("/feed", check_token(), pagination(), async (req, res) => {
         if(!followid) return res.status(400).json({"error": "you don't have any followers"})
         var post_quantity = Math.floor(60 / (followid.length / 2))
 
+        var update = []
         var posts = []
+        
         for(var j = 0; j < followid.length; j+=2) {
             var postl = await client.zrangebyscore(`postl:${followid[j]}`, followid[j+1], "+inf", "withscores", "limit", 0, post_quantity)
 
             if(postl.length != 0) {
-                var pres = await client.pipeline()
-                .zadd(`following:${req.userid}`, parseInt(postl[postl.length-1])+1, followid[j])
-                .hmget(`userid:${followid[j]}`, "username", "icon")
-                .exec()
-
-                var pres2 = client.pipeline()
+                update.push({"last_score": postl[0], "userid": followid[j]})
+                var userdata = await client.hmget(`userid:${followid[j]}`, "username", "icon")
+                
+                var pres = client.pipeline()
                 for(var i = 0; i < postl.length; i+=2) {
-                    pres2.hgetall(`post:${postl[i]}`)
+                    pres.hgetall(`post:${postl[i]}`)
                 }
-                var results = await pres2.exec()
+                var results = await pres.exec()
 
                 for(var i = 0; i < results.length; i++) {
                     var result = results[i][1]
-                    result.username = pres[1][1][0]
-                    result.icon = pres[1][1][1]
+                    result.username = userdata[0]
+                    result.icon = userdata[1]
                     posts.push(result)
                 }
             }
         }
+
+        var pipe = client.pipeline()
+        for(var i = 0; i < update.length; i++) {
+            pipe.zadd(`following:${req.userid}`, parseInt(update[i].last_score)+1, update[i].userid)
+        }
+        await pipe.exec()
+
         return res.status(200).json(posts)
     }
     catch(e) {
@@ -63,11 +70,8 @@ router.get("/feed/:userid", check_token(), pagination(), async (req, res) => {
 
         if(postl.length == 0) return res.status(400).json({"error": "you have no posts to see"})
 
-        //get the rank of the first postl array
-        var pres = await client.pipeline()
-        .zadd(`following:${req.userid}`, parseInt(postl[postl.length-1])+1, userid)
-        .hmget(`userid:${userid}`, "username", "icon")
-        .exec()
+        await client.zadd(`following:${req.userid}`, parseInt(postl[postl.length-1])+1, userid)
+        var userdata = client.hmget(`userid:${userid}`, "username", "icon")
 
         var pipe = client.pipeline()
         for(var i = 0; i < postl.length; i+=2) {
@@ -78,8 +82,8 @@ router.get("/feed/:userid", check_token(), pagination(), async (req, res) => {
         var posts = []
         for(var i = 0; i < results.length; i++) {
             var result = results[i][1]
-            result.username = pres[3][1][0]
-            result.icon = pres[3][1][1]
+            result.username = userdata[0]
+            result.icon = userdata[1]
             posts.push(result)
         }
 

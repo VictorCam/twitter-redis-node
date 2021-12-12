@@ -7,6 +7,8 @@ const pagination = require("../middleware/pagination")
 const Joi = require("joi")
 const {nanoid} = require('nanoid')
 
+//check if you are an admin of certain privileges if so you are able to delete anything
+
 router.post("/comment", check_token(), async (req, res) => {
     try {
         res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
@@ -138,10 +140,11 @@ router.get("/comment", pagination(), async (req, res) => {
 
         var commentlist = []
         for (let i = 0; i < cidlist.length; i++) {
-            var userinfo = await client.hmget(`userid:${cdata[0][1].userid}`, "icon", "username")
+            var userinfo = await client.hmget(`userid:${cdata[0][1].userid}`, "icon", "username", "icon_frame")
             cdata[i][1]["commentid"] = cidlist[i]
             cdata[i][1]["icon"] = userinfo[0]
             cdata[i][1]["username"] = userinfo[1]
+            cdata[i][1]["icon_frame"] = userinfo[2]
             commentlist.push(cdata[i][1])
         }
         
@@ -184,12 +187,15 @@ router.get("/ncomment", pagination(), async (req, res) => {
         }
         var cdata = await pipe.exec()
 
+        //maybe could make concurrent
+        //https://dev.to/apurbostarry/how-to-make-concurrent-api-calls-in-nodejs-35b8
         var commentlist = []
         for (let i = 0; i < cidlist.length; i++) {
-            var userinfo = await client.hmget(`userid:${cdata[i][1].userid}`, "icon", "username")
+            var userinfo = await client.hmget(`userid:${cdata[i][1].userid}`, "icon", "username", "icon_frame")
             cdata[i][1]["ncommentid"] = cidlist[i]
             cdata[i][1]["icon"] = userinfo[0]
             cdata[i][1]["username"] = userinfo[1]
+            cdata[i][1]["icon_frame"] = userinfo[2]
             commentlist.push(cdata[i][1])
         }
         
@@ -220,10 +226,11 @@ router.get("/comment/:commentid", async (req, res) => {
         var comment = await client.hgetall(`comment:${req.params.commentid}`)
         if(!comment.hasOwnProperty('userid')) return res.json({"error": "commentid does not exist"})
 
-        var userid = await client.hmget(`userid:${comment.userid}`, ["icon", "username"])
+        var userid = await client.hmget(`userid:${comment.userid}`, ["icon", "username", "icon_frame"])
         comment["commentid"] = req.params.commentid
         comment["icon"] = userid[0]
         comment["username"] = userid[1]
+        comment["icon_frame"] = userid[2]
 
         return res.status(200).json(comment)
     }
@@ -253,10 +260,11 @@ router.get("/ncomment/:ncommentid", async (req, res) => {
         var ncomment = await client.hgetall(`ncomment:${req.params.ncommentid}`)
         if(!ncomment.hasOwnProperty('userid')) return res.json({"error": "ncommentid does not exist"})
 
-        var userid = await client.hmget(`userid:${ncomment.userid}`, ["icon", "username"])
+        var userid = await client.hmget(`userid:${ncomment.userid}`, ["icon", "username", "icon_frame"])
         ncomment["ncommentid"] = req.params.ncommentid
         ncomment["icon"] = userid[0]
         ncomment["username"] = userid[1]
+        ncomment["icon_frame"] = userid[2]
 
         return res.status(200).json(ncomment)
     }

@@ -12,6 +12,19 @@ router.post("/follow", check_token(), async (req, res) => {
     try {
         res.set({"Access-Control-Allow-Origin": "*"})
 
+        //validate req
+        //username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -
+        const schema = Joi.object().keys({
+            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required()
+        })
+
+        var valid = schema.validate(req.body)
+        if (valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
+            return res.status(400).json({"error": "something went wrong"})
+        }
+
         //create a zset with the userid of the original user
         var followid = await client.get(`username:${req.body.username}`)
 
@@ -44,6 +57,17 @@ router.post("/unfollow", check_token(), async (req, res) => {
     try {
         res.set({"Access-Control-Allow-Origin": "*"})
 
+        const schema = Joi.object().keys({
+            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required()
+        })
+
+        var valid = schema.validate(req.body)
+        if (valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
+            return res.status(400).json({"error": "something went wrong"})
+        }
+
         var followid = await client.get(`username:${req.body.username}`)
 
         if(!followid) return res.status(400).json({"error": "user does not exist"})
@@ -65,7 +89,7 @@ router.post("/unfollow", check_token(), async (req, res) => {
     }
 })
 
-router.get("/following/:username", check_token(), async (req, res) => {
+router.get("/following/:username", check_token(), pagination(), async (req, res) => {
     try {
         res.set("Access-Control-Allow-Origin", "*")
 
@@ -73,6 +97,19 @@ router.get("/following/:username", check_token(), async (req, res) => {
         //check if you are allowed to see the following list
         //if you are not allowed to see the following list, return that this account is locked
         //get the username
+
+        const schema = Joi.object().keys({
+            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required()
+        })
+
+        var valid = schema.validate(req.params)
+        if (valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
+            return res.status(400).json({"error": "something went wrong"})
+        }
+
+
         var userid = await client.get(`username:${req.params.username}`)
 
         //check if the username exists
@@ -81,17 +118,11 @@ router.get("/following/:username", check_token(), async (req, res) => {
         //check the permission of the userid
         //TODO
 
-        //something here I think but im too tired to figure it out now
-
-        //show 15 of the users you are following at a time
-        var amount = parseInt(req.query.amount)
-        var page = parseInt(req.query.page)
-        var start = amount*page+page
-        var end = amount*(page+1)+page
+        //something else im missing here i think
     
-        var following = await client.zrevrange(`following:${userid}`, start, end)
+        var following = await client.zrevrange(`following:${userid}`, req.start, req.end)
 
-        //if you are following no one, return an empty array
+        //if you are following no one, return empty
         if(!following) return res.status(200).json({})
 
         //get the username, icon, and desc of the users you are following

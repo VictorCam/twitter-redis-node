@@ -24,6 +24,13 @@ https://www.youtube.com/watch?v=AryZSCeKU9Y
 
 # (DONT FORGET STATUS CODES FOR ERRORS NODEJS!)
 
-# potentially use CADDY as a webserver
+# FRONTEND CADDY as a webserver
 #IMPORTANT OPTIMIZATION!
 https://stackoverflow.com/questions/32854616/redis-sorted-set-find-item-by-property-value
+
+#SCALING NODEJS
+
+
+#BACKEND & IMG_SERVER
+# ---
+# ---

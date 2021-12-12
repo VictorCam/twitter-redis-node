@@ -57,12 +57,16 @@ router.post("/login", async (req, res) => {
     }
 })
 
+//note that there can be two similar but diff type of usernames
+//for example, ALBERT is different than albert or alBeRt
+
 router.post("/register", async (req, res) => {
     try {
         res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
         //DONT FORGET AREA CODE LATER ON
         //DONT FORGET SOME USERS WILL ENTER - on the phone number
+        //lowercase the username
         const schema = Joi.object().keys({
             username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required(),
             password: Joi.string().regex(/^[a-zA-Z0-9!@#$%^&*_-]{10,100}$/).required(),
@@ -123,6 +127,54 @@ router.post("/register", async (req, res) => {
     }
     catch(e) {
         console.log("error in /signup route ==", e)
+        return res.sendStatus(500)
+    }
+})
+
+router.get("/user/:username", async (req, res) => {
+    try {
+        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+
+        //validate json schema
+        const schema = Joi.object().keys({
+            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required(),
+        })
+
+        var valid = schema.validate(req.params)
+        if(valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "username") return res.status(400).json({"error": "username must be between 1 and 30 characters and only contain letters, numbers, and underscores"})
+            return res.status(500).json({"error": "something went wrong"})
+        }
+
+        //get userid from username
+        var userid = await client.get(`username:${req.params.username}`)
+
+        //check if username exists
+        if(!userid) return res.status(400).json({"error": "username is not found"})
+
+        //get user info
+        var user = await client.hmget(`userid:${userid}`, "username", "email", "userid", "icon", "icon_frame", "admin_level", "is_deleted", "is_verified", "join_date", "desc")
+
+        //convert user array into object
+        user = {
+            username: user[0],
+            email: user[1],
+            userid: user[2],
+            icon: user[3],
+            icon_frame: user[4],
+            admin_level: user[5],
+            is_deleted: user[6],
+            is_verified: user[7],
+            join_date: user[8],
+            desc: user[9]
+        }
+
+        //success
+        return res.status(200).json(user)
+    }
+    catch(e) {
+        console.log("error in /user/:username route ==", e)
         return res.sendStatus(500)
     }
 })

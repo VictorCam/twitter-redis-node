@@ -7,7 +7,7 @@ module.exports = function() {
             //vaiddate req.query.amount and req.query.page
             const schema = Joi.object().keys({
                 amount: Joi.number().integer().min(0).max(100).required(),
-                page: Joi.number().integer().min(0).required()
+                page: Joi.number().integer().min(0).max(1000000).required()
             })
 
             //validate
@@ -15,7 +15,7 @@ module.exports = function() {
             if(valid.error) {
                 var label = valid.error.details[0].context.label
                 if(label == "amount") return res.status(200).json({"error": "amount must be a number between 0 and 100"})
-                if(label == "page") return res.status(200).json({"error": "page must be a number"})
+                if(label == "page") return res.status(200).json({"error": "page must be a number between 0 and 1000000"})
                 return res.status(500).json({"error": "something went wrong"})
             }
 

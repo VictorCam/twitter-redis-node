@@ -6,48 +6,38 @@ const check_token = require("../middleware/check_token")
 const Joi = require("joi")
 const {nanoid} = require('nanoid')
 
-router.get("/posts", check_token(), async (req, res) => {
-    try {
-        // console.log(req.userid)
-        // rclient.hset(`spost:${req.userid}`,)
+// router.get("/post", check_token(), async (req, res) => {
+//     try {
+//         //WIP
+//         //validation needed
 
-    }
-    catch(e) {
-        console.log("error in /posts route ==", e)
-        return res.sendStatus(500)
-    }
-})
-
-router.get("/user_posts", check_token(), async (req, res) => {
-    try {
-        var fuserid = await client.get(`username:${req.body.username}`)
-        if(!fuserid) return res.status(200).json({"error": "user does not exist"})
+//         var fuserid = await client.get(`username:${req.body.username}`)
+//         if(!fuserid) return res.status(200).json({"error": "user does not exist"})
         
-        //get the 15 posts by rank
-        var posts = await client.zrevrange(`postl:${fuserid}`, 0, 15)
-        if(!posts) return res.status(200).json({"error": "user does not have any posts"})
+//         //get the 15 posts by rank
+//         var posts = await client.zrevrange(`postl:${fuserid}`, 0, 15)
+//         if(!posts) return res.status(200).json({"error": "user does not have any posts"})
 
-        //note to self
-        //check if req.body.username exists do diff logic
-        //check if req.body.tags exists do diff logic
-        //check if both req.body exists do diff logic
+//         //note to self
+//         //check if req.body.username exists do diff logic
+//         //check if req.body.tags exists do diff logic
+//         //check if both req.body exists do diff logic
 
-        sclient.connect()
-        var results = await sclient.search("spost", `@userid:{${fuserid}} @tags:{${req.body.tags}}`, {limit: {first: 0, num: 50} })
-        if(results == 0) return res.status(200).json({"results": "wOOF no posts found :("})
-        return res.status(200).json({"results": results})
-    }
-    catch(e) {
-        console.log("error in /posts route ==", e)
-        return res.sendStatus(500)
-    } 
-    finally { sclient.disconnect() }
-})
+//         sclient.connect()
+//         var results = await sclient.search("spost", `@userid:{${fuserid}} @tags:{${req.body.tags}}`, {limit: {first: 0, num: 50} })
+//         if(results == 0) return res.status(200).json({"results": "wOOF no posts found :("})
+//         return res.status(200).json({"results": results})
+//     }
+//     catch(e) {
+//         console.log("error in /posts route ==", e)
+//         return res.sendStatus(500)
+//     } 
+//     finally { sclient.disconnect() }
+// })
 
 router.post("/post", check_token(), async (req, res) => {
     try {
         res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
-
 
         //image is prefixed with .png or .jpg
         //name is between 1 to 100 characters
@@ -69,7 +59,6 @@ router.post("/post", check_token(), async (req, res) => {
             can_like: Joi.number().integer().min(0).max(1).required(),
             can_rehowl: Joi.number().integer().min(0).max(1).required()
         })
-
 
         //validate schema
         var valid = schema.validate(req.body)
@@ -105,7 +94,8 @@ router.post("/post", check_token(), async (req, res) => {
 
         //create post and increment userid post_size
 
-        await client.hset(`post:${uid}`,
+        await client.pipeline()
+        .hset(`post:${uid}`,
         [
             "views", 0,
             "score", 0,
@@ -118,8 +108,8 @@ router.post("/post", check_token(), async (req, res) => {
             "can_comment_img", req.body.can_comment_img,
             "can_comment_sticker", req.body.can_comment_sticker
         ])
-
-        await client.zadd(`postl:${req.userid}`, Math.floor(Date.now() / 1000), uid)
+        .zadd(`postl:${req.userid}`, Math.floor(Date.now() / 1000), uid)
+        .exec()
         
         return res.status(200).json({"post": req.body.desc, "postid": uid})
     }
@@ -129,23 +119,33 @@ router.post("/post", check_token(), async (req, res) => {
     }
 })
 
-router.put("/post", check_token(), async (req, res) => {
-    try {
-        res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
+// router.put("/post", check_token(), async (req, res) => {
+//     try {
+//         res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-    }
-    catch(e) {
-        console.log("error in /edit_post route ==", e)
-        return res.sendStatus(500)
-    }
-})
+//     }
+//     catch(e) {
+//         console.log("error in /edit_post route ==", e)
+//         return res.sendStatus(500)
+//     }
+// })
 
 router.delete("/post/:postid", check_token(), async (req, res) => {
     try {
+        res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
 
+        //validate scheam
+        const schema = Joi.object().keys({
+            postid: Joi.string().min(1).max(25).required()
+        })
 
-        //(IMPOSSIBLE because the post will be deleted before a new post can be made)
-        //post does exist but postl does not exist
+        //validate schema
+        var valid = schema.validate(req.params)
+        if(valid.error) {
+            var label = valid.error.details[0].context.label
+            if(label == "postid") return res.status(200).json({"error": "postid must be a string between 1 and 25 characters"})
+            return res.status(500).json({"error": "something went wrong"})
+        }
 
         //check if post exists (if the post exists then the postl should exist (no need to check))
         var userid = await client.hget(`post:${req.params.postid}`, "userid")

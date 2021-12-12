@@ -87,6 +87,42 @@
 			"response": []
 		},
 		{
+			"name": "post (jwt)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "bearer {{auth}}",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{url}}/post/{{postid}}",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"post",
+						"{{postid}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "comment (jwt,bad pid)",
 			"event": [
 				{

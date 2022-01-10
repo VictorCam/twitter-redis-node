@@ -37,10 +37,13 @@ C. npm run dev (run sveltekit)</br>
 ---
 
 
-## 4. POSTMAN (./postman)
-A. [Import JSON(s)](https://learning.postman.com/docs/getting-started/importing-and-exporting-data/)
+## 4. ThunderClient (./tests)
 
-B. Once imported run collection in numbered order
+A [video tutorial (optional)](https://www.youtube.com/watch?v=NKZ0ahNbmak) </br>
+
+B. import JSON(s)
+
+C. run collection in **numbered order**
 
 
 ---
@@ -51,7 +54,7 @@ B. Once imported run collection in numbered order
 [VScode](https://code.visualstudio.com/)</br>
 [VScode (Svelte)](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode)</br>
 [VScode (Docker)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)</br>
-[Postman](https://www.postman.com/downloads/)</br>
+[VScode (Thunder Client)](https://marketplace.visualstudio.com/items?itemName=rangav.vscode-thunder-client)</br>
 [AnotherRedisDesktopManager](https://github.com/qishibo/AnotherRedisDesktopManager)</br>
 
 ---

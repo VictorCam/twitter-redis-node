@@ -9,7 +9,6 @@ import {fetchPokemon, pokemon} from "../stores/pokestore"
 // })
 fetchPokemon()
 </script>
-{#if false}<slot/>{/if}
 
 <h1>Pokemon Test</h1>
 {#each $pokemon as pokemon}

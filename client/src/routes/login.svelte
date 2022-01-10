@@ -27,7 +27,6 @@ async function validate(e) {
     
 <style>
 </style>
-{#if false}<slot/>{/if}
 
 <h1>Login</h1>
 <div>

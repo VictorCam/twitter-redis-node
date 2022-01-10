@@ -11,7 +11,6 @@ import Header from '../components/Header.svelte'
 
 <style>
 </style>
-{#if false}<slot/>{/if}
 
 <Header/>
 <h1>Secure ROUTE</h1>

@@ -10,6 +10,8 @@ const Joi = require("joi")
 require("dotenv").config()
 
 //FIND STICKERS BY INDEXING THE ONES THEY ALREADY HAVE
+//MISSING A LOGGING OUT REQUEST
+//do more tests like this https://www.youtube.com/watch?v=NKZ0ahNbmak
 
 router.post("/login", async (req, res) => {
     try {

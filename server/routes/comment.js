@@ -28,11 +28,11 @@ router.post("/comment", check_token(), async (req, res) => {
 
         var cperm = await client.hmget(`post:${req.body.postid}`, ["userid", "can_comment", "can_comment_img", "can_comment_sticker"])
 
-        if(!cperm[0]) return res.json({"error": "post does not exist"})
+        if(!cperm[0]) return res.status(400).json({"error": "post does not exist"})
         if(cperm[0] != req.userid) {
-            if(!cperm[1]) return res.json({"error": "post does not allow comments"})
-            if(!cperm[2]) return res.json({"error": "post does not allow images in the comments"})
-            if(!cperm[3]) return res.json({"error": "post does not allow images in the comments"})
+            if(!cperm[1]) return res.status(400).json({"error": "post does not allow comments"})
+            if(!cperm[2]) return res.status(400).json({"error": "post does not allow images in the comments"})
+            if(!cperm[3]) return res.status(400).json({"error": "post does not allow images in the comments"})
         }
 
         var commentid = nanoid(25)
@@ -76,15 +76,15 @@ router.post("/ncomment", check_token(), async (req, res) => {
         .hmget(`comment:${req.body.commentid}`, `postid`, `ncommentl_size`)
         .exec()
 
-        if(!cidlist[0][1][0]) return res.json({"error": "post does not exist"})
+        if(!cidlist[0][1][0]) return res.status(400).json({"error": "post does not exist"})
         if(cidlist[0][1][0] != req.userid) {
-            if(!cidlist[0][1][1]) return res.json({"error": "post does not allow comments"})
-            if(!cidlist[0][1][2]) return res.json({"error": "post does not allow images in the comments"})
-            if(!cidlist[0][1][3]) return res.json({"error": "post does not allow images in the comments"})
+            if(!cidlist[0][1][1]) return res.status(400).json({"error": "post does not allow comments"})
+            if(!cidlist[0][1][2]) return res.status(400).json({"error": "post does not allow images in the comments"})
+            if(!cidlist[0][1][3]) return res.status(400).json({"error": "post does not allow images in the comments"})
         }
 
-        if(cidlist[1][1][0] != req.body.postid) return res.json({"error": "commentid does not exist or postid has no relationship with commentid"})
-        if(cidlist[1][1][1] >= 500) return res.json({"error": "comment has reached max reply limit"})
+        if(cidlist[1][1][0] != req.body.postid) return res.status(400).json({"error": "commentid does not exist or postid has no relationship with commentid"})
+        if(cidlist[1][1][1] >= 500) return res.status(400).json({"error": "comment has reached max reply limit"})
 
         var ncommentid = nanoid(25)
         
@@ -126,11 +126,11 @@ router.get("/comment", pagination(), async (req, res) => {
         var commentl_size = await client.zcard("commentl:"+req.query.postid)
 
         //check if the start > commentl_size
-        if(req.start >= commentl_size) return res.json({"error": "you have no more posts to see"})
+        if(req.start >= commentl_size) return res.status(400).json({"error": "you have no more posts to see"})
 
         var cidlist = ("like" == req.query.type) ? await client.zrevrange("commentl_like:"+req.query.postid,req.start,req.end) : await client.zrange("commentl:"+req.query.postid,req.start,req.end)
 
-        if(cidlist.length == 0) return res.json({"error": "postid does not exist"})
+        if(cidlist.length == 0) return res.status(400).json({"error": "postid does not exist"})
 
         var pipe = client.pipeline()
         for (let i = 0; i < cidlist.length; i++) { 
@@ -175,11 +175,11 @@ router.get("/ncomment", pagination(), async (req, res) => {
         var ncommentl_size = await client.zcard("ncommentl:"+req.query.commentid)
 
         //check if start > ncommentl_size 
-        if(req.start >= ncommentl_size) return res.json({"error": "no more comments to see"})
+        if(req.start >= ncommentl_size) return res.status(400).json({"error": "no more comments to see"})
         
         var cidlist = await client.zrange(`ncommentl:${req.query.commentid}`, req.start, req.end)
 
-        if(cidlist.length == 0) return res.json({"error": "commentid does not exist"})
+        if(cidlist.length == 0) return res.status(400).json({"error": "commentid does not exist"})
 
         var pipe = client.pipeline()
         for (let i = 0; i < cidlist.length; i++) { 
@@ -224,7 +224,7 @@ router.get("/comment/:commentid", async (req, res) => {
         }
 
         var comment = await client.hgetall(`comment:${req.params.commentid}`)
-        if(!comment.hasOwnProperty('userid')) return res.json({"error": "commentid does not exist"})
+        if(!comment.hasOwnProperty('userid')) return res.status(400).json({"error": "commentid does not exist"})
 
         var userid = await client.hmget(`userid:${comment.userid}`, ["icon", "username", "icon_frame"])
         comment["commentid"] = req.params.commentid
@@ -258,7 +258,7 @@ router.get("/ncomment/:ncommentid", async (req, res) => {
         }
 
         var ncomment = await client.hgetall(`ncomment:${req.params.ncommentid}`)
-        if(!ncomment.hasOwnProperty('userid')) return res.json({"error": "ncommentid does not exist"})
+        if(!ncomment.hasOwnProperty('userid')) return res.status(400).json({"error": "ncommentid does not exist"})
 
         var userid = await client.hmget(`userid:${ncomment.userid}`, ["icon", "username", "icon_frame"])
         ncomment["ncommentid"] = req.params.ncommentid
@@ -299,7 +299,7 @@ router.put("/comment", check_token(), async (req, res) => {
         }
         
         var userid = await client.hget(`comment:${req.body.commentid}`, "userid")
-        if(req.userid != userid) return res.json({"error": "you do not own this comment or commentid does not exist"})
+        if(req.userid != userid) return res.status(400).json({"error": "you do not own this comment or commentid does not exist"})
 
         await client.hmset(`comment:${req.body.commentid}`, ["comment", req.body.comment, "isupdated", 1])
         return res.status(200).json({"status": "ok"})
@@ -328,7 +328,7 @@ router.put("/ncomment", check_token(), async (req, res) => {
         }
 
         var userid = await client.hget(`ncomment:${req.body.ncommentid}`, "userid")
-        if(req.userid != userid) return res.json({"error": "you do not own this comment or commentid does not exist"})
+        if(req.userid != userid) return res.status(400).json({"error": "you do not own this comment or commentid does not exist"})
 
         await client.hmset(`ncomment:${req.body.ncommentid}`, ["comment", req.body.comment, "isupdated", 1])
         return res.status(200).json({"status": "ok"})
@@ -364,10 +364,10 @@ router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => 
         .exists(`commentl:${req.params.postid}`)
         .exec()
 
-        if(!exists[1][1]) return res.json({"error": "the postid does not exist"})
-        if(!exists[0][1][0]) return res.json({"error": "the commentid does not exist"})
-        if(exists[0][1][1] != req.params.postid) return res.json({"error": "the commentid has no relationship with the postid"})
-        if(req.userid != exists[0][1][0]) return res.json({"error": "you do not own this comment"})
+        if(!exists[1][1]) return res.status(400).json({"error": "the postid does not exist"})
+        if(!exists[0][1][0]) return res.status(400).json({"error": "the commentid does not exist"})
+        if(exists[0][1][1] != req.params.postid) return res.status(400).json({"error": "the commentid has no relationship with the postid"})
+        if(req.userid != exists[0][1][0]) return res.status(400).json({"error": "you do not own this comment"})
 
         //recommended to use unlink (when deleting large keys)
         //[cannot implement]: get the list of ncomments and delete it (not viable/worth it) 
@@ -407,10 +407,10 @@ router.delete("/ncomment/:commentid/:ncommentid", check_token(), async (req, res
         .exists(`ncommentl:${req.params.commentid}`)
         .exec()
 
-        if(!exists[1][1]) return res.json({"error": "the commentid does not exist"})
-        if(!exists[0][1][0]) return res.json({"error": "the ncommentid does not exist"})
-        if(exists[0][1][1] != req.params.commentid) return res.json({"error": "the ncommentid has no relationship with commentid"})
-        if(req.userid != exists[0][1][0]) return res.json({"error": "you do not own this ncomment"})
+        if(!exists[1][1]) return res.status(400).json({"error": "the commentid does not exist"})
+        if(!exists[0][1][0]) return res.status(400).json({"error": "the ncommentid does not exist"})
+        if(exists[0][1][1] != req.params.commentid) return res.status(400).json({"error": "the ncommentid has no relationship with commentid"})
+        if(req.userid != exists[0][1][0]) return res.status(400).json({"error": "you do not own this ncomment"})
 
         //recommended to use unlink (kvrocks does not support yet but upstash does)
         await client.pipeline()

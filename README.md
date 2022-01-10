@@ -49,6 +49,7 @@ C. run collection in **numbered order**
 ---
 
 ## ALL HELPFUL/IMPORTANT INSTALLS
+ [install nodejs](https://nodejs.org/en/download/)</br>
 [Git](https://git-scm.com/downloads)</br>
 [Docker](https://docs.docker.com/get-docker/)</br>
 [VScode](https://code.visualstudio.com/)</br>

@@ -38,12 +38,9 @@ C. npm run dev (run sveltekit)</br>
 
 
 ## 4. THUNDERCLIENT (./tests)
-
 A [video tutorial (optional)](https://www.youtube.com/watch?v=NKZ0ahNbmak) </br>
-
-B. import JSON(s)
-
-C. run collection in **numbered order**
+B. import JSON(s)</br>
+C. run collection in **numbered order**</br>
 
 
 ---

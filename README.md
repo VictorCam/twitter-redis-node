@@ -37,7 +37,7 @@ C. npm run dev (run sveltekit)</br>
 ---
 
 
-## 4. ThunderClient (./tests)
+## 4. THUNDERCLIENT (./tests)
 
 A [video tutorial (optional)](https://www.youtube.com/watch?v=NKZ0ahNbmak) </br>
 

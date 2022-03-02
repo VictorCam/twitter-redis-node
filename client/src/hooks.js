@@ -3,7 +3,7 @@ import axios from 'axios'
 
 export const handle = async ({request, resolve}) => {
     try {
-        var cookies = cookie.parse(request.headers.cookie || '')
+        let cookies = cookie.parse(request.headers.cookie || '')
 
         if(!cookies['authorization']) {
             request.locals.auth = false
@@ -12,7 +12,7 @@ export const handle = async ({request, resolve}) => {
             request.locals.auth = true 
         }
 
-        var res = await resolve(request)
+        let res = await resolve(request)
         
         return {
             ...res,

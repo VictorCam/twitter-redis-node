@@ -11,11 +11,11 @@ const {nanoid} = require('nanoid')
 //         //WIP
 //         //validation needed
 
-//         var fuserid = await client.get(`username:${req.body.username}`)
+//         let fuserid = await client.get(`username:${req.body.username}`)
 //         if(!fuserid) return res.status(200).json({"error": "user does not exist"})
         
 //         //get the 15 posts by rank
-//         var posts = await client.zrevrange(`postl:${fuserid}`, 0, 15)
+//         let posts = await client.zrevrange(`postl:${fuserid}`, 0, 15)
 //         if(!posts) return res.status(200).json({"error": "user does not have any posts"})
 
 //         //note to self
@@ -24,7 +24,7 @@ const {nanoid} = require('nanoid')
 //         //check if both req.body exists do diff logic
 
 //         sclient.connect()
-//         var results = await sclient.search("spost", `@userid:{${fuserid}} @tags:{${req.body.tags}}`, {limit: {first: 0, num: 50} })
+//         let results = await sclient.search("spost", `@userid:{${fuserid}} @tags:{${req.body.tags}}`, {limit: {first: 0, num: 50} })
 //         if(results == 0) return res.status(200).json({"results": "wOOF no posts found :("})
 //         return res.status(200).json({"results": results})
 //     }
@@ -61,9 +61,9 @@ router.post("/post", check_token(), async (req, res) => {
         })
 
         //validate schema
-        var valid = schema.validate(req.body)
+        let valid = schema.validate(req.body)
         if(valid.error) {
-            var label = valid.error.details[0].context.label
+            let label = valid.error.details[0].context.label
             if(label == "image") return res.status(200).json({"error": "image must be a string between 1 and 100 characters"})
             if(label == "name") return res.status(200).json({"error": "name must be a string between 1 and 100 characters"})
             if(label == "tags") return res.status(200).json({"error": "tags must be a string between 100 and 5000 characters"})
@@ -79,7 +79,7 @@ router.post("/post", check_token(), async (req, res) => {
 
 
         //uid for unique post id and for comment id
-        var uid = nanoid(25)
+        let uid = nanoid(25)
 
         //create indexed post
         //rename this later
@@ -140,21 +140,21 @@ router.delete("/post/:postid", check_token(), async (req, res) => {
         })
 
         //validate schema
-        var valid = schema.validate(req.params)
+        let valid = schema.validate(req.params)
         if(valid.error) {
-            var label = valid.error.details[0].context.label
+            let label = valid.error.details[0].context.label
             if(label == "postid") return res.status(200).json({"error": "postid must be a string between 1 and 25 characters"})
             return res.status(500).json({"error": "something went wrong"})
         }
 
         //check if post exists (if the post exists then the postl should exist (no need to check))
-        var userid = await client.hget(`post:${req.params.postid}`, "userid")
+        let userid = await client.hget(`post:${req.params.postid}`, "userid")
 
         if(!userid) return res.status(200).json({"error": "post does not exist"})
         if(userid != req.userid) return res.status(200).json({"error": "you are not the user who created this post"})
 
         //delete post:postid and postl:userid
-        var exists = await client.pipeline()
+        let exists = await client.pipeline()
         .del(`post:${req.params.postid}`)
         .zrem(`postl:${userid}`, req.params.postid)
         .zcard(`postl:${userid}`)

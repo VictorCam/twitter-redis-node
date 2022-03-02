@@ -11,9 +11,9 @@ module.exports = function() {
             })
 
             //validate
-            var valid = schema.validate({"amount": req.query.amount, "page": req.query.page})
+            let valid = schema.validate({"amount": req.query.amount, "page": req.query.page})
             if(valid.error) {
-                var label = valid.error.details[0].context.label
+                let label = valid.error.details[0].context.label
                 if(label == "amount") return res.status(200).json({"error": "amount must be a number between 0 and 100"})
                 if(label == "page") return res.status(200).json({"error": "page must be a number between 0 and 1000000"})
                 return res.status(500).json({"error": "something went wrong"})
@@ -26,8 +26,8 @@ module.exports = function() {
             delete req.query.amount
             delete req.query.page
 
-            var amount = valid.value.amount
-            var page = valid.value.page
+            let amount = valid.value.amount
+            let page = valid.value.page
 
             req.start = amount*page+page
             req.end = amount*((page+1))+page

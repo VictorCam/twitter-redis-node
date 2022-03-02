@@ -18,15 +18,15 @@ router.post("/follow", check_token(), async (req, res) => {
             username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required()
         })
 
-        var valid = schema.validate(req.body)
+        let valid = schema.validate(req.body)
         if (valid.error) {
-            var label = valid.error.details[0].context.label
+            let label = valid.error.details[0].context.label
             if(label == "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
             return res.status(400).json({"error": "something went wrong"})
         }
 
         //create a zset with the userid of the original user
-        var followid = await client.get(`username:${req.body.username}`)
+        let followid = await client.get(`username:${req.body.username}`)
 
         //return when a followid does not exist
         //check if followid matches your id
@@ -34,7 +34,7 @@ router.post("/follow", check_token(), async (req, res) => {
         if(followid == req.userid) return res.status(400).json({"error": "you can't follow yourself"})
 
         //check if the user is already following the user
-        var following = await client.zscore(`following:${req.userid}`, followid)
+        let following = await client.zscore(`following:${req.userid}`, followid)
         if(following) return res.status(400).json({"error": "you are already following this user"})
 
         //add the the new user to your following list and vice versa
@@ -61,19 +61,19 @@ router.post("/unfollow", check_token(), async (req, res) => {
             username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required()
         })
 
-        var valid = schema.validate(req.body)
+        let valid = schema.validate(req.body)
         if (valid.error) {
-            var label = valid.error.details[0].context.label
+            let label = valid.error.details[0].context.label
             if(label == "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
             return res.status(400).json({"error": "something went wrong"})
         }
 
-        var followid = await client.get(`username:${req.body.username}`)
+        let followid = await client.get(`username:${req.body.username}`)
 
         if(!followid) return res.status(400).json({"error": "user does not exist"})
         if(followid == req.userid) return res.status(400).json({"error": "you can't unfollow yourself"})
 
-        var following = await client.zscore(`following:${req.userid}`, followid)
+        let following = await client.zscore(`following:${req.userid}`, followid)
         if(!following) return res.status(400).json({"error": "you are not following this user"})
 
         await client.pipeline()
@@ -102,15 +102,15 @@ router.get("/following/:username", check_token(), pagination(), async (req, res)
             username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required()
         })
 
-        var valid = schema.validate(req.params)
+        let valid = schema.validate(req.params)
         if (valid.error) {
-            var label = valid.error.details[0].context.label
+            let label = valid.error.details[0].context.label
             if(label == "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
             return res.status(400).json({"error": "something went wrong"})
         }
 
 
-        var userid = await client.get(`username:${req.params.username}`)
+        let userid = await client.get(`username:${req.params.username}`)
 
         //check if the username exists
         if(!userid) return res.status(400).json({"error": "user does not exist"})
@@ -120,17 +120,17 @@ router.get("/following/:username", check_token(), pagination(), async (req, res)
 
         //something else im missing here i think
     
-        var following = await client.zrevrange(`following:${userid}`, req.start, req.end)
+        let following = await client.zrevrange(`following:${userid}`, req.start, req.end)
 
         //if you are following no one, return empty
         if(!following) return res.status(200).json({})
 
         //get the username, icon, and desc of the users you are following
-        var pipe = client.pipeline()
+        let pipe = client.pipeline()
         for(let i = 0; i < following.length; i++) {
             pipe.hmget(`userid:${following[i]}`, "username", "icon", "desc", "icon_frame")
         }
-        var followlist = await pipe.exec()
+        let followlist = await pipe.exec()
 
         followdata = []
         for(let i = 0; i < followlist.length; i++) {
@@ -156,16 +156,16 @@ router.get("/following/:username", check_token(), pagination(), async (req, res)
 router.get("/following", check_token(), pagination(), async (req, res) => {
     try {
         //get the size of the following list
-        var following_size = await client.zcard(`following:${req.userid}`)
+        let following_size = await client.zcard(`following:${req.userid}`)
         if(!following_size) return res.status(400).send("You are not following anyone")
         if(req.start >= following_size) return res.status(400).json({"error": "you have no more followers to see"})
 
-        var followid = await client.zrevrange(`following:${req.userid}`, req.start, req.end, "withscores")
+        let followid = await client.zrevrange(`following:${req.userid}`, req.start, req.end, "withscores")
         if(!followid) return res.status(400).json({"error": "you don't have any followers"})
 
         result = []
-        for(var i = 0; i < followid.length; i+=2) {
-            var pres = await client.pipeline()
+        for(let i = 0; i < followid.length; i+=2) {
+            let pres = await client.pipeline()
             .hmget(`userid:${followid[i]}`, "username", "icon", "icon_frame")
             .zcount(`postl:${followid[i]}`, followid[i+1], "+inf")
             .exec()

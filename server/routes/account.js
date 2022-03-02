@@ -26,29 +26,29 @@ router.post("/login", async (req, res) => {
         })
 
         //validate json
-        var valid = schema.validate(req.body)
+        let valid = schema.validate(req.body)
         if(valid.error) {
-            var label = valid.error.details[0].context.label
+            let label = valid.error.details[0].context.label
             if(label == "username") return res.status(400).json({"error": "invalid characters in username"})
             if(label == "password") return res.status(400).json({"error": "invalid characters in password"})
             return res.status(400).json({"error": "something went wrong"})
         }
 
         //get userid from username/email/phone
-        var results = await client.pipeline()
+        let results = await client.pipeline()
         .get(`username:${req.body.username}`)
         .get(`email:${req.body.username}`)
         .get(`phone:${req.body.username}`)
         .exec()
 
-        var userid = results[0][1] || results[1][1] || results[2][1]
+        let userid = results[0][1] || results[1][1] || results[2][1]
 
         //check if username or password exist
         if(!userid) return res.status(401).json({"error": "username, email, or phone is not found"})
         if(!await bcrypt.compare(req.body.password, await client.hget(`userid:${userid}`, "password"))) return res.status(401).json({"error": "invalid password"})
 
         //jwt + send auth cookie
-        var token = jwt.sign({userid: userid}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
+        let token = jwt.sign({userid: userid}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
         res.cookie('authorization', `bearer ${token}`, { httpOnly: true, sameSite: 'Strict'})
 
         return res.status(200).json({"status": "ok", "token": token})
@@ -76,9 +76,9 @@ router.post("/register", async (req, res) => {
             phone: Joi.string().regex(/^[0-9]{10}$/).required(),
         })
 
-        var valid = schema.validate(req.body)
+        let valid = schema.validate(req.body)
         if(valid.error) {
-            var label = valid.error.details[0].context.label
+            let label = valid.error.details[0].context.label
             if(label == "username") return res.status(400).json({"error": "username must be between 1 and 30 characters and only contain letters, numbers, and underscores"})
             if(label == "password") return res.status(400).json({"error": "password must be between 10 and 100 characters and can only contain 'a-z A-Z 0-9 ! @ # $ % ^ & * _ -' only"})
             if(label == "email") return res.status(400).json({"error": "email must be between 5 and 100 characters and must be a valid email"})
@@ -87,7 +87,7 @@ router.post("/register", async (req, res) => {
         }
 
         //check if username and email exists
-        var results = await client.pipeline()
+        let results = await client.pipeline()
         .get(`username:${req.body.username}`)
         .get(`email:${req.body.email}`)
         .get(`phone:${req.body.phone}`)
@@ -98,10 +98,10 @@ router.post("/register", async (req, res) => {
         if(results[2][1]) return res.status(400).json({"error": "phone number already exists"})
 
         //hash password first to prevent duplicate users with multiple requests
-        var hashpass = await bcrypt.hash(req.body.password, parseInt(process.env.BCRYPT_ROUNDS))
+        let hashpass = await bcrypt.hash(req.body.password, parseInt(process.env.BCRYPT_ROUNDS))
 
 
-        var userid = nanoid(25)
+        let userid = nanoid(25)
 
         //create userid
         await client.pipeline()
@@ -142,21 +142,21 @@ router.get("/user/:username", async (req, res) => {
             username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required(),
         })
 
-        var valid = schema.validate(req.params)
+        let valid = schema.validate(req.params)
         if(valid.error) {
-            var label = valid.error.details[0].context.label
+            let label = valid.error.details[0].context.label
             if(label == "username") return res.status(400).json({"error": "username must be between 1 and 30 characters and only contain letters, numbers, and underscores"})
             return res.status(500).json({"error": "something went wrong"})
         }
 
         //get userid from username
-        var userid = await client.get(`username:${req.params.username}`)
+        let userid = await client.get(`username:${req.params.username}`)
 
         //check if username exists
         if(!userid) return res.status(400).json({"error": "username is not found"})
 
         //get user info
-        var user = await client.hmget(`userid:${userid}`, "username", "email", "userid", "icon", "icon_frame", "admin_level", "is_deleted", "is_verified", "join_date", "desc")
+        let user = await client.hmget(`userid:${userid}`, "username", "email", "userid", "icon", "icon_frame", "admin_level", "is_deleted", "is_verified", "join_date", "desc")
 
         //convert user array into object
         user = {

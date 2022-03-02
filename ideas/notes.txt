@@ -78,3 +78,34 @@ kvrocks: update userid username and/or email
 
 #axios alt when working with the store in the client
 # @bundled-es-modules/axios
+
+//on userid add [balance]
+
+//on each post add [revenue]
+
+//api to search users you follow public/private
+
+//view a post
+
+//count the post 1 for a user (do not count duplicates) but count it for ad api counts
+
+//api via stripe for buying ad and api to see and accept ad api and api using seedweed false
+
+//in the FUTURE make the api for doing image searches
+
+//do an api for voting/bidding (multiple bids at the same time)/commission status/forms/transfering money
+
+//maybe allow text posts on timelines but txt files do not generate revenue
+
+//api for users who are open for commission api that shows ads sfw or nsfw dpeneidngo on account on account settings and age
+
+
+//feed-live
+//active or not
+//voice chat- but anyone who follows you can see you and join you 
+//multiple accounts
+//woofin woofin
+//like discord but a0 inactiviity
+
+//art posts /videos// vid stream exclustive posts
+//watch list of tags --prevent abuse (post tag verfiers) -> limit large abitrary taggging -> allow 10 last of tags to watch

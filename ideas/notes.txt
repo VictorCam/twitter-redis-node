@@ -109,3 +109,8 @@ kvrocks: update userid username and/or email
 
 //art posts /videos// vid stream exclustive posts
 //watch list of tags --prevent abuse (post tag verfiers) -> limit large abitrary taggging -> allow 10 last of tags to watch
+
+
+
+
+https://javascript.info/websocket#chat-example

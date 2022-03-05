@@ -153,6 +153,17 @@ router.get("/following/:username", check_token(), pagination(), async (req, res)
 //dont forget we need to check if we are blocking a user when people rehowl something
 //dont forget to check if we are blocking a user when people rehowl something
 //also for blocking we need to remove the person
+
+/*
+    //start = 9
+
+
+*/
+
+//1*15 = 15
+//2*15 = 30
+//3*15 = 45
+
 router.get("/following", check_token(), pagination(), async (req, res) => {
     try {
         //get the size of the following list
@@ -160,9 +171,11 @@ router.get("/following", check_token(), pagination(), async (req, res) => {
         if(!following_size) return res.status(400).send("You are not following anyone")
         if(req.start >= following_size) return res.status(400).json({"error": "you have no more followers to see"})
 
-        let followid = await client.zrevrange(`following:${req.userid}`, req.start, req.end, "withscores")
+        // console.log(req.start)
+        // console.log(req.end)
+        let followid = await client.zrevrangebyscore(`following:${req.userid}`, req.start, req.end, "withscores")
         if(!followid) return res.status(400).json({"error": "you don't have any followers"})
-
+        // console.log(followid)
         result = []
         for(let i = 0; i < followid.length; i+=2) {
             let pres = await client.pipeline()

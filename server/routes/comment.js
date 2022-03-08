@@ -38,7 +38,7 @@ router.post("/comment", check_token(), async (req, res) => {
         let commentid = nanoid(25)
 
         await client.pipeline()
-        .zadd(`commentl:${req.body.postid}`, Math.floor(Date.now() / 1000), commentid)
+        .zadd(`ss:comment:${req.body.postid}`, Math.floor(Date.now() / 1000), commentid)
         .zadd(`ss:comment_likes:${req.body.postid}`, 0, commentid)
         .hset(`comment:${commentid}`, ["userid", req.userid, "comment", req.body.comment, "postid", req.body.postid, "likes", 0, "isupdated", 0, "timestamp", Math.floor(Date.now() / 1000)])
         .exec()
@@ -122,14 +122,14 @@ router.get("/comment", pagination(), async (req, res) => {
             return res.status(400).json({"error": "invalid user input"})
         }
 
-        //check the size of the commentl and check if we reached the end of the list
-        let commentl_size = await client.zcard("commentl:"+req.query.postid)
-        if(req.start >= commentl_size) return res.status(400).json({"error": "you have no more posts to see"})
+        //check the size of the ss:comment and check if we reached the end of the list
+        let ss_comment_size = await client.zcard("ss:comment:"+req.query.postid)
+        if(req.start >= ss_comment_size) return res.status(400).json({"error": "you have no more posts to see"})
 
         //check if we are requesting the like sorted set or the regular sorted set and if the length is 0 or not
         let cidlist = ("like" === req.query.type) ? 
         await client.zrevrange(`ss:comment_likes:${req.query.postid}`, req.start, req.end) 
-        : await client.zrange(`commentl:${req.query.postid}`, req.start, req.end)
+        : await client.zrange(`ss:comment:${req.query.postid}`, req.start, req.end)
         if(cidlist.length === 0) return res.status(400).json({"error": "postid does not exist"})
 
         //pipeline all comments and execute
@@ -140,17 +140,17 @@ router.get("/comment", pagination(), async (req, res) => {
         let cdata = await pipe.exec()
 
         //format the data
-        let commentlist = []
+        let ss_commentist = []
         for (let i = 0; i < cidlist.length; i++) {
             let userinfo = await client.hmget(`userid:${cdata[0][1].userid}`, "icon", "username", "icon_frame")
             cdata[i][1]["commentid"] = cidlist[i]
             cdata[i][1]["icon"] = userinfo[0]
             cdata[i][1]["username"] = userinfo[1]
             cdata[i][1]["icon_frame"] = userinfo[2]
-            commentlist.push(cdata[i][1])
+            ss_commentist.push(cdata[i][1])
         }
         
-        return res.status(200).json(commentlist)
+        return res.status(200).json(ss_commentist)
     }
     catch (e) {
         console.log("error in /comment route ==", e)
@@ -173,7 +173,7 @@ router.get("/ncomment", pagination(), async (req, res) => {
             return res.status(400).json({"error": "invalid user input"})
         }
 
-        //check the size of the commentl
+        //check the size of the ss:comment
         let ss_ncomment_size = await client.zcard(`ss:ncomment:${req.query.commentid}`)
         
         //CHECK IF THE NCOMMENT SS WAS DELETED
@@ -193,17 +193,17 @@ router.get("/ncomment", pagination(), async (req, res) => {
 
         //maybe could make concurrent
         //https://dev.to/apurbostarry/how-to-make-concurrent-api-calls-in-nodejs-35b8
-        let commentlist = []
+        let ss_commentist = []
         for (let i = 0; i < cidlist.length; i++) {
             let userinfo = await client.hmget(`userid:${cdata[i][1].userid}`, "icon", "username", "icon_frame")
             cdata[i][1]["ncommentid"] = cidlist[i]
             cdata[i][1]["icon"] = userinfo[0]
             cdata[i][1]["username"] = userinfo[1]
             cdata[i][1]["icon_frame"] = userinfo[2]
-            commentlist.push(cdata[i][1])
+            ss_commentist.push(cdata[i][1])
         }
         
-        return res.status(200).json(commentlist)
+        return res.status(200).json(ss_commentist)
     }
     catch (e) {
         console.log("error in /ncomment route ==", e)
@@ -365,7 +365,7 @@ router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => 
         
         let exists = await client.pipeline()
         .hmget(`comment:${req.params.commentid}`, "userid", "postid")
-        .exists(`commentl:${req.params.postid}`)
+        .exists(`ss:comment:${req.params.postid}`)
         .exec()
 
         if(!exists[1][1]) return res.status(400).json({"error": "the postid does not exist"})
@@ -377,7 +377,7 @@ router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => 
         //[cannot implement]: get the list of ncomments and delete it (not viable/worth it) 
         await client.pipeline()
         .del(`comment:${req.params.commentid}`)
-        .zrem(`commentl:${req.params.postid}`, req.params.commentid)
+        .zrem(`ss:comment:${req.params.postid}`, req.params.commentid)
         .zrem(`ss:comment_likes:${req.params.postid}`, req.params.commentid)
         .exec()
 

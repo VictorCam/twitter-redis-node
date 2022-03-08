@@ -15,7 +15,7 @@ const {nanoid} = require('nanoid')
 //         if(!fuserid) return res.status(200).json({"error": "user does not exist"})
         
 //         //get the 15 posts by rank
-//         let posts = await client.zrevrange(`postl:${fuserid}`, 0, 15)
+//         let posts = await client.zrevrange(`ss:post:${fuserid}`, 0, 15)
 //         if(!posts) return res.status(200).json({"error": "user does not have any posts"})
 
 //         //note to self
@@ -108,7 +108,7 @@ router.post("/post", check_token(), async (req, res) => {
             "can_comment_img", req.body.can_comment_img,
             "can_comment_sticker", req.body.can_comment_sticker
         ])
-        .zadd(`postl:${req.userid}`, Math.floor(Date.now() / 1000), uid)
+        .zadd(`ss:post:${req.userid}`, Math.floor(Date.now() / 1000), uid)
         .exec()
         
         return res.status(200).json({"post": req.body.desc, "postid": uid})
@@ -147,21 +147,21 @@ router.delete("/post/:postid", check_token(), async (req, res) => {
             return res.status(400).json({"error": "invalid user input"})
         }
 
-        //check if post exists (if the post exists then the postl should exist (no need to check))
+        //check if post exists (if the post exists then the ss:post should exist (no need to check))
         let userid = await client.hget(`post:${req.params.postid}`, "userid")
 
         if(!userid) return res.status(200).json({"error": "post does not exist"})
         if(userid != req.userid) return res.status(200).json({"error": "you are not the user who created this post"})
 
-        //delete post:postid and postl:userid
+        //delete post:postid and ss:post:userid
         let exists = await client.pipeline()
         .del(`post:${req.params.postid}`)
-        .zrem(`postl:${userid}`, req.params.postid)
-        .zcard(`postl:${userid}`)
+        .zrem(`ss:post:${userid}`, req.params.postid)
+        .zcard(`ss:post:${userid}`)
         .exec()
 
-        //update the index of the userid postl_index
-        await client.hset(`userid:${userid}`, "postl_index", exists[2][1])
+        //update the index of the userid ss:post_index
+        await client.hset(`userid:${userid}`, "ss:post_index", exists[2][1])
         return res.status(200).json({"status": "ok"})
     }
     catch(e) {

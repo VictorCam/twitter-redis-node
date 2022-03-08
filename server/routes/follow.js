@@ -178,7 +178,7 @@ router.get("/following", check_token(), pagination(), async (req, res) => {
         for(let i = 0; i < followid.length; i+=2) {
             let pres = await client.pipeline()
             .hmget(`userid:${followid[i]}`, "username", "icon", "icon_frame")
-            .zcount(`postl:${followid[i]}`, followid[i+1], "+inf")
+            .zcount(`ss:post:${followid[i]}`, followid[i+1], "+inf")
             .exec()
             result.push({
                 "username": pres[0][1][0],

@@ -39,17 +39,17 @@ router.get("/feed/:username", check_token(), async (req, res) => {
         if(!index) return res.status(400).json({"error": "you are not following that user"})
 
         //zrange start from index to inf and limit by 15
-        let postl = await client.zrangebyscore(`postl:${userid}`, index, "+inf", "withscores", "limit", 0, 15)
-        if(postl.length === 0) return res.status(400).json({"error": "you have no posts to see"})
+        let ss_post = await client.zrangebyscore(`ss:post:${userid}`, index, "+inf", "withscores", "limit", 0, 15)
+        if(ss_post.length === 0) return res.status(400).json({"error": "you have no posts to see"})
 
         //update the score of the following
-        await client.zadd(`following:${req.userid}`, parseInt(postl[postl.length-1])+1, userid)
+        await client.zadd(`following:${req.userid}`, parseInt(ss_post[ss_post.length-1])+1, userid)
         let userdata = await client.hmget(`userid:${userid}`, "username", "icon", "icon_frame")
 
         //get the posts
         let pipe = client.pipeline()
-        for(let i = 0; i < postl.length; i+=2) {
-            pipe.hgetall(`post:${postl[i]}`)
+        for(let i = 0; i < ss_post.length; i+=2) {
+            pipe.hgetall(`post:${ss_post[i]}`)
         }
         let results = await pipe.exec()
 

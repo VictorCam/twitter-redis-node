@@ -24,8 +24,8 @@ app.use(express.json({ limit: "2kb"}))
 
 app.use((error, req, res, next) => {
   console.log(error)
-  if (error.type == "entity.parse.failed") return res.status(400).json({ "error": "error parsing json" })
-  if (error.type == "entity.too.large") return res.status(413).json({ "error": "request entity too large" })
+  if (error.type === "entity.parse.failed") return res.status(400).json({ "error": "error parsing json" })
+  if (error.type === "entity.too.large") return res.status(413).json({ "error": "request entity too large" })
   if (error !== null) return res.status(500).json({ "error": "internal server error" })
   return next()
 })

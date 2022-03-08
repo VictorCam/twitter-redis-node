@@ -21,7 +21,7 @@ router.post("/follow", check_token(), async (req, res) => {
         let valid = schema.validate(req.body)
         if (valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
+            if(label === "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -31,7 +31,7 @@ router.post("/follow", check_token(), async (req, res) => {
         //return when a followid does not exist
         //check if followid matches your id
         if(!followid) return res.status(400).json({"error": "user does not exist"})
-        if(followid == req.userid) return res.status(400).json({"error": "you can't follow yourself"})
+        if(followid === req.userid) return res.status(400).json({"error": "you can't follow yourself"})
 
         //check if the user is already following the user
         let following = await client.zscore(`following:${req.userid}`, followid)
@@ -64,14 +64,14 @@ router.post("/unfollow", check_token(), async (req, res) => {
         let valid = schema.validate(req.body)
         if (valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
+            if(label === "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
             return res.status(400).json({"error": "invalid user input"})
         }
 
         let followid = await client.get(`username:${req.body.username}`)
 
         if(!followid) return res.status(400).json({"error": "user does not exist"})
-        if(followid == req.userid) return res.status(400).json({"error": "you can't unfollow yourself"})
+        if(followid === req.userid) return res.status(400).json({"error": "you can't unfollow yourself"})
 
         let following = await client.zscore(`following:${req.userid}`, followid)
         if(!following) return res.status(400).json({"error": "you are not following this user"})
@@ -105,7 +105,7 @@ router.get("/following/:username", check_token(), pagination(), async (req, res)
         let valid = schema.validate(req.params)
         if (valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
+            if(label === "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
             return res.status(400).json({"error": "invalid user input"})
         }
 

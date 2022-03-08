@@ -3,8 +3,7 @@ const Joi = require("joi")
 module.exports = function() {
     return function(req, res, next) {
         try {
-
-            //vaiddate req.query.amount and req.query.page
+            //vaidate req.query.amount and req.query.page
             const schema = Joi.object().keys({
                 amount: Joi.number().integer().min(1).max(100).required(),
                 page: Joi.number().integer().min(1).max(1000000).required()

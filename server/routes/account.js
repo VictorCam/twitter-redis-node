@@ -81,10 +81,10 @@ router.post("/register", async (req, res) => {
         let valid = schema.validate(req.body)
         if(valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "username") return res.status(400).json({"error": "username must be between 1 and 30 characters and only contain letters, numbers, and underscores"})
-            if(label == "password") return res.status(400).json({"error": "password must be between 10 and 100 characters and can only contain 'a-z A-Z 0-9 ! @ # $ % ^ & * _ -' only"})
-            if(label == "email") return res.status(400).json({"error": "email must be between 5 and 100 characters and must be a valid email"})
-            if(label == "phone") return res.status(400).json({"error": "phone must be a valid phone number"})
+            if(label === "username") return res.status(400).json({"error": "username must be between 1 and 30 characters and only contain letters, numbers, and underscores"})
+            if(label === "password") return res.status(400).json({"error": "password must be between 10 and 100 characters and can only contain 'a-z A-Z 0-9 ! @ # $ % ^ & * _ -' only"})
+            if(label === "email") return res.status(400).json({"error": "email must be between 5 and 100 characters and must be a valid email"})
+            if(label === "phone") return res.status(400).json({"error": "phone must be a valid phone number"})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -147,7 +147,7 @@ router.get("/user/:username", async (req, res) => {
         let valid = schema.validate(req.params)
         if(valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "username") return res.status(400).json({"error": "username must be between 1 and 30 characters and only contain letters, numbers, and underscores"})
+            if(label === "username") return res.status(400).json({"error": "username must be between 1 and 30 characters and only contain letters, numbers, and underscores"})
             return res.status(400).json({"error": "invalid user input"})
         }
 

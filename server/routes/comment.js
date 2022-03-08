@@ -21,8 +21,8 @@ router.post("/comment", check_token(), async (req, res) => {
         let valid = schema.validate(req.body)
         if(valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "postid") return res.status(400).json({"error": "Invalid postid"})
-            if(label == "comment") return res.status(400).json({"error": "Comment should be between 1 to 1000 characters"})
+            if(label === "postid") return res.status(400).json({"error": "Invalid postid"})
+            if(label === "comment") return res.status(400).json({"error": "Comment should be between 1 to 1000 characters"})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -65,9 +65,9 @@ router.post("/ncomment", check_token(), async (req, res) => {
         let valid = schema.validate(req.body)
         if(valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "postid") return res.status(400).json({"error": "Invalid postid"})
-            if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
-            if(label == "comment") return res.status(400).json({"error": "Comment should be between 1 to 1000 characters"})
+            if(label === "postid") return res.status(400).json({"error": "Invalid postid"})
+            if(label === "commentid") return res.status(400).json({"error": "Invalid commentid"})
+            if(label === "comment") return res.status(400).json({"error": "Comment should be between 1 to 1000 characters"})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -117,8 +117,8 @@ router.get("/comment", pagination(), async (req, res) => {
         let valid = schema.validate(req.query)
         if(valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "postid") return res.status(400).json({"error": "Invalid postid"})
-            if(label == "type") return res.status(400).json({"error": "Invalid type"})
+            if(label === "postid") return res.status(400).json({"error": "Invalid postid"})
+            if(label === "type") return res.status(400).json({"error": "Invalid type"})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -169,7 +169,7 @@ router.get("/ncomment", pagination(), async (req, res) => {
         let valid = schema.validate(req.query)
         if(valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
+            if(label === "commentid") return res.status(400).json({"error": "Invalid commentid"})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -221,7 +221,7 @@ router.get("/comment/:commentid", async (req, res) => {
         let valid = schema.validate(req.params)
         if(valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
+            if(label === "commentid") return res.status(400).json({"error": "Invalid commentid"})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -255,7 +255,7 @@ router.get("/ncomment/:ncommentid", async (req, res) => {
         let valid = schema.validate(req.params)
         if(valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "ncommentid") return res.status(400).json({"error": "Invalid ncommentid"})
+            if(label === "ncommentid") return res.status(400).json({"error": "Invalid ncommentid"})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -295,8 +295,8 @@ router.put("/comment", check_token(), async (req, res) => {
         let valid = schema.validate(req.body)
         if(valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
-            if(label == "comment") return res.status(400).json({"error": "Invalid comment"})
+            if(label === "commentid") return res.status(400).json({"error": "Invalid commentid"})
+            if(label === "comment") return res.status(400).json({"error": "Invalid comment"})
             return res.status(400).json({"error": "invalid user input"})
         }
         
@@ -324,8 +324,8 @@ router.put("/ncomment", check_token(), async (req, res) => {
         let valid = schema.validate(req.body)
         if(valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "ncommentid") return res.status(400).json({"error": "Invalid ncommentid"})
-            if(label == "comment") return res.status(400).json({"error": "Invalid comment"})
+            if(label === "ncommentid") return res.status(400).json({"error": "Invalid ncommentid"})
+            if(label === "comment") return res.status(400).json({"error": "Invalid comment"})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -356,8 +356,8 @@ router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => 
         let valid = schema.validate(req.params)
         if(valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "postid") return res.status(400).json({"error": "Invalid postid"})
-            if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
+            if(label === "postid") return res.status(400).json({"error": "Invalid postid"})
+            if(label === "commentid") return res.status(400).json({"error": "Invalid commentid"})
             return res.status(400).json({"error": "invalid user input"})
         }
         
@@ -400,8 +400,8 @@ router.delete("/ncomment/:commentid/:ncommentid", check_token(), async (req, res
         let valid = schema.validate(req.params)
         if(valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
-            if(label == "ncommentid") return res.status(400).json({"error": "Invalid ncommentid"})
+            if(label === "commentid") return res.status(400).json({"error": "Invalid commentid"})
+            if(label === "ncommentid") return res.status(400).json({"error": "Invalid ncommentid"})
             return res.status(400).json({"error": "invalid user input"})
         }
 

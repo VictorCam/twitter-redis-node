@@ -143,7 +143,7 @@ router.delete("/post/:postid", check_token(), async (req, res) => {
         let valid = schema.validate(req.params)
         if(valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "postid") return res.status(200).json({"error": "postid must be a string between 1 and 25 characters"})
+            if(label === "postid") return res.status(200).json({"error": "postid must be a string between 1 and 25 characters"})
             return res.status(400).json({"error": "invalid user input"})
         }
 

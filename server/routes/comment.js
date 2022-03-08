@@ -94,7 +94,7 @@ router.post("/ncomment", check_token(), async (req, res) => {
         .hset(`ncomment:${ncommentid}`, ["userid", req.userid, "ncomment", req.body.comment, "ss:ncommentid", req.body.commentid, "likes", 0, "isupdated", 0])
         .exec()
         
-        return res.status(200).json({"comment": req.body.comment, "ncommentid": ncommentid, "ncomments": req.body.commentid})
+        return res.status(200).json({"comment": req.body.comment, "ncommentid": ncommentid})
     } 
     catch (e) {
         console.log("error in /ncomment route ==", e)
@@ -176,7 +176,7 @@ router.get("/ncomment", pagination(), async (req, res) => {
         //check the size of the ss:comment
         let ss_ncomment_size = await client.zcard(`ss:ncomment:${req.query.commentid}`)
         
-        //CHECK IF THE NCOMMENT SS WAS DELETED
+        //CHECK IF THE NCOMMENT SS WAS DELETED???
 
         //check if start >= ss:ncomment_size 
         if(req.start >= ss_ncomment_size) return res.status(400).json({"error": "no more comments to see"})

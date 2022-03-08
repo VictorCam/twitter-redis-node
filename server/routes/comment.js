@@ -39,8 +39,8 @@ router.post("/comment", check_token(), async (req, res) => {
 
         await client.pipeline()
         .zadd(`commentl:${req.body.postid}`, Math.floor(Date.now() / 1000), commentid)
-        .zadd(`commentl_like:${req.body.postid}`, 0, commentid)
-        .hset(`comment:${commentid}`, ["userid", req.userid, "comment", req.body.comment, "postid", req.body.postid, "likes", 0, "ncommentl_size", 0, "isupdated", 0, "timestamp", Math.floor(Date.now() / 1000)])
+        .zadd(`ss:comment_likes:${req.body.postid}`, 0, commentid)
+        .hset(`comment:${commentid}`, ["userid", req.userid, "comment", req.body.comment, "postid", req.body.postid, "likes", 0, "isupdated", 0, "timestamp", Math.floor(Date.now() / 1000)])
         .exec()
 
         return res.status(200).json({"comment": req.body.comment, "commentid": commentid})
@@ -73,7 +73,8 @@ router.post("/ncomment", check_token(), async (req, res) => {
 
         let cidlist = await client.pipeline()
         .hmget(`post:${req.body.postid}`, ["userid", "can_comment", "can_comment_img", "can_comment_sticker"])
-        .hmget(`comment:${req.body.commentid}`, `postid`, `ncommentl_size`)
+        .hmget(`comment:${req.body.commentid}`, `postid`)
+        .zcard(`ss:ncomment:${req.body.commentid}`)
         .exec()
 
         if(!cidlist[0][1][0]) return res.status(400).json({"error": "post does not exist"})
@@ -84,14 +85,13 @@ router.post("/ncomment", check_token(), async (req, res) => {
         }
 
         if(cidlist[1][1][0] != req.body.postid) return res.status(400).json({"error": "commentid does not exist or postid has no relationship with commentid"})
-        if(cidlist[1][1][1] >= 500) return res.status(400).json({"error": "comment has reached max reply limit"})
+        if(cidlist[2][1] >= 500) return res.status(400).json({"error": "comment has reached max reply limit"})
 
         let ncommentid = nanoid(25)
         
         await client.pipeline()
-        .hincrby(`comment:${req.body.commentid}`, "ncommentl_size", 1)
-        .zadd(`ncommentl:${req.body.commentid}`, Math.floor(Date.now() / 1000), ncommentid)
-        .hset(`ncomment:${ncommentid}`, ["userid", req.userid, "ncomment", req.body.comment, "ncommentlid", req.body.commentid, "likes", 0, "isupdated", 0])
+        .zadd(`ss:ncomment:${req.body.commentid}`, Math.floor(Date.now() / 1000), ncommentid)
+        .hset(`ncomment:${ncommentid}`, ["userid", req.userid, "ncomment", req.body.comment, "ss:ncommentid", req.body.commentid, "likes", 0, "isupdated", 0])
         .exec()
         
         return res.status(200).json({"comment": req.body.comment, "ncommentid": ncommentid, "ncomments": req.body.commentid})
@@ -128,7 +128,7 @@ router.get("/comment", pagination(), async (req, res) => {
 
         //check if we are requesting the like sorted set or the regular sorted set and if the length is 0 or not
         let cidlist = ("like" === req.query.type) ? 
-        await client.zrevrange(`commentl_like:${req.query.postid}`, req.start, req.end) 
+        await client.zrevrange(`ss:comment_likes:${req.query.postid}`, req.start, req.end) 
         : await client.zrange(`commentl:${req.query.postid}`, req.start, req.end)
         if(cidlist.length === 0) return res.status(400).json({"error": "postid does not exist"})
 
@@ -174,12 +174,14 @@ router.get("/ncomment", pagination(), async (req, res) => {
         }
 
         //check the size of the commentl
-        let ncommentl_size = await client.zcard("ncommentl:"+req.query.commentid)
-
-        //check if start >= ncommentl_size 
-        if(req.start >= ncommentl_size) return res.status(400).json({"error": "no more comments to see"})
+        let ss_ncomment_size = await client.zcard(`ss:ncomment:${req.query.commentid}`)
         
-        let cidlist = await client.zrange(`ncommentl:${req.query.commentid}`, req.start, req.end)
+        //CHECK IF THE NCOMMENT SS WAS DELETED
+
+        //check if start >= ss:ncomment_size 
+        if(req.start >= ss_ncomment_size) return res.status(400).json({"error": "no more comments to see"})
+        
+        let cidlist = await client.zrange(`ss:ncomment:${req.query.commentid}`, req.start, req.end)
 
         if(cidlist.length === 0) return res.status(400).json({"error": "commentid does not exist"})
 
@@ -376,7 +378,7 @@ router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => 
         await client.pipeline()
         .del(`comment:${req.params.commentid}`)
         .zrem(`commentl:${req.params.postid}`, req.params.commentid)
-        .zrem(`commentl_like:${req.params.postid}`, req.params.commentid)
+        .zrem(`ss:comment_likes:${req.params.postid}`, req.params.commentid)
         .exec()
 
         return res.status(200).json({"status": "ok"})
@@ -406,8 +408,8 @@ router.delete("/ncomment/:commentid/:ncommentid", check_token(), async (req, res
         }
 
         let exists = await client.pipeline()
-        .hmget(`ncomment:${req.params.ncommentid}`, ["userid", "ncommentlid"])
-        .exists(`ncommentl:${req.params.commentid}`)
+        .hmget(`ncomment:${req.params.ncommentid}`, ["userid", "ss:ncommentid"])
+        .exists(`ss:ncomment:${req.params.commentid}`)
         .exec()
 
         if(!exists[1][1]) return res.status(400).json({"error": "the commentid does not exist"})
@@ -418,7 +420,7 @@ router.delete("/ncomment/:commentid/:ncommentid", check_token(), async (req, res
         //recommended to use unlink (kvrocks does not support yet but upstash does)
         await client.pipeline()
         .del(`ncomment:${req.params.ncommentid}`)
-        .zrem(`ncommentl:${req.params.commentid}`, req.params.ncommentid)
+        .zrem(`ss:ncomment:${req.params.commentid}`, req.params.ncommentid)
         .exec()
 
         return res.status(200).json({"status": "ok"})

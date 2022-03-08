@@ -110,7 +110,8 @@ kvrocks: update userid username and/or email
 //art posts /videos// vid stream exclustive posts
 //watch list of tags --prevent abuse (post tag verfiers) -> limit large abitrary taggging -> allow 10 last of tags to watch
 
-
+//we can do a subscription using a hash where we have the user check if their subscription:id exists then with the key of the username and the timestamp
+//if it does not exist then that means that we don't have a subscription in place and if it does but it is expired then we tell them that their subscription is expired but they can renew it if they need to
 
 
 https://javascript.info/websocket#chat-example

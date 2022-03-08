@@ -23,7 +23,7 @@ router.post("/comment", check_token(), async (req, res) => {
             let label = valid.error.details[0].context.label
             if(label == "postid") return res.status(400).json({"error": "Invalid postid"})
             if(label == "comment") return res.status(400).json({"error": "Comment should be between 1 to 1000 characters"})
-            return res.status(400).json({"error": "Something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
         let cperm = await client.hmget(`post:${req.body.postid}`, ["userid", "can_comment", "can_comment_img", "can_comment_sticker"])
@@ -68,7 +68,7 @@ router.post("/ncomment", check_token(), async (req, res) => {
             if(label == "postid") return res.status(400).json({"error": "Invalid postid"})
             if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
             if(label == "comment") return res.status(400).json({"error": "Comment should be between 1 to 1000 characters"})
-            return res.status(400).json({"error": "Something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
         let cidlist = await client.pipeline()
@@ -119,25 +119,27 @@ router.get("/comment", pagination(), async (req, res) => {
             let label = valid.error.details[0].context.label
             if(label == "postid") return res.status(400).json({"error": "Invalid postid"})
             if(label == "type") return res.status(400).json({"error": "Invalid type"})
-            return res.status(400).json({"error": "Something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
-        //check the size of the commentl
+        //check the size of the commentl and check if we reached the end of the list
         let commentl_size = await client.zcard("commentl:"+req.query.postid)
-
-        //check if the start > commentl_size
         if(req.start >= commentl_size) return res.status(400).json({"error": "you have no more posts to see"})
 
-        let cidlist = ("like" == req.query.type) ? await client.zrevrange("commentl_like:"+req.query.postid,req.start,req.end) : await client.zrange("commentl:"+req.query.postid,req.start,req.end)
+        //check if we are requesting the like sorted set or the regular sorted set and if the length is 0 or not
+        let cidlist = ("like" === req.query.type) ? 
+        await client.zrevrange(`commentl_like:${req.query.postid}`, req.start, req.end) 
+        : await client.zrange(`commentl:${req.query.postid}`, req.start, req.end)
+        if(cidlist.length === 0) return res.status(400).json({"error": "postid does not exist"})
 
-        if(cidlist.length == 0) return res.status(400).json({"error": "postid does not exist"})
-
+        //pipeline all comments and execute
         let pipe = client.pipeline()
         for (let i = 0; i < cidlist.length; i++) { 
             pipe.hgetall(`comment:${cidlist[i]}`)
         }
         let cdata = await pipe.exec()
 
+        //format the data
         let commentlist = []
         for (let i = 0; i < cidlist.length; i++) {
             let userinfo = await client.hmget(`userid:${cdata[0][1].userid}`, "icon", "username", "icon_frame")
@@ -168,18 +170,18 @@ router.get("/ncomment", pagination(), async (req, res) => {
         if(valid.error) {
             let label = valid.error.details[0].context.label
             if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
-            return res.status(400).json({"error": "something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
         //check the size of the commentl
         let ncommentl_size = await client.zcard("ncommentl:"+req.query.commentid)
 
-        //check if start > ncommentl_size 
+        //check if start >= ncommentl_size 
         if(req.start >= ncommentl_size) return res.status(400).json({"error": "no more comments to see"})
         
         let cidlist = await client.zrange(`ncommentl:${req.query.commentid}`, req.start, req.end)
 
-        if(cidlist.length == 0) return res.status(400).json({"error": "commentid does not exist"})
+        if(cidlist.length === 0) return res.status(400).json({"error": "commentid does not exist"})
 
         let pipe = client.pipeline()
         for (let i = 0; i < cidlist.length; i++) { 
@@ -220,7 +222,7 @@ router.get("/comment/:commentid", async (req, res) => {
         if(valid.error) {
             let label = valid.error.details[0].context.label
             if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
-            return res.status(400).json({"error": "Something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
         let comment = await client.hgetall(`comment:${req.params.commentid}`)
@@ -254,7 +256,7 @@ router.get("/ncomment/:ncommentid", async (req, res) => {
         if(valid.error) {
             let label = valid.error.details[0].context.label
             if(label == "ncommentid") return res.status(400).json({"error": "Invalid ncommentid"})
-            return res.status(400).json({"error": "Something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
         let ncomment = await client.hgetall(`ncomment:${req.params.ncommentid}`)
@@ -295,7 +297,7 @@ router.put("/comment", check_token(), async (req, res) => {
             let label = valid.error.details[0].context.label
             if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
             if(label == "comment") return res.status(400).json({"error": "Invalid comment"})
-            return res.status(400).json({"error": "Something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
         
         let userid = await client.hget(`comment:${req.body.commentid}`, "userid")
@@ -324,7 +326,7 @@ router.put("/ncomment", check_token(), async (req, res) => {
             let label = valid.error.details[0].context.label
             if(label == "ncommentid") return res.status(400).json({"error": "Invalid ncommentid"})
             if(label == "comment") return res.status(400).json({"error": "Invalid comment"})
-            return res.status(400).json({"error": "Something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
         let userid = await client.hget(`ncomment:${req.body.ncommentid}`, "userid")
@@ -356,7 +358,7 @@ router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => 
             let label = valid.error.details[0].context.label
             if(label == "postid") return res.status(400).json({"error": "Invalid postid"})
             if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
-            return res.status(400).json({"error": "Something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
         
         let exists = await client.pipeline()
@@ -387,19 +389,20 @@ router.delete("/comment/:postid/:commentid", check_token(), async (req, res) => 
 
 router.delete("/ncomment/:commentid/:ncommentid", check_token(), async (req, res) => {
     try {
+        //set headers
         res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
+        //validate object
         let schema = Joi.object().keys({
             commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
             ncommentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required()
         })
-
         let valid = schema.validate(req.params)
         if(valid.error) {
             let label = valid.error.details[0].context.label
             if(label == "commentid") return res.status(400).json({"error": "Invalid commentid"})
             if(label == "ncommentid") return res.status(400).json({"error": "Invalid ncommentid"})
-            return res.status(400).json({"error": "Something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
         let exists = await client.pipeline()

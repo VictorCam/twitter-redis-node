@@ -6,31 +6,29 @@ module.exports = function() {
 
             //vaiddate req.query.amount and req.query.page
             const schema = Joi.object().keys({
-                amount: Joi.number().integer().min(0).max(100).required(),
-                page: Joi.number().integer().min(0).max(1000000).required()
+                amount: Joi.number().integer().min(1).max(100).required(),
+                page: Joi.number().integer().min(1).max(1000000).required()
             })
 
-            //validate
+            //validate req.query.amount and req.query.page out of the req.query object
             let valid = schema.validate({"amount": req.query.amount, "page": req.query.page})
             if(valid.error) {
                 let label = valid.error.details[0].context.label
-                if(label == "amount") return res.status(200).json({"error": "amount must be a number between 0 and 100"})
-                if(label == "page") return res.status(200).json({"error": "page must be a number between 0 and 1000000"})
-                return res.status(500).json({"error": "something went wrong"})
+                if(label === "amount") return res.status(400).json({"error": "amount must be a number between 1 and 100"})
+                if(label === "page") return res.status(400).json({"error": "page must be a number between 1 and 1000000"})
+                return res.status(400).json({"error": "invalid user input"})
             }
 
-            //we need to check on each route that uses
-            //this if they are going out of the range
-            //because they get an error if the renge is too large
-
+            //remove amount and page in case we validate req.query on the route
             delete req.query.amount
             delete req.query.page
 
-            let amount = valid.value.amount
-            let page = valid.value.page
+            //set the pagination indexes to use on the specified route
+            valid.value.amount--
+            valid.value.page--
+            req.start = (valid.value.amount*valid.value.page)+valid.value.page
+            req.end = (valid.value.amount*(valid.value.page+1))+valid.value.page
 
-            req.start = amount*page+page
-            req.end = amount*((page+1))+page
             return next()
         }
         catch(e) {

@@ -26,7 +26,7 @@ router.get("/feed/:username", check_token(), async (req, res) => {
         if(valid.error) {
             let label = valid.error.details[0].context.label
             if(label === "username") return res.status(400).json({"error": "username must be between 1 and 30 characters and only contain letters, numbers, and underscores"})
-            return res.status(500).json({"error": "something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
         //get the key of the username

@@ -22,7 +22,7 @@ router.post("/follow", check_token(), async (req, res) => {
         if (valid.error) {
             let label = valid.error.details[0].context.label
             if(label == "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
-            return res.status(400).json({"error": "something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
         //create a zset with the userid of the original user
@@ -65,7 +65,7 @@ router.post("/unfollow", check_token(), async (req, res) => {
         if (valid.error) {
             let label = valid.error.details[0].context.label
             if(label == "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
-            return res.status(400).json({"error": "something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
         let followid = await client.get(`username:${req.body.username}`)
@@ -106,21 +106,29 @@ router.get("/following/:username", check_token(), pagination(), async (req, res)
         if (valid.error) {
             let label = valid.error.details[0].context.label
             if(label == "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
-            return res.status(400).json({"error": "something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
-
+        //check if the usernam exists
         let userid = await client.get(`username:${req.params.username}`)
-
-        //check if the username exists
         if(!userid) return res.status(400).json({"error": "user does not exist"})
 
         //check the permission of the userid
         //TODO
 
         //something else im missing here i think
+
+        //I FIGURED IT OUT we need to prevet an issue with the req.start and req.end
+        
+        //get the size of the following list
+
+
+        //HERE */
+
+        // let following_size = await client.zcard(`following:${userid}`)
+        // if(req.start >= following_size) return res.status(400).json({"error": "no more users to see"})
     
-        let following = await client.zrevrange(`following:${userid}`, req.start, req.end)
+        let following = await client.zrange(`following:${userid}`, req.start, req.end)
 
         //if you are following no one, return empty
         if(!following) return res.status(200).json({})
@@ -154,35 +162,24 @@ router.get("/following/:username", check_token(), pagination(), async (req, res)
 //dont forget to check if we are blocking a user when people rehowl something
 //also for blocking we need to remove the person
 
-/*
-    //start = 9
-
-
-*/
-
-//1*15 = 15
-//2*15 = 30
-//3*15 = 45
-
 router.get("/following", check_token(), pagination(), async (req, res) => {
     try {
         //get the size of the following list
         let following_size = await client.zcard(`following:${req.userid}`)
-        if(!following_size) return res.status(400).send("You are not following anyone")
+        if(!following_size) return res.status(400).json({"error": "You are not following anyone"})
         if(req.start >= following_size) return res.status(400).json({"error": "you have no more followers to see"})
 
-        // console.log(req.start)
-        // console.log(req.end)
-        let followid = await client.zrevrangebyscore(`following:${req.userid}`, req.start, req.end, "withscores")
+
+        let followid = await client.zrange(`following:${req.userid}`, req.start, req.end, "withscores")
         if(!followid) return res.status(400).json({"error": "you don't have any followers"})
-        // console.log(followid)
+
+        //format data
         result = []
         for(let i = 0; i < followid.length; i+=2) {
             let pres = await client.pipeline()
             .hmget(`userid:${followid[i]}`, "username", "icon", "icon_frame")
             .zcount(`postl:${followid[i]}`, followid[i+1], "+inf")
             .exec()
-
             result.push({
                 "username": pres[0][1][0],
                 "icon": pres[0][1][1],

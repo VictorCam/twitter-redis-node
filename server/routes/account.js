@@ -12,42 +12,43 @@ require("dotenv").config()
 //FIND STICKERS BY INDEXING THE ONES THEY ALREADY HAVE
 //MISSING A LOGGING OUT REQUEST
 //do more tests like this https://www.youtube.com/watch?v=NKZ0ahNbmak
+//uesrname is going to allow email thus @ . are allowed
+//dont forget that username can contain a number
+//also remember to check if the username is already taken by matching it with the userid
 
 router.post("/login", async (req, res) => {
     try {
         //set headers
         res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //uesrname is going to allow email thus @ . are allowed
-        //dont forget that username can contain a number
+        //validate object
         const schema = Joi.object().keys({
             username: Joi.string().regex(/^[a-zA-Z0-9@._-]{1,200}$/).required(),
             password: Joi.string().regex(/^[a-zA-Z0-9!@#$%^&*_-]{10,100}$/).required(),
         })
-
-        //validate json
         let valid = schema.validate(req.body)
         if(valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "username") return res.status(400).json({"error": "invalid characters in username"})
-            if(label == "password") return res.status(400).json({"error": "invalid characters in password"})
-            return res.status(400).json({"error": "something went wrong"})
+            if(label === "username") return res.status(400).json({"error": "invalid characters in username"})
+            if(label === "password") return res.status(400).json({"error": "invalid characters in password"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
-        //get userid from username/email/phone
+        //get userid from either the username/email/phone
         let results = await client.pipeline()
         .get(`username:${req.body.username}`)
         .get(`email:${req.body.username}`)
         .get(`phone:${req.body.username}`)
         .exec()
 
+        //check if any of the results are not null and set the userid if
         let userid = results[0][1] || results[1][1] || results[2][1]
 
-        //check if username or password exist
+        //check if username or password exists and that the password is correct
         if(!userid) return res.status(401).json({"error": "username, email, or phone is not found"})
         if(!await bcrypt.compare(req.body.password, await client.hget(`userid:${userid}`, "password"))) return res.status(401).json({"error": "invalid password"})
 
-        //jwt + send auth cookie
+        //set jwt + set auth cookie
         let token = jwt.sign({userid: userid}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
         res.cookie('authorization', `bearer ${token}`, { httpOnly: true, sameSite: 'Strict'})
 
@@ -61,21 +62,22 @@ router.post("/login", async (req, res) => {
 
 //note that there can be two similar but diff type of usernames
 //for example, ALBERT is different than albert or alBeRt
+//DONT FORGET AREA CODE LATER ON
+//DONT FORGET SOME USERS WILL ENTER - on the phone number
+//lowercase the username
 
 router.post("/register", async (req, res) => {
     try {
+        //set headers
         res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //DONT FORGET AREA CODE LATER ON
-        //DONT FORGET SOME USERS WILL ENTER - on the phone number
-        //lowercase the username
+        //validate object
         const schema = Joi.object().keys({
             username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required(),
             password: Joi.string().regex(/^[a-zA-Z0-9!@#$%^&*_-]{10,100}$/).required(),
             email: Joi.string().email().min(5).max(200).required(),
             phone: Joi.string().regex(/^[0-9]{10}$/).required(),
         })
-
         let valid = schema.validate(req.body)
         if(valid.error) {
             let label = valid.error.details[0].context.label
@@ -83,16 +85,17 @@ router.post("/register", async (req, res) => {
             if(label == "password") return res.status(400).json({"error": "password must be between 10 and 100 characters and can only contain 'a-z A-Z 0-9 ! @ # $ % ^ & * _ -' only"})
             if(label == "email") return res.status(400).json({"error": "email must be between 5 and 100 characters and must be a valid email"})
             if(label == "phone") return res.status(400).json({"error": "phone must be a valid phone number"})
-            return res.status(500).json({"error": "something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
-        //check if username and email exists
+        //check if username email or phone exists
         let results = await client.pipeline()
         .get(`username:${req.body.username}`)
         .get(`email:${req.body.email}`)
         .get(`phone:${req.body.phone}`)
         .exec()
 
+        //check if any of the results exists if so return error
         if(results[0][1]) return res.status(400).json({"error": "username already exists"})
         if(results[1][1]) return res.status(400).json({"error": "email already exists"})
         if(results[2][1]) return res.status(400).json({"error": "phone number already exists"})
@@ -100,10 +103,10 @@ router.post("/register", async (req, res) => {
         //hash password first to prevent duplicate users with multiple requests
         let hashpass = await bcrypt.hash(req.body.password, parseInt(process.env.BCRYPT_ROUNDS))
 
-
+        //create userid
         let userid = nanoid(25)
 
-        //create userid
+        //create user
         await client.pipeline()
         .set(`username:${req.body.username}`, userid)
         .set(`email:${req.body.email}`, userid)
@@ -124,7 +127,6 @@ router.post("/register", async (req, res) => {
         ])
         .exec()
 
-        //success
         return res.status(200).json({"status": "ok", "message": "succesfully created account"})
     }
     catch(e) {
@@ -135,27 +137,25 @@ router.post("/register", async (req, res) => {
 
 router.get("/user/:username", async (req, res) => {
     try {
+        //set headers
         res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
         //validate json schema
         const schema = Joi.object().keys({
             username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required(),
         })
-
         let valid = schema.validate(req.params)
         if(valid.error) {
             let label = valid.error.details[0].context.label
             if(label == "username") return res.status(400).json({"error": "username must be between 1 and 30 characters and only contain letters, numbers, and underscores"})
-            return res.status(500).json({"error": "something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
-        //get userid from username
+        //get userid from username and check if username exists
         let userid = await client.get(`username:${req.params.username}`)
-
-        //check if username exists
         if(!userid) return res.status(400).json({"error": "username is not found"})
 
-        //get user info
+        //get neccesary user info
         let user = await client.hmget(`userid:${userid}`, "username", "email", "userid", "icon", "icon_frame", "admin_level", "is_deleted", "is_verified", "join_date", "desc")
 
         //convert user array into object
@@ -172,7 +172,6 @@ router.get("/user/:username", async (req, res) => {
             desc: user[9]
         }
 
-        //success
         return res.status(200).json(user)
     }
     catch(e) {
@@ -182,9 +181,16 @@ router.get("/user/:username", async (req, res) => {
 })
 
 router.post("/logout", (req, res) => {
-    res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API})
-    res.clearCookie('authorization')
-    return res.sendStatus(200)
+    try {
+        //set headers and removing cookies
+        res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API})
+        res.clearCookie('authorization')
+        return res.sendStatus(200)
+    }
+    catch(e) {
+        console.log("error in /logout route ==", e)
+        return res.sendStatus(500)
+    }
 })
 
 router.use(cors())

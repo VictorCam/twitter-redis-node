@@ -13,7 +13,7 @@ module.exports = function() {
       var token = req.cookies['authorization'] || req.headers['authorization']
       if(!token) return no_auth(req, res, next)
       token = token.split(" ")
-      if(token[0].toLowerCase() != 'bearer') return no_auth(req, res, next)
+      if(token[0].toLowerCase() !== 'bearer') return no_auth(req, res, next)
     }
     catch {
       return no_auth(req, res, next)

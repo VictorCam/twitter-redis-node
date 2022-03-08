@@ -64,16 +64,16 @@ router.post("/post", check_token(), async (req, res) => {
         let valid = schema.validate(req.body)
         if(valid.error) {
             let label = valid.error.details[0].context.label
-            if(label == "image") return res.status(200).json({"error": "image must be a string between 1 and 100 characters"})
-            if(label == "name") return res.status(200).json({"error": "name must be a string between 1 and 100 characters"})
-            if(label == "tags") return res.status(200).json({"error": "tags must be a string between 100 and 5000 characters"})
-            if(label == "desc") return res.status(200).json({"error": "desc must be a string between 0 and 5000 characters"})
-            if(label == "can_comment") return res.status(200).json({"error": "can_comment must be a number between 0 and 1"})
-            if(label == "can_comment_img") return res.status(200).json({"error": "can_comment_img must be a number between 0 and 1"})
-            if(label == "can_comment_sticker") return res.status(200).json({"error": "can_comment_sticker must be a number between 0 and 1"})
-            if(label == "can_like") return res.status(200).json({"error": "can_like must be a number between 0 and 1"})
-            if(label == "can_rehowl") return res.status(200).json({"error": "can_rehowl must be a number between 0 and 1"})
-            return res.status(500).json({"error": "something went wrong"})
+            if(label === "image") return res.status(200).json({"error": "image must be a string between 1 and 100 characters"})
+            if(label === "name") return res.status(200).json({"error": "name must be a string between 1 and 100 characters"})
+            if(label === "tags") return res.status(200).json({"error": "tags must be a string between 100 and 5000 characters"})
+            if(label === "desc") return res.status(200).json({"error": "desc must be a string between 0 and 5000 characters"})
+            if(label === "can_comment") return res.status(200).json({"error": "can_comment must be a number between 0 and 1"})
+            if(label === "can_comment_img") return res.status(200).json({"error": "can_comment_img must be a number between 0 and 1"})
+            if(label === "can_comment_sticker") return res.status(200).json({"error": "can_comment_sticker must be a number between 0 and 1"})
+            if(label === "can_like") return res.status(200).json({"error": "can_like must be a number between 0 and 1"})
+            if(label === "can_rehowl") return res.status(200).json({"error": "can_rehowl must be a number between 0 and 1"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
 
@@ -144,7 +144,7 @@ router.delete("/post/:postid", check_token(), async (req, res) => {
         if(valid.error) {
             let label = valid.error.details[0].context.label
             if(label == "postid") return res.status(200).json({"error": "postid must be a string between 1 and 25 characters"})
-            return res.status(500).json({"error": "something went wrong"})
+            return res.status(400).json({"error": "invalid user input"})
         }
 
         //check if post exists (if the post exists then the postl should exist (no need to check))

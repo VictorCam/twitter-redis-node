@@ -8,6 +8,7 @@ const Joi = require("joi")
 require("dotenv").config()
 
 //username feed
+//add a paramater to go "POS" or "NEG" (amount of posts)
 router.get("/feed/:username", check_token(), async (req, res) => {
     try {
         //validate json schema

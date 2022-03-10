@@ -78,6 +78,7 @@ kvrocks: update userid username and/or email
 
 #axios alt when working with the store in the client
 # @bundled-es-modules/axios
+https://thisthat.dev/
 
 //on userid add [balance]
 
@@ -100,18 +101,31 @@ kvrocks: update userid username and/or email
 //api for users who are open for commission api that shows ads sfw or nsfw dpeneidngo on account on account settings and age
 
 
-//feed-live
-//active or not
-//voice chat- but anyone who follows you can see you and join you 
-//multiple accounts
-//woofin woofin
-//like discord but a0 inactiviity
+feed-live
+active or not
+voice chat- but anyone who follows you can see you and join you 
+multiple accounts
+woofin woofin
+like discord but with inactiviity
 
-//art posts /videos// vid stream exclustive posts
-//watch list of tags --prevent abuse (post tag verfiers) -> limit large abitrary taggging -> allow 10 last of tags to watch
+art posts /videos// vid stream exclustive posts
+watch list of tags --prevent abuse (post tag verfiers) -> limit large abitrary taggging -> allow 10 last of tags to watch
 
-//we can do a subscription using a hash where we have the user check if their subscription:id exists then with the key of the username and the timestamp
-//if it does not exist then that means that we don't have a subscription in place and if it does but it is expired then we tell them that their subscription is expired but they can renew it if they need to
+we can do a subscription using a hash where we have the user check if their subscription:id exists then with the key of the username and the timestamp
+if it does not exist then that means that we don't have a subscription in place and if it does but it is expired then we tell them that their subscription is expired but they can renew it if they need to
 
+how are we going to search things up if we don't have any sort of way to find things
+
+
+I was thinking about having different sorted sets for posting
+when a user posts a post there will be different sorted sets according to the preferences of the user
+one will contain posts and rehowls
+another will contain just posts
+or we could make an api call that combines them together (with the expense of doing more network calls)
+
+rename the word "READ" on the feed to something thats akin to "posts that are left to read"
+synonyms for the word "posts that are left to read"
 
 https://javascript.info/websocket#chat-example
+
+pipeline commands when they pertaining to ONE user (belong to one shard)

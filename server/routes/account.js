@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken")
 const express = require("express")
 const cors = require("cors")
-const bcrypt = require('bcrypt')
+const { hash, verify, Algorithm } = require('@node-rs/argon2');
 const {client, rclient} = require("../server_connection")
 const {nanoid} = require('nanoid')
 const check_token = require("../middleware/check_token")
@@ -46,7 +46,7 @@ router.post("/login", async (req, res) => {
 
         //check if username or password exists and that the password is correct
         if(!userid) return res.status(401).json({"error": "username, email, or phone is not found"})
-        if(!await bcrypt.compare(req.body.password, await client.hget(`userid:${userid}`, "password"))) return res.status(401).json({"error": "invalid password"})
+        if(!await verify(await client.hget(`userid:${userid}`, "password"), req.body.password, {secret: Buffer.from(process.env.ARGON2_SECRET, 'base64')})) return res.status(401).json({"error": "invalid password"})
 
         //set jwt + set auth cookie
         let token = jwt.sign({userid: userid}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
@@ -100,8 +100,12 @@ router.post("/register", async (req, res) => {
         if(results[1][1]) return res.status(400).json({"error": "email already exists"})
         if(results[2][1]) return res.status(400).json({"error": "phone number already exists"})
 
-        //hash password first to prevent duplicate users with multiple requests
-        let hashpass = await bcrypt.hash(req.body.password, parseInt(process.env.BCRYPT_ROUNDS))
+        //hash password first to prevent duplicate user
+        let hashpass = await hash(req.body.password, {
+            algorithm: Algorithm.Argon2id, timeCost: parseInt(process.env.ARGON2_TIME_COST),
+            memoryCost: parseInt(process.env.ARGON2_MEM_COST),
+            parallelism: parseInt(process.env.ARGON2_NUM_THREADS),
+            secret: Buffer.from(process.env.ARGON2_SECRET, 'base64')})
 
         //create userid
         let userid = nanoid(25)

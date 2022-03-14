@@ -34,3 +34,7 @@ https://stackoverflow.com/questions/32854616/redis-sorted-set-find-item-by-prope
 #BACKEND & IMG_SERVER
 # ---
 # ---
+
+//recommended to use unlink (when deleting large keys)
+//[cannot implement]: get the list of ncomments and delete it (not viable/worth it)
+//we could deleting them during certain time of the day where data is disconnected 

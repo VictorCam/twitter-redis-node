@@ -1,0 +1,4 @@
+postid -> ss:comment 
+postid -> ss:comment_likes
+
+commentid -> comment (each commentid must be unique)

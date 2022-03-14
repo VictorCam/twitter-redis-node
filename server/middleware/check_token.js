@@ -22,6 +22,7 @@ module.exports = function() {
     jwt.verify(token[1], process.env.TOKEN_SECRET, (err,user) => {
       if(!err) {
         req.userid = user.userid
+        //we could store the permission level in the token
         return next()
       }
       return no_auth(req, res, next)

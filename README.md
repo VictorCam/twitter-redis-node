@@ -19,7 +19,7 @@ D. make .env file with the following (change values in production):
     TOKEN_SECRET = xxx
     COOKIE_PARSER_SECRET = xxx
     ARGON2_SECRET = xxx
-    ARGON2_TIME_COST = 50
+    ARGON2_TIME_COST = 40
     ARGON2_MEM_COST = 5120
     ARGON2_NUM_THREADS = 1
     CLIENT_API = http://localhost:3000

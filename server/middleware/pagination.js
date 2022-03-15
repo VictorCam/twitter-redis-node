@@ -5,16 +5,14 @@ module.exports = function() {
         try {
             //vaidate req.query.amount and req.query.page
             const schema = Joi.object().keys({
-                amount: Joi.number().integer().min(1).max(100).required(),
-                page: Joi.number().integer().min(1).max(1000000).required()
+                amount: Joi.number().integer().min(1).max(100).required().label("amount must be a number between 1 and 100"),
+                page: Joi.number().integer().min(1).max(1000000).required().label("page must be a number between 1 and 1000000")
             })
 
             //validate req.query.amount and req.query.page out of the req.query object
             let valid = schema.validate({"amount": req.query.amount, "page": req.query.page})
             if(valid.error) {
-                let label = valid.error.details[0].context.label
-                if(label === "amount") return res.status(400).json({"error": "amount must be a number between 1 and 100"})
-                if(label === "page") return res.status(400).json({"error": "page must be a number between 1 and 1000000"})
+                if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
                 return res.status(400).json({"error": "invalid user input"})
             }
 

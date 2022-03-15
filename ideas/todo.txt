@@ -24,6 +24,12 @@ https://www.youtube.com/watch?v=AryZSCeKU9Y
 
 # (DONT FORGET STATUS CODES FOR ERRORS NODEJS!)
 
+
+# get popular sfw/nsfw
+# use timestamp and compare if n time has passed
+# use likes and timestamp and check which is relatively popular
+
+
 # FRONTEND CADDY as a webserver
 #IMPORTANT OPTIMIZATION!
 https://stackoverflow.com/questions/32854616/redis-sorted-set-find-item-by-property-value
@@ -34,6 +40,9 @@ https://stackoverflow.com/questions/32854616/redis-sorted-set-find-item-by-prope
 #BACKEND & IMG_SERVER
 # ---
 # ---
+
+//remember to do a partial index for users who like posts
+//also a index as well for users who want to share folders of some sort
 
 //recommended to use unlink (when deleting large keys)
 //[cannot implement]: get the list of ncomments and delete it (not viable/worth it)

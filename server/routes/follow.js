@@ -10,18 +10,16 @@ require("dotenv").config()
 //follow a user
 router.post("/follow", check_token(), async (req, res) => {
     try {
+        //set headers
         res.set({"Access-Control-Allow-Origin": "*"})
 
-        //validate req
-        //username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -
+        //validate object
         const schema = Joi.object().keys({
-            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required()
+            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required().label("username must be between 1 and 30 characters and only contain letters, numbers, dashes, and underscores"),
         })
-
         let valid = schema.validate(req.body)
-        if (valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
+        if(valid.error) {
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -52,19 +50,19 @@ router.post("/follow", check_token(), async (req, res) => {
     }
 })
 
-//test route
+
 router.post("/unfollow", check_token(), async (req, res) => {
     try {
+        //set headers
         res.set({"Access-Control-Allow-Origin": "*"})
 
+        //validate object
         const schema = Joi.object().keys({
-            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required()
+            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required().label("username must be between 1 and 30 characters and only contain letters, numbers, dashes, and underscores"),
         })
-
         let valid = schema.validate(req.body)
-        if (valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
+        if(valid.error) {
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -91,6 +89,7 @@ router.post("/unfollow", check_token(), async (req, res) => {
 
 router.get("/following/:username", check_token(), pagination(), async (req, res) => {
     try {
+        //set headers
         res.set("Access-Control-Allow-Origin", "*")
 
         //DONT FORGET THIS LOGIC FOR LOCKED ACCOUNTS!
@@ -98,14 +97,13 @@ router.get("/following/:username", check_token(), pagination(), async (req, res)
         //if you are not allowed to see the following list, return that this account is locked
         //get the username
 
+        //validate object
         const schema = Joi.object().keys({
-            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required()
+            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required().label("username must be between 1 and 30 characters and only contain letters, numbers, dashes, and underscores")
         })
-
         let valid = schema.validate(req.params)
-        if (valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "username") return res.status(400).send({"error": "username should be a name between 1 to 30 characters with a-z A-Z 0-9 _ -"})
+        if(valid.error) {
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 

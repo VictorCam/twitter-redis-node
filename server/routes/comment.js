@@ -7,7 +7,6 @@ const pagination = require("../middleware/pagination")
 const Joi = require("joi")
 const {nanoid} = require('nanoid')
 
-
 /*
     * TODO:
     PRIVILEGE LEVELS - levels from 1 to 5
@@ -22,14 +21,12 @@ router.post("/comment", check_token(), async (req, res) => {
 
         //validate object
         let schema = Joi.object().keys({
-            postid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
-            comment: Joi.string().min(1).max(1000).required()
+            postid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required().label("invalid postid format"),
+            comment: Joi.string().min(1).max(1000).required().label("comment should be between 1 to 1000 characters")
         })
         let valid = schema.validate(req.body)
         if(valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "postid") return res.status(400).json({"error": "Invalid postid"})
-            if(label === "comment") return res.status(400).json({"error": "Comment should be between 1 to 1000 characters"})
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -37,12 +34,10 @@ router.post("/comment", check_token(), async (req, res) => {
         let cperm = await client.hmget(`post:${req.body.postid}`, ["userid", "can_comment", "can_comment_img", "can_comment_sticker"])
         if(!cperm[0]) return res.status(400).json({"error": "post does not exist"})
 
-        //check post permissions if you are not the owner of the post
-        if(cperm[0] != req.userid) {
-            if(!cperm[1]) return res.status(400).json({"error": "post does not allow comments"})
-            if(!cperm[2]) return res.status(400).json({"error": "post does not allow images in the comments"})
-            if(!cperm[3]) return res.status(400).json({"error": "post does not allow images in the comments"})
-        }
+        //check post permissions
+        if(!cperm[1]) return res.status(400).json({"error": "post does not allow comments"})
+        if(!cperm[2]) return res.status(400).json({"error": "post does not allow images in the comments"})
+        if(!cperm[3]) return res.status(400).json({"error": "post does not allow images in the comments"})
 
         //create commentid
         let commentid = nanoid(parseInt(process.env.NANOID_LEN))
@@ -70,42 +65,35 @@ router.post("/ncomment", check_token(), async (req, res) => {
 
         //validate object
         let schema = Joi.object().keys({
-            postid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
-            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
-            comment: Joi.string().min(1).max(1000).required()
+            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required().label("invalid commentid format"),
+            comment: Joi.string().min(1).max(1000).required().label("comment should be between 1 to 1000 characters")
         })
         let valid = schema.validate(req.body)
         if(valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "postid") return res.status(400).json({"error": "Invalid postid"})
-            if(label === "commentid") return res.status(400).json({"error": "Invalid commentid"})
-            if(label === "comment") return res.status(400).json({"error": "Comment should be between 1 to 1000 characters"})
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 
-        //get the post permissions the comment belonging to postid and the ss:comment length
+        //get the comment comment and ss:comment length
         let cidlist = await client.pipeline()
-        .hmget(`post:${req.body.postid}`, ["userid", "can_comment", "can_comment_img", "can_comment_sticker"])
         .hmget(`comment:${req.body.commentid}`, `postid`)
         .zcard(`ss:ncomment:${req.body.commentid}`)
         .exec()
 
         //check if the post exists
-        if(!cidlist[0][1][0]) return res.status(400).json({"error": "post does not exist"})
+        let post = await client.hmget(`post:${cidlist[0][1]}`, ["userid", "can_comment", "can_comment_img", "can_comment_sticker"])
+        if(!post[0]) return res.status(400).json({"error": "post does not exist"})
 
-        //if posts exists check if you are the owner to bypass your post settings
-        if(cidlist[0][1][0] != req.userid) {
-            if(!cidlist[0][1][1]) return res.status(400).json({"error": "post does not allow comments"})
-            if(!cidlist[0][1][2]) return res.status(400).json({"error": "post does not allow images in the comments"})
-            if(!cidlist[0][1][3]) return res.status(400).json({"error": "post does not allow images in the comments"})
-        }
+        //check post settings
+        if(!post[1]) return res.status(400).json({"error": "post does not allow comments"})
+        if(!post[2]) return res.status(400).json({"error": "post does not allow images in the comments"})
+        if(!post[3]) return res.status(400).json({"error": "post does not allow images in the comments"})
 
         //check if the comment belongs to the post and if the length of the commentsize >= 500
-        if(cidlist[1][1][0] != req.body.postid) return res.status(400).json({"error": "commentid does not exist or postid has no relationship with commentid"})
-        if(cidlist[2][1] >= 500) return res.status(400).json({"error": "comment has reached max reply limit"})
+        if(cidlist[1] >= 500) return res.status(400).json({"error": "comment has reached max reply limit"})
 
         //create ncommentid
-        let ncommentid = nanoid(25)
+        let ncommentid = nanoid(parseInt(process.env.NANOID_LEN))
         
         //create ncomment and ncomment lookup using ss:ncomment (timestamp)
         await client.pipeline()
@@ -130,14 +118,12 @@ router.get("/comment", pagination(), async (req, res) => {
 
         //validate object
         let schema = Joi.object().keys({
-            postid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
-            type: Joi.string().valid("like", "reg").required()
+            postid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required().label("invalid postid format"),
+            type: Joi.string().valid("like", "reg").required().label("invalid type (like/reg) allowed")
         })
         let valid = schema.validate(req.query)
         if(valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "postid") return res.status(400).json({"error": "Invalid postid"})
-            if(label === "type") return res.status(400).json({"error": "Invalid type"})
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -184,12 +170,11 @@ router.get("/ncomment", pagination(), async (req, res) => {
 
         //validate object
         let schema = Joi.object().keys({
-            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required()
+            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required().label("invalid commentid format")
         })
         let valid = schema.validate(req.query)
         if(valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "commentid") return res.status(400).json({"error": "Invalid commentid"})
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -237,12 +222,11 @@ router.get("/comment/:commentid", async (req, res) => {
 
         //validate object
         let schema = Joi.object().keys({
-            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required()
+            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required().label("invalid commentid format")
         })
         let valid = schema.validate(req.params)
         if(valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "commentid") return res.status(400).json({"error": "Invalid commentid"})
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -272,12 +256,11 @@ router.get("/ncomment/:ncommentid", async (req, res) => {
 
         //validate object
         let schema = Joi.object().keys({
-            ncommentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required()
+            ncommentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required().label("invalid ncommentid format")
         })
         let valid = schema.validate(req.params)
         if(valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "ncommentid") return res.status(400).json({"error": "Invalid ncommentid"})
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -300,13 +283,6 @@ router.get("/ncomment/:ncommentid", async (req, res) => {
     }
 })
 
-/*
-get popular sfw/nsfw
-
-use timestamp and compare if n time has passed
-use likes and timestamp and check which is relatively popular
-*/
-
 router.put("/comment", check_token(), async (req, res) => {
     try {
         //set headers
@@ -314,14 +290,12 @@ router.put("/comment", check_token(), async (req, res) => {
         
         //validate object
         let schema = Joi.object().keys({
-            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
-            comment: Joi.string().min(1).max(1000).required()
+            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required().label("invalid commentid format"),
+            comment: Joi.string().min(1).max(1000).required().label("invalid comment must be between 1 and 1000 characters"),
         })
         let valid = schema.validate(req.body)
         if(valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "commentid") return res.status(400).json({"error": "invalid commentid"})
-            if(label === "comment") return res.status(400).json({"error": "invalid comment"})
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
         
@@ -350,21 +324,21 @@ router.put("/ncomment", check_token(), async (req, res) => {
 
         //validate object
         let schema = Joi.object().keys({
-            ncommentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required(),
-            comment: Joi.string().min(1).max(1000).required()
+            ncommentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required().label("invalid ncommentid format"),
+            comment: Joi.string().min(1).max(1000).required().label("invalid comment must be between 1 and 1000 characters"),
         })
         let valid = schema.validate(req.body)
         if(valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "ncommentid") return res.status(400).json({"error": "Invalid ncommentid"})
-            if(label === "comment") return res.status(400).json({"error": "Invalid comment"})
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 
         //check if ncomment exists and get userid from the ncomment
         let userid = await client.hget(`ncomment:${req.body.ncommentid}`, "userid")
         if(!userid) return res.status(400).json({"error": "ncommentid does not exist"})
-        if(req.userid != userid) return res.status(400).json({"error": "you do not own this comment or commentid does not exist"})
+        
+        //check if the userid is the same one who is modifying the ncomment
+        if(req.userid != userid) return res.status(400).json({"error": "you do not own this comment"})
 
         //update ncomment
         await client.hmset(`ncomment:${req.body.ncommentid}`, ["comment", req.body.comment, "isupdated", 1])
@@ -377,9 +351,6 @@ router.put("/ncomment", check_token(), async (req, res) => {
     }
 })
 
-//remember to do a partial index for users who like posts
-//also a index as well for users who want to share folders of some sort
-
 router.delete("/comment/:commentid", check_token(), async (req, res) => {
     try {
         //set headers
@@ -387,12 +358,11 @@ router.delete("/comment/:commentid", check_token(), async (req, res) => {
 
         //validate object
         let schema = Joi.object().keys({
-            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required()
+            commentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required().label("invalid commentid format"),
         })
         let valid = schema.validate(req.params)
         if(valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "commentid") return res.status(400).json({"error": "Invalid commentid"})
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -425,12 +395,11 @@ router.delete("/ncomment/:ncommentid", check_token(), async (req, res) => {
 
         //validate object
         let schema = Joi.object().keys({
-            ncommentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required()
+            ncommentid: Joi.string().regex(/^[a-zA-Z0-9-_]{25}$/).required().label("invalid ncommentid format"),
         })
         let valid = schema.validate(req.params)
         if(valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "ncommentid") return res.status(400).json({"error": "Invalid ncommentid"})
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 

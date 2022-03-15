@@ -13,7 +13,7 @@ router.get("/feed/:username", check_token(), async (req, res) => {
     try {
         //validate json schema
         const schema = Joi.object().keys({
-            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required(),
+            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required().label("username must be between 1 and 30 characters and only contain letters, numbers, and underscores"),
         })
         
         //we can leave the user where they last left off
@@ -25,8 +25,7 @@ router.get("/feed/:username", check_token(), async (req, res) => {
 
         let valid = schema.validate(req.params)
         if(valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "username") return res.status(400).json({"error": "username must be between 1 and 30 characters and only contain letters, numbers, and underscores"})
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 

@@ -23,14 +23,12 @@ router.post("/login", async (req, res) => {
 
         //validate object
         const schema = Joi.object().keys({
-            username: Joi.string().regex(/^[a-zA-Z0-9@._-]{1,200}$/).required(),
-            password: Joi.string().regex(/^[a-zA-Z0-9!@#$%^&*_-]{10,100}$/).required(),
+            username: Joi.string().regex(/^[a-zA-Z0-9@._-]{1,200}$/).required().label("invalid characters in username"),
+            password: Joi.string().regex(/^[a-zA-Z0-9!@#$%^&*_-]{10,100}$/).required().label("invalid characters in password"),
         })
         let valid = schema.validate(req.body)
         if(valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "username") return res.status(400).json({"error": "invalid characters in username"})
-            if(label === "password") return res.status(400).json({"error": "invalid characters in password"})
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -73,18 +71,14 @@ router.post("/register", async (req, res) => {
 
         //validate object
         const schema = Joi.object().keys({
-            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required(),
-            password: Joi.string().regex(/^[a-zA-Z0-9!@#$%^&*_-]{10,100}$/).required(),
-            email: Joi.string().email().min(5).max(200).required(),
-            phone: Joi.string().regex(/^[0-9]{10}$/).required(),
+            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required().label("username must be between 1 and 30 characters and only contain letters, numbers, and underscores"),
+            password: Joi.string().regex(/^[a-zA-Z0-9!@#$%^&*_-]{10,100}$/).required().label("password must be between 10 and 100 characters and only contain letters, numbers, and the following symbols: !@#$%^&*_"),
+            email: Joi.string().email().min(5).max(200).required().label("email must be between 5 and 200 characters and must be a valid email address"),
+            phone: Joi.string().regex(/^[0-9]{10}$/).required().label("phone must be 10 digits and only contain numbers"),
         })
         let valid = schema.validate(req.body)
         if(valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "username") return res.status(400).json({"error": "username must be between 1 and 30 characters and only contain letters, numbers, and underscores"})
-            if(label === "password") return res.status(400).json({"error": "password must be between 10 and 100 characters and can only contain 'a-z A-Z 0-9 ! @ # $ % ^ & * _ -' only"})
-            if(label === "email") return res.status(400).json({"error": "email must be between 5 and 100 characters and must be a valid email"})
-            if(label === "phone") return res.status(400).json({"error": "phone must be a valid phone number"})
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 
@@ -108,7 +102,7 @@ router.post("/register", async (req, res) => {
             secret: Buffer.from(process.env.ARGON2_SECRET, 'base64')})
 
         //create userid
-        let userid = nanoid(25)
+        let userid = nanoid(parseInt(process.env.NANOID_LEN))
 
         //create user
         await client.pipeline()
@@ -146,12 +140,11 @@ router.get("/user/:username", async (req, res) => {
 
         //validate json schema
         const schema = Joi.object().keys({
-            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required(),
+            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required().label("username must be between 1 and 30 characters and only contain letters, numbers, and underscores"),
         })
         let valid = schema.validate(req.params)
         if(valid.error) {
-            let label = valid.error.details[0].context.label
-            if(label === "username") return res.status(400).json({"error": "username must be between 1 and 30 characters and only contain letters, numbers, and underscores"})
+            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
             return res.status(400).json({"error": "invalid user input"})
         }
 

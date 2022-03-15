@@ -23,8 +23,8 @@ router.post("/login", async (req, res) => {
 
         //validate object
         const schema = Joi.object().keys({
-            username: Joi.string().regex(/^[a-zA-Z0-9@._-]{1,200}$/).required().label("invalid characters in username"),
-            password: Joi.string().regex(/^[a-zA-Z0-9!@#$%^&*_-]{10,100}$/).required().label("invalid characters in password"),
+            username: Joi.string().regex(/^[a-zA-Z0-9@._-]{1,200}$/).required().label("username must be a string and can only contain letters, numbers, @, ., _, -, and must be between 1 and 200 characters"),
+            password: Joi.string().regex(/^[a-zA-Z0-9!@#$%^&*_-]{10,100}$/).required().label("password must be a string and can only contain letters, numbers, !, @, #, $, %, ^, &, *, _, -, and must be between 10 and 100 characters"),
         })
         let valid = schema.validate(req.body)
         if(valid.error) {

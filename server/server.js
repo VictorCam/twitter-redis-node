@@ -38,7 +38,7 @@ const follow = require("./routes/follow")
 const feed = require("./routes/feed")
 
 //linked routes
-app.use("/", [login, posts, comment, follow, feed])
+app.use("/v1/", [login, posts, comment, follow, feed])
 
 
 //port

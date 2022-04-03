@@ -22,7 +22,7 @@ D. make .env file with the following (change values in production):
     ARGON2_TIME_COST = 40
     ARGON2_MEM_COST = 5120
     ARGON2_NUM_THREADS = 1
-    NANOID_GEN_ID = 25
+    NANOID_LEN = 4
     CLIENT_API = http://localhost:3000
     EXPIRE_ACCOUNT = 86400
     PRODUCTION = 0

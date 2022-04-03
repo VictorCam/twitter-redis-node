@@ -30,7 +30,7 @@ module.exports = function() {
         }
         catch(e) {
             console.log("error in pagination", e)
-            return res.status(500).send("error occured")
+            return res.status(500).send("error with pagination")
         }
     }
 }

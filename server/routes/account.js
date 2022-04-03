@@ -1,13 +1,18 @@
 const jwt = require("jsonwebtoken")
 const express = require("express")
 const cors = require("cors")
-const { hash, verify, Algorithm } = require('@node-rs/argon2');
-const {client, rclient} = require("../server_connection")
+const { hash, verify, Algorithm } = require('@node-rs/argon2')
+const dayjs = require('dayjs')
 const {nanoid} = require('nanoid')
-const check_token = require("../middleware/check_token")
+const base62 = require("base62/lib/ascii")
 const router = express.Router()
-const Joi = require("joi")
 require("dotenv").config()
+const Joi = require('joi')
+
+const { client, rclient } = require("../server_connection")
+const check_token = require("../middleware/check_token")
+const tc = require("../middleware/try_catch")
+const { username, email, password } = require("../middleware/validation")
 
 //FIND STICKERS BY INDEXING THE ONES THEY ALREADY HAVE
 //MISSING A LOGGING OUT REQUEST
@@ -16,179 +21,160 @@ require("dotenv").config()
 //dont forget that username can contain a number
 //also remember to check if the username is already taken by matching it with the userid
 
-router.post("/login", async (req, res) => {
-    try {
-        //set headers
-        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+//consider the fact that the phone number is going to be used for the login
 
-        //validate object
-        const schema = Joi.object().keys({
-            username: Joi.string().regex(/^[a-zA-Z0-9@._-]{1,200}$/).required().label("username must be a string and can only contain letters, numbers, @, ., _, -, and must be between 1 and 200 characters"),
-            password: Joi.string().regex(/^[a-zA-Z0-9!@#$%^&*_-]{10,100}$/).required().label("password must be a string and can only contain letters, numbers, !, @, #, $, %, ^, &, *, _, -, and must be between 10 and 100 characters"),
-        })
-        let valid = schema.validate(req.body)
-        if(valid.error) {
-            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
-            return res.status(400).json({"error": "invalid user input"})
-        }
+router.post("/login", tc(async (req, res) => {
+    //set headers
+    res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-        //get userid from either the username/email/phone
-        let results = await client.pipeline()
-        .get(`username:${req.body.username}`)
-        .get(`email:${req.body.username}`)
-        .get(`phone:${req.body.username}`)
-        .exec()
-
-        //check if any of the results are not null and set the userid if
-        let userid = results[0][1] || results[1][1] || results[2][1]
-
-        //check if username or password exists and that the password is correct
-        if(!userid) return res.status(401).json({"error": "username, email, or phone is not found"})
-        if(!await verify(await client.hget(`userid:${userid}`, "password"), req.body.password, {secret: Buffer.from(process.env.ARGON2_SECRET, 'base64')})) return res.status(401).json({"error": "invalid password"})
-
-        //set jwt + set auth cookie
-        let token = jwt.sign({userid: userid}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
-        res.cookie('authorization', `bearer ${token}`, { httpOnly: true, sameSite: 'Strict'})
-
-        return res.status(200).json({"status": "ok", "token": token})
+    //validate object
+    const schema = Joi.object().keys({
+        username: username,
+        email: email,
+        password: password.required(),
+    }).xor("username", "email").label("only use the username or email for logging in")
+    let valid = schema.validate(req.body)
+    if(valid.error) {
+        if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        return res.status(400).json({"error": "invalid user input"})
     }
-    catch(e) {
-        console.log("error in /login route ==", e)
-        return res.sendStatus(500)
+
+    //get the userid from the username or email and the time to live (if user is not verified)
+    let pipeline = client.pipeline()
+    if(req.body.username) {
+        pipeline.get(`username:${req.body.username}`)
+        pipeline.ttl(`username:${req.body.username}`)
     }
-})
-
-//note that there can be two similar but diff type of usernames
-//for example, ALBERT is different than albert or alBeRt
-//DONT FORGET AREA CODE LATER ON
-//DONT FORGET SOME USERS WILL ENTER - on the phone number
-//lowercase the username
-
-router.post("/register", async (req, res) => {
-    try {
-        //set headers
-        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
-
-        //validate object
-        const schema = Joi.object().keys({
-            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required().label("username must be between 1 and 30 characters and only contain letters, numbers, and underscores"),
-            password: Joi.string().regex(/^[a-zA-Z0-9!@#$%^&*_-]{10,100}$/).required().label("password must be between 10 and 100 characters and only contain letters, numbers, and the following symbols: !@#$%^&*_"),
-            email: Joi.string().email().min(5).max(200).required().label("email must be between 5 and 200 characters and must be a valid email address"),
-            phone: Joi.string().regex(/^[0-9]{10}$/).required().label("phone must be 10 digits and only contain numbers"),
-        })
-        let valid = schema.validate(req.body)
-        if(valid.error) {
-            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
-            return res.status(400).json({"error": "invalid user input"})
-        }
-
-        //check if username email or phone exists
-        let results = await client.pipeline()
-        .get(`username:${req.body.username}`)
-        .get(`email:${req.body.email}`)
-        .get(`phone:${req.body.phone}`)
-        .exec()
-
-        //check if any of the results exists if so return error
-        if(results[0][1]) return res.status(400).json({"error": "username already exists"})
-        if(results[1][1]) return res.status(400).json({"error": "email already exists"})
-        if(results[2][1]) return res.status(400).json({"error": "phone number already exists"})
-
-        //hash password first to prevent duplicate user
-        let hashpass = await hash(req.body.password, {
-            algorithm: Algorithm.Argon2id, timeCost: parseInt(process.env.ARGON2_TIME_COST),
-            memoryCost: parseInt(process.env.ARGON2_MEM_COST),
-            parallelism: parseInt(process.env.ARGON2_NUM_THREADS),
-            secret: Buffer.from(process.env.ARGON2_SECRET, 'base64')})
-
-        //create userid
-        let userid = nanoid(parseInt(process.env.NANOID_LEN))
-
-        //create user
-        await client.pipeline()
-        .set(`username:${req.body.username}`, userid)
-        .set(`email:${req.body.email}`, userid)
-        .set(`phone:${req.body.phone}`, userid)
-        .hset(`userid:${userid}`,
-        [
-            "username", req.body.username,
-            "email", req.body.email,
-            "userid", userid,
-            "password", hashpass,
-            "icon", "Flowchart.png",
-            "icon_frame", 0,
-            "admin_level", 0,
-            "is_deleted", 0,
-            "is_verified", 0,
-            "join_date", Math.floor(Date.now() / 1000),
-            "desc", ""
-        ])
-        .exec()
-
-        return res.status(200).json({"status": "ok", "message": "succesfully created account"})
+    if(req.body.email) {
+        pipeline.get(`email:${req.body.email}`)
+        pipeline.ttl(`email:${req.body.email}`)
     }
-    catch(e) {
-        console.log("error in /signup route ==", e)
-        return res.sendStatus(500)
+    let [userid, ttl] = await pipeline.exec()
+
+    //check if the userid exists from either the username or email
+    if(!userid[1]) return res.status(401).json({"error": "username/email not found"})
+    if(ttl[1] !== -1) return res.status(401).json({"error": "please verify your account on your email before logging in"})
+
+    //check if password is correct
+    if(!await verify(await client.hget(`userid:${userid[1]}`, "password"), req.body.password, {secret: Buffer.from(process.env.ARGON2_SECRET, 'base64')})) return res.status(401).json({"error": "invalid password"})
+
+    //set jwt + set auth cookie
+    let token = jwt.sign({userid: userid[1]}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
+    res.cookie('authorization', token, { httpOnly: true, sameSite: 'Strict'})
+
+    return res.status(200).json({"token": token})
+}))
+
+router.post("/register", tc(async (req, res) => {
+    //set headers
+    res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+
+    //validate object
+    const schema = Joi.object().keys({
+        username: username.required(),
+        email: email.required(),
+        password: password.required(),
+    })
+    let valid = schema.validate(req.body)
+    if(valid.error) {
+        if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        return res.status(400).json({"error": "invalid user input"})
     }
-})
 
-router.get("/user/:username", async (req, res) => {
-    try {
-        //set headers
-        res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+    //hash password first to prevent duplicate user
+    let hashpass = await hash(req.body.password, {
+        algorithm: Algorithm.Argon2id, timeCost: parseInt(process.env.ARGON2_TIME_COST),
+        memoryCost: parseInt(process.env.ARGON2_MEM_COST),
+        parallelism: parseInt(process.env.ARGON2_NUM_THREADS),
+        secret: Buffer.from(process.env.ARGON2_SECRET, 'base64')
+    })
 
-        //validate json schema
-        const schema = Joi.object().keys({
-            username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required().label("username must be between 1 and 30 characters and only contain letters, numbers, and underscores"),
-        })
-        let valid = schema.validate(req.params)
-        if(valid.error) {
-            if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
-            return res.status(400).json({"error": "invalid user input"})
-        }
+    //create userid
+    let unix_ms = dayjs().valueOf()
+    let userid = base62.encode(unix_ms) + nanoid(parseInt(process.env.NANOID_LEN))
 
-        //get userid from username and check if username exists
-        let userid = await client.get(`username:${req.params.username}`)
-        if(!userid) return res.status(400).json({"error": "username is not found"})
+    //check if username or email exists
+    let results = await client.pipeline()
+    .get(`username:${valid.value.username}`)
+    .get(`email:${valid.value.email}`)
+    .exec()
 
-        //get neccesary user info
-        let user = await client.hmget(`userid:${userid}`, "username", "email", "userid", "icon", "icon_frame", "admin_level", "is_deleted", "is_verified", "join_date", "desc")
+    //check if username or email is taken if so return error
+    if(results[0][1]) return res.status(400).json({"error": "username already exists"})
+    if(results[1][1]) return res.status(400).json({"error": "email already exists"})
 
-        //convert user array into object
-        user = {
-            username: user[0],
-            email: user[1],
-            userid: user[2],
-            icon: user[3],
-            icon_frame: user[4],
-            admin_level: user[5],
-            is_deleted: user[6],
-            is_verified: user[7],
-            join_date: user[8],
-            desc: user[9]
-        }
-
-        return res.status(200).json(user)
+    //if production is 1 then send an email to the user with a verification link
+    if(process.env.PRODUCTION === "1") {
+        //buy a custom email domain with unlimited email sending and we will send the email to the user using node-mailer OR api
     }
-    catch(e) {
-        console.log("error in /user/:username route ==", e)
-        return res.sendStatus(500)
-    }
-})
 
-router.post("/logout", (req, res) => {
-    try {
-        //set headers and removing cookies
-        res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API})
-        res.clearCookie('authorization')
-        return res.sendStatus(200)
+    //create user (the original username value will be displayed in the frontend)
+    let pipeline = client.pipeline()
+    pipeline.set(`username:${valid.value.username}`, userid) //use the lowercased username
+    pipeline.set(`email:${valid.value.email}`, userid) //use the lowercased email
+    pipeline.hset(`userid:${userid}`,
+    [
+        "username", req.body.username,
+        "email", valid.value.email,
+        "userid", userid,
+        "password", hashpass,
+        "icon", "icon.png",
+        "icon_frame", 0,
+        "admin_level", 0,
+        "is_user_banned", 0,
+        "is_user_locked", 0,
+        "is_user_verified", 0,
+        "join_date", Math.floor(Date.now() / 1000),
+        "desc", ""
+    ])
+
+    //if production is 1 then expire following keys after 24 hours
+    if(process.env.PRODUCTION === "1") {
+        pipeline.expire(`userid:${userid}`, process.env.EXPIRE_ACCOUNT)
+        pipeline.expire(`username:${valid.value.username}`, process.env.EXPIRE_ACCOUNT)
+        pipeline.expire(`email:${valid.value.email}`, process.env.EXPIRE_ACCOUNT)
     }
-    catch(e) {
-        console.log("error in /logout route ==", e)
-        return res.sendStatus(500)
+
+    //execute the following pipelined commands
+    pipeline.exec()
+
+    return res.sendStatus(200)
+}))
+
+router.get("/user/:username", tc(async (req, res) => {
+    //set headers
+    res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+
+    //validate json schema
+    const schema = Joi.object().keys({
+        username: username.required()
+    })
+    let valid = schema.validate(req.params)
+    if(valid.error) {
+        if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        return res.status(400).json({"error": "invalid user input"})
     }
-})
+
+    //get userid from username and check if username exists
+    let userid = await client.get(`username:${req.params.username}`)
+    if(!userid) return res.status(400).json({"error": "username is not found"})
+
+    //get neccesary user info
+    let user = await client.hgetall(`userid:${userid}`)
+
+    //delete sensitive information
+    delete user.password
+    delete user.email
+
+    return res.status(200).json(user)
+}))
+
+router.post("/logout", tc((req, res) => {
+    //set headers and removing cookies
+    res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API})
+    res.clearCookie('authorization')
+    return res.sendStatus(200)
+}))
 
 router.use(cors())
 module.exports = router

@@ -1,4 +1,5 @@
-postid -> ss:comment 
-postid -> ss:comment_likes
+//WE COULD REFORMAT THE API TO ONLY USE THE SORTED SET AND NOTHING ELSE TO REDUCE COMPELITY FOR A COMMENT (MAYBE)
 
-commentid -> comment (each commentid must be unique)
+//FIX THE ISSUE WITH THE NULL OR FIND ANOTHER WAY TO REDUCE THE NETWORK CALL
+
+//find out why comment.js in the last api for 2 has duplicates..

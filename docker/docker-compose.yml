@@ -1,37 +1,19 @@
 version: '2'
 services:
-    # master:
-    #     image: chrislusf/seaweedfs:dev # use a remote dev image
-    #     ports:
-    #         - 9333:9333
-    #         - 19333:19333
-    #     command: "master -ip=master"
-    # volume:
-    #     image: chrislusf/seaweedfs:dev # use a remote dev image
-    #     ports:
-    #         - 8080:8080
-    #         - 18080:18080
-    #     command: 'volume -mserver="master:9333" -port=8080 -ip=volume'
-    #     depends_on:
-    #     - master
-    # filer:
-    #     image: chrislusf/seaweedfs:dev # use a remote dev image
-    #     ports:
-    #         - 8888:8888
-    #         - 18888:18888
-    #     command: 'filer -master="master:9333"'
-    #     depends_on:
-    #         - master
-    #         - volume
-    # s3:
-    #     image: chrislusf/seaweedfs:dev # use a remote dev image
-    #     ports:
-    #         - 8333:8333
-    #     command: 's3 -filer="filer:8888"'
-    #     depends_on:
-    #         - master
-    #         - volume
-    #         - filer
+    master:
+        image: chrislusf/seaweedfs:dev # use a remote dev image
+        ports:
+            - 9333:9333
+            - 19333:19333
+        command: "master -ip=master"
+    volume:
+        image: chrislusf/seaweedfs:dev # use a remote dev image
+        ports:
+            - 8080:8080
+            - 18080:18080
+        command: 'volume -mserver="master:9333" -port=8080 -ip=volume'
+        depends_on:
+        - master
     # webdav:
     #     image: chrislusf/seaweedfs:dev # use a remote dev image
     #     ports:
@@ -47,20 +29,5 @@ services:
         image: kvrocks/kvrocks:latest
         # volumes:
         #     - ./kvrocks.conf:/kvrocks/conf/kvrocks.conf
-    redis:
-        # command: redis-server /data/redis-server/redis.conf
-        # volumes:
-            # - ./redis.conf:/data/redis-server/redis.conf
-        ports:
-            - '6379:6379'
-        image: redislabs/redismod:latest
-        depends_on:
-            - kvrocks
-        links:
-            - kvrocks
 
-        # expose:
-        #     - '6379'
-
-# consider caddy for serving static files
 # consider caddy for encryption for kvrocks???

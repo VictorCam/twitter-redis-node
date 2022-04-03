@@ -1,9 +1,8 @@
-1. learn css/css manipulation
-2. learn grid
-
-
 # regex checker
 http://redos-checker.surge.sh/
+
+# free tools
+https://free-for.dev/
 
 //interesting post
 //https://blog.carbonfive.com/using-redis-sorted-sets-to-build-a-scalable-real-time-web-waiting-list/
@@ -13,6 +12,11 @@ https://www.youtube.com/watch?v=AryZSCeKU9Y
 //ft.drop [index] && ft._list
 //https://stackoverflow.com/questions/53832663/how-to-write-a-query-to-both-include-and-exclude-tags-in-redisearch#comment94525695_53833329
 // redisgraph/redis shortcut for comment/like/retweet/follower+following/mentions
+
+
+//allow stickers as well like in telegram!
+
+# clean regexes
 
 # do testing with the permissions
 # add check cases on postman for api responses
@@ -36,14 +40,12 @@ https://stackoverflow.com/questions/32854616/redis-sorted-set-find-item-by-prope
 
 #SCALING NODEJS
 
-
-#BACKEND & IMG_SERVER
-# ---
-# ---
-
 //remember to do a partial index for users who like posts
 //also a index as well for users who want to share folders of some sort
 
 //recommended to use unlink (when deleting large keys)
 //[cannot implement]: get the list of ncomments and delete it (not viable/worth it)
 //we could deleting them during certain time of the day where data is disconnected 
+
+//could make concurrent
+//https://dev.to/apurbostarry/how-to-make-concurrent-api-calls-in-nodejs-35b8

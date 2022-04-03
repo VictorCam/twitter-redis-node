@@ -129,3 +129,29 @@ synonyms for the word "posts that are left to read"
 https://javascript.info/websocket#chat-example
 
 pipeline commands when they pertaining to ONE user (belong to one shard)
+
+
+
+//learning here how I will make private content for content creators
+========
+api to get to db to check if you can sees (redis)
+if not do not give the link of the item
+if true give the link of the item
+
+db master (no membership)
+==
+api to get to db to check if you can sees
+do not give the link and do not preform api call on frontend
+
+db master (tmp membership but expired but stored url)
+==
+api to get to db to check if you can sees
+do not give the link and do not preform api call on frontend
+(has the url and gets info manually)
+
+db master (membership)
+==
+api to get to db to check if you can sees
+do not give the link and do not preform api call on frontend
+(has the url)
+==========

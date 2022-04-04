@@ -29,9 +29,9 @@ router.post("/login", tc(async (req, res) => {
 
     //validate object
     const schema = Joi.object().keys({
-        username: username,
-        email: email,
-        password: password.required(),
+        "username": username,
+        "email": email,
+        "password": password.required(),
     }).xor("username", "email").label("only use the username or email for logging in")
     let valid = schema.validate(req.body)
     if(valid.error) {
@@ -71,9 +71,9 @@ router.post("/register", tc(async (req, res) => {
 
     //validate object
     const schema = Joi.object().keys({
-        username: username.required(),
-        email: email.required(),
-        password: password.required(),
+        "username": username.required(),
+        "email": email.required(),
+        "password": password.required(),
     })
     let valid = schema.validate(req.body)
     if(valid.error) {
@@ -147,7 +147,7 @@ router.get("/user/:username", tc(async (req, res) => {
 
     //validate json schema
     const schema = Joi.object().keys({
-        username: username.required()
+        "username": username.required()
     })
     let valid = schema.validate(req.params)
     if(valid.error) {

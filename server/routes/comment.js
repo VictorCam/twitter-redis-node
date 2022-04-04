@@ -24,7 +24,10 @@ router.post("/comment", check_token(), tc(async (req, res) => {
     res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({ postid: postid, comment: comment})
+    let schema = Joi.object().keys({ 
+        "postid": postid.required(), 
+        "comment": comment.required()
+    })
     let valid = schema.validate(req.body)
     if(valid.error) {
         if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
@@ -59,7 +62,10 @@ router.post("/ncomment", check_token(), tc(async (req, res) => {
     res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({commentid: commentid, comment: comment})
+    let schema = Joi.object().keys({
+        "commentid": commentid.required(),
+        "comment": comment.required()
+    })
     let valid = schema.validate(req.body)
     if(valid.error) {
         if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
@@ -90,7 +96,13 @@ router.post("/ncomment", check_token(), tc(async (req, res) => {
     //create ncomment and ncomment lookup using ss:ncomment (timestamp)
     await client.pipeline()
     .zadd(`ss:ncomment:${req.body.commentid}`, unix_ms, gen_ncommentid)
-    .hset(`ncomment:${gen_ncommentid}`, ["userid", req.userid, "ncomment", req.body.comment, "ss:ncommentid", req.body.commentid, "commentid", req.body.commentid, "likes", 0, "is_updated", 0])
+    .hset(`ncomment:${gen_ncommentid}`, 
+    ["userid", req.userid,
+    "ncomment", req.body.comment,
+    "ss:ncommentid", req.body.commentid,
+    "commentid", req.body.commentid,
+    "likes", 0,
+    "is_updated", 0])
     .exec()
     
     return res.status(200).json({"comment": req.body.comment, "ncommentid": gen_ncommentid})
@@ -101,7 +113,10 @@ router.get("/comment", pagination(), tc(async (req, res) => {
     res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({postid: postid, type: type})
+    let schema = Joi.object().keys({
+        "postid": postid.required(), 
+        "type": type.required()
+    })
     let valid = schema.validate(req.query)
     if(valid.error) {
         if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
@@ -131,7 +146,6 @@ router.get("/comment", pagination(), tc(async (req, res) => {
     }
     let comments = await pipe2.exec()
 
-    // format and remove certain keys
     for(let i = 0; i < comments.length; i++) {
         comments[i] = comments[i][1]
         delete comments[i]["ss:commentid"]
@@ -146,7 +160,9 @@ router.get("/ncomment", pagination(), tc(async (req, res) => {
     res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({commentid: commentid})
+    let schema = Joi.object().keys({
+        "commentid": commentid.required()
+    })
     let valid = schema.validate(req.query)
     if(valid.error) {
         if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
@@ -185,7 +201,9 @@ router.get("/comment/:commentid", tc(async (req, res) => {
     res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({commentid: commentid})
+    let schema = Joi.object().keys({
+        "commentid": commentid.required()
+    })
     let valid = schema.validate(req.params)
     if(valid.error) {
         if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
@@ -204,7 +222,9 @@ router.get("/ncomment/:ncommentid", tc(async (req, res) => {
     res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({ncommentid: ncommentid})
+    let schema = Joi.object().keys({
+        "ncommentid": ncommentid.required()
+    })
     let valid = schema.validate(req.params)
     if(valid.error) {
         if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
@@ -224,7 +244,10 @@ router.put("/comment", check_token(), tc(async (req, res) => {
     res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
     
     //validate object
-    let schema = Joi.object().keys({commentid: commentid, comment: comment})
+    let schema = Joi.object().keys({
+        "commentid": commentid.required(), 
+        "comment": comment.required()
+    })
     let valid = schema.validate(req.body)
     if(valid.error) {
         if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
@@ -249,7 +272,10 @@ router.put("/ncomment", check_token(), tc(async (req, res) => {
     res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({ncommentid: ncommentid, comment: comment})
+    let schema = Joi.object().keys({
+        "ncommentid": ncommentid.required(),
+        "comment": comment.required()
+    })
     let valid = schema.validate(req.body)
     if(valid.error) {
         if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
@@ -274,7 +300,9 @@ router.delete("/comment/:commentid", check_token(), tc(async (req, res) => {
     res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({commentid: commentid})
+    let schema = Joi.object().keys({
+        "commentid": commentid.required()
+    })
     let valid = schema.validate(req.params)
     if(valid.error) {
         if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
@@ -303,7 +331,9 @@ router.delete("/ncomment/:ncommentid", check_token(), tc(async (req, res) => {
     res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({ncommentid: ncommentid})
+    let schema = Joi.object().keys({
+        "ncommentid": ncommentid.required()
+    })
     let valid = schema.validate(req.params)
     if(valid.error) {
         if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})

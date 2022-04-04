@@ -8,6 +8,7 @@ const {client, rclient} = require("../server_connection")
 const check_token = require("../middleware/check_token")
 const pagination = require("../middleware/pagination")
 const tc = require("../middleware/try_catch")
+const {username} = require("../middleware/validation")
 
 //username feed
 //add a paramater to go "POS" or "NEG" (amount of posts)
@@ -17,7 +18,7 @@ router.get("/feed/:username", check_token(), tc(async (req, res) => {
 
     //validate object
     const schema = Joi.object().keys({
-        username: Joi.string().regex(/^[a-zA-Z0-9_-]{1,30}$/).required().label("username must be between 1 and 30 characters and only contain letters, numbers, and underscores"),
+        username: username.required(),
     })
     let valid = schema.validate(req.params)
     if(valid.error) {
@@ -40,7 +41,6 @@ router.get("/feed/:username", check_token(), tc(async (req, res) => {
 
     //update the score of the following
     await client.zadd(`following:${req.userid}`, parseInt(ss_post[ss_post.length-1])+1, userid)
-    let userdata = await client.hmget(`userid:${userid}`, "username", "icon", "icon_frame")
 
     //get the posts
     let pipe = client.pipeline()
@@ -52,11 +52,7 @@ router.get("/feed/:username", check_token(), tc(async (req, res) => {
     //format the posts and return
     let posts = []
     for(let i = 0; i < results.length; i++) {
-        // console.log(results[i][1])
         let result = results[i][1]
-        result.username = userdata[0]
-        result.icon = userdata[1]
-        result.icon_frame = userdata[2]
         posts.push(result)
     }
 

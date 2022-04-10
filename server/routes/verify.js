@@ -5,5 +5,3 @@
 */
 
 //verify route email
-
-//verify route phone

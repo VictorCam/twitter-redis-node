@@ -3,3 +3,7 @@
 //FIX THE ISSUE WITH THE NULL OR FIND ANOTHER WAY TO REDUCE THE NETWORK CALL
 
 //find out why comment.js in the last api for 2 has duplicates..
+
+consider the case when you are following someone and they HAD posts but now they are all deleted
+
+consider using the npm package dayjs on frontend only

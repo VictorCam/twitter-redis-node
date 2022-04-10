@@ -2,7 +2,6 @@ const express = require("express")
 const router = express.Router()
 const cors = require("cors")
 const Joi = require("joi")
-const dayjs = require('dayjs')
 const {nanoid} = require('nanoid')
 const base62 = require("base62/lib/ascii")
 
@@ -10,7 +9,7 @@ const check_token = require("../middleware/check_token")
 const pagination = require("../middleware/pagination")
 const tc = require("../middleware/try_catch")
 const {client, sclient, rclient} = require("../server_connection")
-const {postid, commentid, ncommentid, comment, type} = require("../middleware/validation")
+const {v_postid, v_commentid, v_ncommentid, v_comment, v_type} = require("../middleware/validation")
 
 /*
     * TODO:
@@ -25,26 +24,26 @@ router.post("/comment", check_token(), tc(async (req, res) => {
 
     //validate object
     let schema = Joi.object().keys({ 
-        "postid": postid.required(), 
-        "comment": comment.required()
+        "postid": v_postid.required(), 
+        "comment": v_comment.required()
     })
     let valid = schema.validate(req.body)
     if(valid.error) {
-        if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
         return res.status(400).json({"error": "invalid user input"})
     }
 
     //check posts exists and get permissions
-    let cperm = await client.hmget(`post:${req.body.postid}`, ["userid", "can_comment", "can_comment_img", "can_comment_sticker"])
-    if(!cperm[0]) return res.status(400).json({"error": "post does not exist"})
+    let permissions = await client.hmget(`post:${req.body.postid}`, ["userid", "can_comment", "can_comment_img", "can_comment_sticker"])
+    if(permissions[0] == null) return res.status(400).json({"error": "post not found"})
 
     //check post permissions
-    if(!cperm[1]) return res.status(400).json({"error": "post does not allow comments"})
-    if(!cperm[2]) return res.status(400).json({"error": "post does not allow images in the comments"})
-    if(!cperm[3]) return res.status(400).json({"error": "post does not allow stickers in the comments"})
+    if(permissions[1] == 0) return res.status(400).json({"error": "post does not allow comments"})
+    if(permissions[2] == 0) return res.status(400).json({"error": "post does not allow images in the comments"})
+    if(permissions[3] == 0) return res.status(400).json({"error": "post does not allow stickers in the comments"})
 
     //create commentid
-    let unix_ms = dayjs().valueOf()
+    let unix_ms = Date.now()
     let gen_commentid = base62.encode(unix_ms) + nanoid(parseInt(process.env.NANOID_LEN))
 
     //create comment and comment lookup using ss:comment (timestamp) or ss:comment_likes (likes)
@@ -63,34 +62,36 @@ router.post("/ncomment", check_token(), tc(async (req, res) => {
 
     //validate object
     let schema = Joi.object().keys({
-        "commentid": commentid.required(),
-        "comment": comment.required()
+        "commentid": v_commentid.required(),
+        "comment": v_comment.required()
     })
     let valid = schema.validate(req.body)
     if(valid.error) {
-        if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
         return res.status(400).json({"error": "invalid user input"})
     }
 
     //get the comment comment and ss:comment length
-    let cidlist = await client.pipeline()
-    .hmget(`comment:${req.body.commentid}`, `postid`)
-    .zcard(`ss:ncomment:${req.body.commentid}`)
-    .exec()
-    if(!cidlist[0][1]) return res.status(400).json({"error": "comment does not exist"})
+    let pipe = client.pipeline()
+    pipe.hmget(`comment:${req.body.commentid}`, `postid`)
+    pipe.zcard(`ss:ncomment:${req.body.commentid}`)
+    let [[,postid], [,ncomment_len]] = await pipe.exec()
+
+    //check if comment exists
+    if(postid[0] == null) return res.status(400).json({"error": "comment not found"})
 
     //check if the post exists
-    let post = await client.hmget(`post:${cidlist[0][1]}`, ["userid", "can_comment", "can_comment_img", "can_comment_sticker"])
-    if(!post[0]) return res.status(400).json({"error": "post does not exist"})
+    let post = await client.hmget(`post:${postid[0]}`, ["userid", "can_comment", "can_comment_img", "can_comment_sticker"])
+    if(post[0] == null) return res.status(400).json({"error": "post does not exist"})
 
     //check post settings and if comments have reached the limit of 500
-    if(!post[1]) return res.status(400).json({"error": "post does not allow comments"})
-    if(!post[2]) return res.status(400).json({"error": "post does not allow images in the comments"})
-    if(!post[3]) return res.status(400).json({"error": "post does not allow stickers in the comments"})
-    if(cidlist[1] >= 500) return res.status(400).json({"error": "comment has reached max reply limit"})
+    if(post[1] == 0) return res.status(400).json({"error": "post does not allow comments"})
+    if(post[2] == 0) return res.status(400).json({"error": "post does not allow images in the comments"})
+    if(post[3] == 0) return res.status(400).json({"error": "post does not allow stickers in the comments"})
+    if(ncomment_len >= 500) return res.status(400).json({"error": "comment limit reached"})
 
     //create ncommentid
-    let unix_ms = dayjs().valueOf()
+    let unix_ms = Date.now()
     let gen_ncommentid = base62.encode(unix_ms) + nanoid(parseInt(process.env.NANOID_LEN))
     
     //create ncomment and ncomment lookup using ss:ncomment (timestamp)
@@ -114,18 +115,18 @@ router.get("/comment", pagination(), tc(async (req, res) => {
 
     //validate object
     let schema = Joi.object().keys({
-        "postid": postid.required(), 
-        "type": type.required()
+        "postid": v_postid.required(), 
+        "type": v_type.required()
     })
     let valid = schema.validate(req.query)
     if(valid.error) {
-        if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
         return res.status(400).json({"error": "invalid user input"})
     }
 
     //check if we are requesting the like sorted set or the regular sorted set and if the length is 0 or not
     let pipe = client.pipeline()
-    if("like" === req.query.type) {
+    if("like" == req.query.type) {
         pipe.exists(`ss:comment_likes:${req.query.postid}`)
         pipe.zrevrange(`ss:comment_likes:${req.query.postid}`, req.start, req.end)
     }
@@ -133,16 +134,16 @@ router.get("/comment", pagination(), tc(async (req, res) => {
         pipe.exists(`ss:comment_likes:${req.query.postid}`)
         pipe.zrange(`ss:comment:${req.query.postid}`, req.start, req.end)
     }
-    let cdata = await pipe.exec()
+    let [[,exists], [,comment_ids]] = await pipe.exec()
 
     //check if the post exists AND check if the zrange is empty
-    if(!cdata[0][1]) return res.status(400).json({"error": "post does not exist"})
-    if(cdata[1].length === 0) return res.status(200).json([])
+    if(exists == 0) return res.status(400).json({"error": "post does not exist"})
+    if(comment_ids.length == 0) return res.status(200).json([])
 
-    //pipeline all comments then execute
+    //pipeline all comments then execute (no destructuring)
     let pipe2 = client.pipeline()
-    for (let i = 0; i < cdata[1][1].length; i++) {
-        pipe2.hgetall(`comment:${cdata[1][1][i]}`)
+    for (let i = 0; i < comment_ids.length; i++) {
+        pipe2.hgetall(`comment:${comment_ids[i]}`)
     }
     let comments = await pipe2.exec()
 
@@ -161,30 +162,30 @@ router.get("/ncomment", pagination(), tc(async (req, res) => {
 
     //validate object
     let schema = Joi.object().keys({
-        "commentid": commentid.required()
+        "commentid": v_commentid.required()
     })
     let valid = schema.validate(req.query)
     if(valid.error) {
-        if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
         return res.status(400).json({"error": "invalid user input"})
     }
 
     //check if the comment exists and get a range of ncomments ids
-    let range = await client.pipeline()
-    .exists(`ss:ncomment:${req.query.commentid}`)
-    .zrevrange(`ss:ncomment:${req.query.commentid}`, req.start, req.end)
-    .exec()
+    let pipe = await client.pipeline()
+    pipe.exists(`ss:ncomment:${req.query.commentid}`)
+    pipe.zrevrange(`ss:ncomment:${req.query.commentid}`, req.start, req.end)
+    let [[,exists], [,ncomment_ids]] = await pipe.exec()
 
     //check if the post exists AND check if the zrange is empty
-    if(!range[0][1]) return res.status(400).json({"error": "post does not exist"})
-    if(range[1][1].length === 0) return res.status(200).json([])
+    if(exists == 0) return res.status(400).json({"error": "comment does not exist"})
+    if(ncomment_ids.length == 0) return res.status(200).json({"ncomments": []})
 
-    //pipeline all comments then execute
-    let pipe = client.pipeline()
-    for (let i = 0; i < range[1][1].length; i++) {
-        pipe.hgetall(`ncomment:${range[1][1][i]}`)
+    //pipeline all comments then execute (no destructuring)
+    let pipe2 = client.pipeline()
+    for (let i = 0; i < ncomment_ids.length; i++) {
+        pipe2.hgetall(`ncomment:${ncomment_ids[i]}`)
     }
-    let ncomments = await pipe.exec()
+    let ncomments = await pipe2.exec()
 
     //format and remove certain keys
     for(let i = 0; i < ncomments.length; i++) {
@@ -192,7 +193,7 @@ router.get("/ncomment", pagination(), tc(async (req, res) => {
         delete ncomments[i]["ss:ncommentid"]
         delete ncomments[i]["commentid"]
     }
-    
+
     return res.status(200).json(ncomments)
 }))
 
@@ -202,17 +203,19 @@ router.get("/comment/:commentid", tc(async (req, res) => {
 
     //validate object
     let schema = Joi.object().keys({
-        "commentid": commentid.required()
+        "commentid": v_commentid.required()
     })
     let valid = schema.validate(req.params)
     if(valid.error) {
-        if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
         return res.status(400).json({"error": "invalid user input"})
     }
 
-    //get and check if commentid exists
+    //get comment
     let comment = await client.hgetall(`comment:${req.params.commentid}`)
-    if(!comment.hasOwnProperty('userid')) return res.status(400).json({"error": "commentid does not exist"})
+
+    //if null return ncomment does not exist
+    if(comment == null) return res.status(400).json({"error": "comment does not exist"})
 
     return res.status(200).json(comment)
 }))
@@ -223,17 +226,19 @@ router.get("/ncomment/:ncommentid", tc(async (req, res) => {
 
     //validate object
     let schema = Joi.object().keys({
-        "ncommentid": ncommentid.required()
+        "ncommentid": v_ncommentid.required()
     })
     let valid = schema.validate(req.params)
     if(valid.error) {
-        if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
         return res.status(400).json({"error": "invalid user input"})
     }
 
-    //get and check if ncommentid exists
+    //get ncomment
     let ncomment = await client.hgetall(`ncomment:${req.params.ncommentid}`)
-    if(!ncomment.hasOwnProperty('userid')) return res.status(400).json({"error": "ncommentid does not exist"})
+
+    //if {}, return ncomment does not exist
+    if(ncomment == null) return res.status(400).json({"error": "ncomment does not exist"})
 
     //return ncommentid and userid
     return res.status(200).json(ncomment)
@@ -245,18 +250,18 @@ router.put("/comment", check_token(), tc(async (req, res) => {
     
     //validate object
     let schema = Joi.object().keys({
-        "commentid": commentid.required(), 
-        "comment": comment.required()
+        "commentid": v_commentid.required(), 
+        "comment": v_comment.required()
     })
     let valid = schema.validate(req.body)
     if(valid.error) {
-        if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
         return res.status(400).json({"error": "invalid user input"})
     }
-    
+
     //check if comment exists and get userid from the comment
     let userid = await client.hget(`comment:${req.body.commentid}`, "userid")
-    if(!userid) return res.status(400).json({"error": "commentid does not exist"})
+    if(userid == null) return res.status(400).json({"error": "comment does not exist"})
 
     //check if the userid is the same one who is modifying the comment
     if(req.userid != userid) return res.status(400).json({"error": "you do not own this comment"})
@@ -273,19 +278,19 @@ router.put("/ncomment", check_token(), tc(async (req, res) => {
 
     //validate object
     let schema = Joi.object().keys({
-        "ncommentid": ncommentid.required(),
-        "comment": comment.required()
+        "ncommentid": v_ncommentid.required(),
+        "comment": v_comment.required()
     })
     let valid = schema.validate(req.body)
     if(valid.error) {
-        if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
         return res.status(400).json({"error": "invalid user input"})
     }
 
     //check if ncomment exists and get userid from the ncomment
     let userid = await client.hget(`ncomment:${req.body.ncommentid}`, "userid")
-    if(!userid) return res.status(400).json({"error": "ncommentid does not exist"})
-    
+    if(userid == null) return res.status(400).json({"error": "ncommentid does not exist"})
+
     //check if the userid is the same one who is modifying the ncomment
     if(req.userid != userid) return res.status(400).json({"error": "you do not own this comment"})
 
@@ -301,17 +306,17 @@ router.delete("/comment/:commentid", check_token(), tc(async (req, res) => {
 
     //validate object
     let schema = Joi.object().keys({
-        "commentid": commentid.required()
+        "commentid": v_commentid.required()
     })
     let valid = schema.validate(req.params)
     if(valid.error) {
-        if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
         return res.status(400).json({"error": "invalid user input"})
     }
 
     //check if comment exists and get userid from the comment
     let comment = await client.hmget(`comment:${req.params.commentid}`, "userid", "ss:commentid")
-    if(!comment[0]) return res.status(400).json({"error": "commentid does not exist"})
+    if(comment[0] == null) return res.status(400).json({"error": "commentid does not exist"})
 
     //check if the userid is the same one who is deleting the comment
     if(req.userid != comment[0]) return res.status(400).json({"error": "you do not own this comment"})
@@ -326,23 +331,24 @@ router.delete("/comment/:commentid", check_token(), tc(async (req, res) => {
     return res.sendStatus(200)
 }))
 
+
 router.delete("/ncomment/:ncommentid", check_token(), tc(async (req, res) => {
     //set headers
     res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
-
+    
     //validate object
     let schema = Joi.object().keys({
-        "ncommentid": ncommentid.required()
+        "ncommentid": v_ncommentid.required()
     })
     let valid = schema.validate(req.params)
     if(valid.error) {
-        if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
         return res.status(400).json({"error": "invalid user input"})
     }
 
     //check if ncomment exists and get userid from the ncomment
     let ncomment = await client.hmget(`ncomment:${req.params.ncommentid}`, ["userid", "ss:ncommentid"])
-    if(!ncomment[0]) return res.status(400).json({"error": "ncommentid does not exist"})
+    if(ncomment[0] == null) return res.status(400).json({"error": "ncommentid does not exist"})
 
     //check if the userid is the same one who is deleting the comment
     if(req.userid != ncomment[0]) return res.status(400).json({"error": "you do not own this comment"})
@@ -356,21 +362,49 @@ router.delete("/ncomment/:ncommentid", check_token(), tc(async (req, res) => {
     return res.sendStatus(200)
 }))
 
-//RETURN
+//route to like a comment
+router.post("/comment/like/:commentid", check_token(), tc(async (req, res) => {
+    //set headers
+    res.setHeader("Content-Type", "application/json")
+
+    //validate object
+    const schema = Joi.object().keys({
+        commentid: v_commentid.required(),
+    })
+    const valid = schema.validate(req.params)
+    if(valid.error) {
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        return res.status(400).json({"error": "invalid user input"})
+    }
+
+    //check if comment exists and if the user has already liked it
+    let pipe = client.pipeline()
+    pipe.exists(`comment:${valid.value.commentid}`)
+    pipe.zscore(`ss:my_comment_likes:${req.userid}`, valid.value.commentid)
+    let [[,comment], [,liked]] = await pipe.exec()
+
+    //check if comment is 0 (which means it does not exist)
+    if(comment == 0) return res.status(400).json({"error": "commentid does not exist"})
+    
+    //check if liked is 0 (which mean it was already liked)
+    if(liked == 0) return res.status(400).json({"error": "you have already liked this comment"})
+
+    let unix_ms = Date.now()
+
+    let pipe2 = client.pipeline()
+    pipe2.zadd(`ss:comment_likes:${valid.value.commentid}`, unix_ms, req.userid)
+    // pipe2.hvals()
+    
+    //if ss:comment_likes:userid is not 0 then the user has already liked the comment
+
+    //ss:comment_likes:commentid (hincrby1 and score is userid) 
+    //& comment hincrby by 1
+
+}))
 
 // router.post("/comment/like/:commentid", check_token(), tc(async (req, res) => {
 //     //set headers
 //     res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
-
-//     //validate object
-//     let schema = Joi.object().keys({
-//         commentid: commentid
-//     })
-//     let valid = schema.validate(req.params)
-//     if(valid.error) {
-//         if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
-//         return res.status(400).json({"error": "invalid user input"})
-//     }
 
 //     //OPTIMIZATION HERE
 
@@ -400,7 +434,7 @@ router.delete("/ncomment/:ncommentid", check_token(), tc(async (req, res) => {
 //     })
 //     let valid = schema.validate(req.params)
 //     if(valid.error) {
-//         if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+//         if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
 //         return res.status(400).json({"error": "invalid user input"})
 //     }
 

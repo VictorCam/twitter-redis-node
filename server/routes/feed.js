@@ -8,7 +8,7 @@ const {client, rclient} = require("../server_connection")
 const check_token = require("../middleware/check_token")
 const pagination = require("../middleware/pagination")
 const tc = require("../middleware/try_catch")
-const {username} = require("../middleware/validation")
+const {v_username} = require("../middleware/validation")
 
 //username feed
 //add a paramater to go "POS" or "NEG" (amount of posts)
@@ -18,7 +18,7 @@ router.get("/feed/:username", check_token(), tc(async (req, res) => {
 
     //validate object
     const schema = Joi.object().keys({
-        username: username.required(),
+        username: v_username.required(),
     })
     let valid = schema.validate(req.params)
     if(valid.error) {
@@ -28,16 +28,16 @@ router.get("/feed/:username", check_token(), tc(async (req, res) => {
 
     //get the key of the username
     let userid = await client.get(`username:${req.params.username}`)
-    if(!userid) return res.status(400).json({"error": "user does not exist"})
-    if(userid === req.userid) return res.status(400).json({"error": "you cannot get the feed of yourself"})
+    if(userid == null) return res.status(400).json({"error": "user does not exist"})
+    if(userid == req.userid) return res.status(400).json({"error": "you cannot get the feed of yourself"})
 
     //get the score of the person you would like to see
     let index = await client.zscore(`following:${req.userid}`, userid)
-    if(!index) return res.status(400).json({"error": "you are not following that user"})
+    if(index == null) return res.status(400).json({"error": "you are not following that user"})
 
     //zrange start from index to inf and limit by 15
     let ss_post = await client.zrangebyscore(`ss:post:${userid}`, index, "+inf", "withscores", "limit", 0, 15)
-    if(ss_post.length === 0) return res.status(400).json({"error": "you have no posts to see"})
+    if(ss_post.length == 0) return res.status(200).json([])
 
     //update the score of the following
     await client.zadd(`following:${req.userid}`, parseInt(ss_post[ss_post.length-1])+1, userid)

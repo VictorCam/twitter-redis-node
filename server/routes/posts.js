@@ -2,7 +2,6 @@ const express = require("express")
 const router = express.Router()
 const cors = require("cors")
 const Joi = require("joi")
-const dayjs = require('dayjs')
 const base62 = require("base62/lib/ascii")
 const {nanoid} = require('nanoid')
 
@@ -72,7 +71,7 @@ router.post("/post", check_token(), tc(async (req, res) => {
     }
 
     //uid for unique post id and for comment id
-    let unix_ms = dayjs().valueOf()
+    let unix_ms = Date.now()
     let uid = base62.encode(unix_ms) + nanoid(parseInt(process.env.NANOID_LEN))
 
     //create indexed post
@@ -131,7 +130,7 @@ router.delete("/post/:postid", check_token(), tc(async (req, res) => {
     //check if post exists (if the post exists then the ss:post should exist (no need to check))
     let userid = await client.hget(`post:${req.params.postid}`, "userid")
 
-    if(!userid) return res.status(200).json({"error": "post does not exist"})
+    if(userid == null) return res.status(200).json({"error": "post does not exist"})
     if(userid != req.userid) return res.status(200).json({"error": "you are not the user who created this post"})
 
     //delete post:postid and ss:post:userid
@@ -141,8 +140,6 @@ router.delete("/post/:postid", check_token(), tc(async (req, res) => {
     .zcard(`ss:post:${userid}`)
     .exec()
 
-    //update the index of the userid ss:post_index
-    await client.hset(`userid:${userid}`, "ss:post_index", exists[2][1])
     return res.sendStatus(200)
 }))
 

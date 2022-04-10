@@ -1,3 +1,5 @@
+CLEAN UP API MORE SO IT USES CLEARER CODE LIKE NULL INSTEAD OF !
+
 # regex checker
 http://redos-checker.surge.sh/
 

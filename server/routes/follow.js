@@ -19,8 +19,9 @@ router.post("/follow", check_token(), tc(async (req, res) => {
 
     //validate object
     const schema = Joi.object().keys({
-        username: v_username.required()
-    })
+        "username": v_username,
+        "userid": v_userid
+    }).xor("username", "userid").label("username or userid is required")
     let valid = schema.validate(req.body)
     if(valid.error) {
         if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
@@ -28,19 +29,25 @@ router.post("/follow", check_token(), tc(async (req, res) => {
     }
 
     //get username and check if the user exists and if the user is not the same as the one who is trying to follow
-    let followid = await client.get(`username:${req.body.username}`)
+    let followid = null
+    if(valid.value.userid) followid = valid.value.userid
+    if(valid.value.username) followid = await client.get(`username:${valid.value.username}`)
     if(followid == null) return res.status(400).json({"error": "user does not exist"})
-    if(followid == req.userid) return res.status(400).json({"error": "you can't follow yourself"})
+
+    //check if you searched yourself
+    if(followid == req.userid) return res.status(400).json({"error": "you cannot follow yourself"})
 
     //add the the new user to your following list and vice versa
     let unix_ms = Date.now()
-    let follow = await client.pipeline()
-    .zadd(`following:${req.userid}`, unix_ms, followid)
-    .zadd(`followers:${followid}`, unix_ms, req.userid)
-    .exec()
+
+    //add the following user to the followers list
+    let pipe = client.pipeline()
+    pipe.zadd(`following:${req.userid}`, unix_ms, followid)
+    pipe.zadd(`followers:${followid}`, unix_ms, req.userid)
+    let [[,following], [,followers]] = await pipe.exec()
 
     //check if the following is 0 (which means the member exists)
-    if(follow[0][1] == 0) return res.status(400).json({"error": "you are already following this user"})
+    if(following == 0) return res.status(400).json({"error": "you are already following this user"})
 
     return res.sendStatus(200)
 }))
@@ -52,8 +59,9 @@ router.post("/unfollow", check_token(), tc(async (req, res) => {
 
     //validate object
     const schema = Joi.object().keys({
-        username: v_username.required()
-    })
+        "username": v_username,
+        "userid": v_userid
+    }).xor("username", "userid").label("username or userid is required")
     let valid = schema.validate(req.body)
     if(valid.error) {
         if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
@@ -61,23 +69,27 @@ router.post("/unfollow", check_token(), tc(async (req, res) => {
     }
 
     //get username and check if the user exists and if the user is not the same as the one who is trying to unfollow
-    let followid = await client.get(`username:${req.body.username}`)
-    if(!followid) return res.status(400).json({"error": "user does not exist"})
-    if(followid === req.userid) return res.status(400).json({"error": "you can't unfollow yourself"})
+    let followid = null
+    if(valid.value.userid) followid = valid.value.userid
+    if(valid.value.username) followid = await client.get(`username:${valid.value.username}`)
+    if(followid == null) return res.status(400).json({"error": "user does not exist"})
+
+    //check if you searched yourself
+    if(followid == req.userid) return res.status(400).json({"error": "you cannot unfollow yourself"})
 
     //unfollow the user
-    let unfollow = await client.pipeline()
-    .zrem(`following:${req.userid}`, followid)
-    .zrem(`followers:${followid}`, req.userid)
-    .exec()
+    let pipe = client.pipeline()
+    pipe.zrem(`following:${req.userid}`, followid)
+    pipe.zrem(`followers:${followid}`, req.userid)
+    let [[,following], [,followers]] = await pipe.exec()
 
     //check if the member was deleted or not else we were not follow the user in the first place
-    if(unfollow[0][1] === 0) return res.status(400).json({"error": "you are not following this user"})
+    if(following == 0) return res.status(400).json({"error": "you are not following this user"})
 
     return res.sendStatus(200)
 }))
 
-router.get("/following/:username", check_token(), pagination(), tc(async (req, res) => {
+router.get("/following", check_token(), pagination(), tc(async (req, res) => {
     //set headers
     res.set("Access-Control-Allow-Origin", "*")
 
@@ -91,26 +103,23 @@ router.get("/following/:username", check_token(), pagination(), tc(async (req, r
         "username": v_username,
         "userid": v_userid
     }).xor("username", "userid").label("username or userid is required")
-    let valid = schema.validate(req.params)
+    let valid = schema.validate(req.query)
     if(valid.error) {
         if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
         return res.status(400).json({"error": "invalid user input"})
     }
 
     //check if the username exists
-    let uid = null
-    if(valid.value.username) {
-        uid = await client.get(`username:${req.params.username}`)
-        if(uid == null) return res.status(400).json({"error": "user does not exist"})
-    }
-    if(valid.value.userid) uid = valid.value.userid
+    let userid = null
+    if(valid.value.username) userid = await client.get(`username:${valid.value.username}`)
+    if(valid.value.userid) userid = valid.value.userid
+    if(userid == null) return res.status(400).json({"error": "user does not exist"})
 
     //check the permission of the userid
     //TODO
 
     //get the following list and check it is not null and is not an empty array
-    let following = await client.zrange(`following:${uid}`, req.start, req.end)
-    if(following == null) return res.status(400).json({"error": "you are not following anyone"})
+    let following = await client.zrange(`following:${userid}`, req.start, req.end)
     if(following.length === 0) return res.status(200).json([])
 
     //format data
@@ -127,7 +136,7 @@ router.get("/following/:username", check_token(), pagination(), tc(async (req, r
 //dont forget to check if we are blocking a user when people rehowl something
 //also for blocking we need to remove the person
 
-router.get("/following", check_token(), pagination(), tc(async (req, res) => {
+router.get("/following/remain", check_token(), pagination(), tc(async (req, res) => {
 
     let pipe = client.pipeline()
     pipe.zcard(`following:${req.userid}`)
@@ -135,9 +144,9 @@ router.get("/following", check_token(), pagination(), tc(async (req, res) => {
     let [[,following_size], [,following]] = await pipe.exec()
 
     //check if following_size is null AND check if the req.start >= following_size AND check if zrange is null
-    if(!following_size) return res.status(400).json({"error": "you are not following anyone"})
+    if(following_size == 0) return res.status(400).json({"error": "you are not following anyone"})
     if(req.start >= following_size) return res.status(400).json({"error": "you are not following anyone"})
-    if(following.length === 0) return res.status(400).json({"error": "you don't have any followers"})
+    if(following.length == 0) return res.status(400).json({"error": "you don't have any followers"})
 
     //get the posts left using zcount
     let pipe_d = client.pipeline()

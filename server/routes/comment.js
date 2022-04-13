@@ -97,13 +97,7 @@ router.post("/ncomment", check_token(), tc(async (req, res) => {
     //create ncomment and ncomment lookup using ss:ncomment (timestamp)
     await client.pipeline()
     .zadd(`ss:ncomment:${req.body.commentid}`, unix_ms, gen_ncommentid)
-    .hset(`ncomment:${gen_ncommentid}`, 
-    ["userid", req.userid,
-    "ncomment", req.body.comment,
-    "ss:ncommentid", req.body.commentid,
-    "commentid", req.body.commentid,
-    "likes", 0,
-    "is_updated", 0])
+    .hset(`ncomment:${gen_ncommentid}`, ["userid", req.userid, "ncomment", req.body.comment, "ss:ncommentid", req.body.commentid, "commentid", req.body.commentid, "likes", 0, "is_updated", 0])
     .exec()
     
     return res.status(200).json({"comment": req.body.comment, "ncommentid": gen_ncommentid})
@@ -369,9 +363,9 @@ router.post("/comment/like/:commentid", check_token(), tc(async (req, res) => {
 
     //validate object
     const schema = Joi.object().keys({
-        commentid: v_commentid.required(),
+        "commentid": v_commentid.required(),
     })
-    const valid = schema.validate(req.params)
+    let valid = schema.validate(req.params)
     if(valid.error) {
         if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
         return res.status(400).json({"error": "invalid user input"})
@@ -389,61 +383,49 @@ router.post("/comment/like/:commentid", check_token(), tc(async (req, res) => {
     //check if liked is 0 (which mean it was already liked)
     if(liked == 0) return res.status(400).json({"error": "you have already liked this comment"})
 
-    let unix_ms = Date.now()
+    await client.zadd(`ss:my_comment_likes:${req.userid}`, unix_ms, valid.value.commentid)
 
     let pipe2 = client.pipeline()
-    pipe2.zadd(`ss:comment_likes:${valid.value.commentid}`, unix_ms, req.userid)
-    // pipe2.hvals()
-    
-    //if ss:comment_likes:userid is not 0 then the user has already liked the comment
+    pipe2.zincrby(`ss:comment_likes:${valid.value.commentid}`, 1, valid.value.commentid)
+    pipe2.hincrby(`comment:${valid.value.commentid}`, "likes", 1)
+    await pipe2.exec()
 
-    //ss:comment_likes:commentid (hincrby1 and score is userid) 
-    //& comment hincrby by 1
-
+    return res.sendStatus(200)
 }))
 
-// router.post("/comment/like/:commentid", check_token(), tc(async (req, res) => {
-//     //set headers
-//     res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+router.post("/ncomment/like/:ncommentid", check_token(), tc(async (req, res) => {
+    //set headers
+    res.setHeader("Content-Type", "application/json")
 
-//     //OPTIMIZATION HERE
+    //validate object
+    const schema = Joi.object().keys({
+        "ncommentid": v_ncommentid.required(),
+    })
+    let valid = schema.validate(req.params)
+    if(valid.error) {
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        return res.status(400).json({"error": "invalid user input"})
+    }
 
-//     //check comment exists
-//     let comment = await client.hmget(`comment:${req.params.commentid}`, "userid", "ss:commentid")
+    //check if ncomment exists and if the user has already liked it
+    let pipe = client.pipeline()
+    pipe.exists(`ncomment:${valid.value.ncommentid}`)
+    pipe.zscore(`ss:my_ncomment_likes:${req.userid}`, valid.value.ncommentid)
+    let [[,ncomment], [,liked]] = await pipe.exec()
 
-//     //add the the sorted set and see the result
-//     let result = await client.sadd(`ss:comment_likes:${req.userid}`, req.params.commentid)
-//     if(result == 0) return res.status(400).json({"error": "you have already liked this comment"})
+    //check if ncomment is 0 (which means it does not exist)
+    if(ncomment == 0) return res.status(400).json({"error": "ncommentid does not exist"})
 
-//     //like the comment_likes sorted set and comment
-//     await client.pipeline()
-//     .zincrby(`ss:comment_likes:${comment[1]}`, 1, req.params.commentid)
-//     .hincrby(`comment:${comment[0]}`, "likes", 1)
-//     .exec()
+    //check if liked is 0 (which mean it was already liked)
+    if(liked == 0) return res.status(400).json({"error": "you have already liked this comment"})
 
-//     return res.sendStatus(200)
-// }))
+    await client.zadd(`ss:my_ncomment_likes:${req.userid}`, unix_ms, valid.value.ncommentid)
 
-// router.post("/ncomment/like/:ncommentid", check_token(), tc(async (req, res) => {
-//     //set headers
-//     res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+    await client.hincrby(`ncomment:${valid.value.ncommentid}`, "likes", 1)
 
-//     //validate object
-//     let schema = Joi.object().keys({
-//         ncommentid: ncommentid
-//     })
-//     let valid = schema.validate(req.params)
-//     if(valid.error) {
-//         if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
-//         return res.status(400).json({"error": "invalid user input"})
-//     }
+    return res.sendStatus(200)
+}))
 
-//     //check ncomment exists
-//     let ncomment = await client.hmget(`ncomment:${req.params.ncommentid}`, "userid", "ss:ncommentid")
-
-//     //add the the sorted set and see the result
-//     let result = await client.sadd(`ss:ncomment:${req.userid}`, req.params.ncommentid)
-// }))
 
 router.use(cors())
 module.exports = router

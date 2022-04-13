@@ -11,6 +11,9 @@ client.on('connect', function() { console.log('TEST CLIENT: [Connected]') })
 let ts = async () => {
 
     //testing ground
+    //zcard
+    let zcard = await client.zcard("following:1")
+    console.log("zcard: ", zcard)
 }
 
 

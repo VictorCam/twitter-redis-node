@@ -17,7 +17,7 @@
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
     "helmet": "^5.0.2",
-    "ioredis": "^5.0.3",
+    "ioredis": "^5.0.4",
     "joi": "^17.6.0",
     "js-cookie": "^3.0.1",
     "jsonwebtoken": "^8.5.1",

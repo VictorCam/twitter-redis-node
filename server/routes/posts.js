@@ -8,6 +8,7 @@ const {nanoid} = require('nanoid')
 const tc = require("../middleware/try_catch")
 const {client, sclient, rclient} = require("../server_connection")
 const check_token = require("../middleware/check_token")
+const { v_image, v_name, v_tags, v_desc, v_can_comment, v_can_comment_img, v_can_comment_sticker, v_can_like, v_can_rehowl, v_postid } = require("../middleware/validation")
 
 // router.get("/post", check_token(), async (req, res) => {
 //     try {
@@ -41,32 +42,21 @@ const check_token = require("../middleware/check_token")
 router.post("/post", check_token(), tc(async (req, res) => {
     res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-    //image is prefixed with .png or .jpg
-    //name is between 1 to 100 characters
-    //tags can be around 2000 characters
-    //desc can be have between 0 to 5000 characters
-    //can_comment can only be a 1 or 0
-    //can_comment_img can only be a 1 or 0
-    //can_comment_sticker can only be a 1 or 0
-    //can_like can only be a 1 or 0
-    //can_rehowl can only be a 1 or 0
-
     //validate object
     const schema = Joi.object().keys({
-        image: Joi.string().min(1).max(100).required().label("image must be between 1 and 100 characters"),
-        name: Joi.string().min(1).max(100).required().label("name must be between 1 and 100 characters"),
-        tags: Joi.string().min(1).max(2000).required().label("tags must be between 1 and 2000 characters"),
-        desc: Joi.string().min(0).max(5000).required().label("desc must be between 0 and 5000 characters"),
-        can_comment: Joi.number().integer().min(0).max(1).required().label("can_comment must be a 1 or 0"),
-        can_comment_img: Joi.number().integer().min(0).max(1).required().label("can_comment_img must be a 1 or 0"),
-        can_comment_sticker: Joi.number().integer().min(0).max(1).required().label("can_comment_sticker must be a 1 or 0"),
-        can_like: Joi.number().integer().min(0).max(1).required().label("can_like must be a 1 or 0"),
-        can_rehowl: Joi.number().integer().min(0).max(1).required().label("can_rehowl must be a 1 or 0")
+        "image": v_image.required(),
+        "name": v_name.required(),
+        "tags": v_tags.required(),
+        "desc": v_desc.required(),
+        "can_comment": v_can_comment.required(),
+        "can_comment_img": v_can_comment_img.required(),
+        "can_comment_sticker": v_can_comment_sticker.required(),
+        "can_like": v_can_like.required(),
+        "can_rehowl": v_can_rehowl.required()
     })
     let valid = schema.validate(req.body)
     if(valid.error) {
-        console.log(valid.error.details)
-        if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
         return res.status(400).json({"error": "invalid user input"})
     }
 
@@ -117,28 +107,30 @@ router.delete("/post/:postid", check_token(), tc(async (req, res) => {
 
     //validate object
     const schema = Joi.object().keys({
-        postid: Joi.string().min(1).max(25).required().label("postid must be between 1 and 25 characters")
+        "postid": v_postid.required()
     })
     let valid = schema.validate(req.params)
     if(valid.error) {
-        if(valid.error.details[0].type !== 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
         return res.status(400).json({"error": "invalid user input"})
     }
 
-    //OPTIMIZE MAYBE??
-
-    //check if post exists (if the post exists then the ss:post should exist (no need to check))
+    //check if post exists
     let userid = await client.hget(`post:${req.params.postid}`, "userid")
-
+    
+    //check if the userid is null which means the post does not exists
     if(userid == null) return res.status(200).json({"error": "post does not exist"})
+
+    //check if the userid does not match since they are not the same user who created the post
     if(userid != req.userid) return res.status(200).json({"error": "you are not the user who created this post"})
 
     //delete post:postid and ss:post:userid
-    let exists = await client.pipeline()
-    .del(`post:${req.params.postid}`)
-    .zrem(`ss:post:${userid}`, req.params.postid)
-    .zcard(`ss:post:${userid}`)
-    .exec()
+    let pipe = client.pipeline()
+    pipe.del(`post:${req.params.postid}`)
+    pipe.zrem(`ss:post:${userid}`, req.params.postid)
+    let [[,post_del], [,ss_del]] = await pipe.exec()
+
+    if(post_del == 0) return res.status(200).json({"error": "post does not exist"})
 
     return res.sendStatus(200)
 }))

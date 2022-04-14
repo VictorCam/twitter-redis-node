@@ -8,18 +8,18 @@ const {client, rclient} = require("../server_connection")
 const check_token = require("../middleware/check_token")
 const pagination = require("../middleware/pagination")
 const tc = require("../middleware/try_catch")
-const {v_username, v_userid} = require("../middleware/validation")
+const {v_username, v_userid, v_range} = require("../middleware/validation")
 
-//username feed
-//add a paramater to go "POS" or "NEG" (amount of posts)
+
 router.get("/feed", check_token(), tc(async (req, res) => {
     //set headers
-    // res.set({"Access-Control-Allow-Origin": "*"})
+    res.set({"Access-Control-Allow-Origin": "*"})
 
     //validate object
     const schema = Joi.object().keys({
         "username": v_username,
-        "userid": v_userid
+        "userid": v_userid,
+        "range": v_range.required()
     }).xor("username", "userid").label("username or userid is required")
     let valid = schema.validate(req.query)
     if(valid.error) {
@@ -41,11 +41,22 @@ router.get("/feed", check_token(), tc(async (req, res) => {
     if(index == null) return res.status(400).json({"error": "you are not following that user"})
 
     //zrange start from index to inf and limit by 15
-    let ss_post = await client.zrangebyscore(`ss:post:${userid}`, index, "+inf", "withscores", "limit", 0, 15)
+    let ss_post = null
+    let pos = null
+    if(valid.value.range < 0) {
+        ss_post = await client.zrevrangebyscore(`ss:post:${userid}`, index, "-inf", "withscores", "limit", 0, valid.value.range*-1)
+        pos = -1
+    }
+    else {
+        ss_post = await client.zrangebyscore(`ss:post:${userid}`, index, "+inf", "withscores", "limit", 0, valid.value.range)
+        pos = 1
+    }
+
+    //if there is no post return an empty array
     if(ss_post.length == 0) return res.status(200).json([])
 
     //update the score of the following
-    await client.zadd(`following:${req.userid}`, parseInt(ss_post[ss_post.length-1])+1, userid)
+    await client.zadd(`following:${req.userid}`, parseInt(ss_post[ss_post.length-1])+pos, userid)
 
     //get the posts
     let pipe = client.pipeline()
@@ -56,17 +67,12 @@ router.get("/feed", check_token(), tc(async (req, res) => {
 
     //format and remove posts that do not exist in case someone deletes while someone is trying to acess the feed
     let posts = []
-    let rpipe = client.pipeline()
     for(let i = 0; i < results.length; i++) {
         if(results[i][1] != null) {
             let result = results[i][1]
             posts.push(result)
         }
-        else {
-            rpipe.zrem(`ss:post:${userid}`, ss_post[i])
-        }
     }
-    await rpipe.exec()
 
     return res.status(200).json(posts)
 }))

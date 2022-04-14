@@ -361,7 +361,7 @@ router.delete("/ncomment/:ncommentid", check_token(), tc(async (req, res) => {
 //route to like a comment
 router.post("/comment/like/:commentid", check_token(), tc(async (req, res) => {
     //set headers
-    res.setHeader("Content-Type", "application/json")
+    res.set("Content-Type", "application/json")
 
     //validate object
     const schema = Joi.object().keys({
@@ -399,7 +399,7 @@ router.post("/comment/like/:commentid", check_token(), tc(async (req, res) => {
 
 router.post("/comment/unlike/:commentid", check_token(), tc(async (req, res) => {
     //set headers
-    res.setHeader("Content-Type", "application/json")
+    res.set("Content-Type", "application/json")
 
     //validate object
     const schema = Joi.object().keys({
@@ -462,7 +462,7 @@ router.post("/ncomment/like/:ncommentid", check_token(), tc(async (req, res) => 
 
 router.post("/ncomment/unlike/:ncommentid", check_token(), tc(async (req, res) => {
     //set headers
-    res.setHeader("Content-Type", "application/json")
+    res.set("Content-Type", "application/json")
 
     //validate object
     const schema = Joi.object().keys({

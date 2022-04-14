@@ -21,15 +21,18 @@ let v_comment = Joi.string().min(1).max(1000).label("comment should be between 1
 let v_type = Joi.string().valid("like", "reg").label("invalid type (like/reg) allowed")
 
 //post.js
-let v_image = Joi.string().min(1).max(100).label("image must be between 1 and 100 characters")
-let v_name = Joi.string().min(1).max(100).label("name must be between 1 and 100 characters")
-let v_tags = Joi.string().min(1).max(3000).label("tags must be between 1 and 3000 characters")
-let v_desc = Joi.string().min(0).max(5000).label("desc must be between 0 and 5000 characters")
+let v_image = Joi.string().min(1).max(100).label("image must be between 1-100 characters")
+let v_name = Joi.string().min(1).max(100).label("name must be between 1-100 characters")
+let v_tags = Joi.string().min(1).max(3000).label("tags must be between 1-3000 characters")
+let v_desc = Joi.string().min(0).max(5000).label("desc must be between 0-5000 characters")
 let v_can_comment = Joi.number().integer().min(0).max(1).label("can_comment must be a 1 or 0")
 let v_can_comment_img = Joi.number().integer().min(0).max(1).label("can_comment_img must be a 1 or 0")
 let v_can_comment_sticker = Joi.number().integer().min(0).max(1).label("can_comment_sticker must be a 1 or 0")
 let v_can_like = Joi.number().integer().min(0).max(1).label("can_like must be a 1 or 0")
 let v_can_rehowl = Joi.number().integer().min(0).max(1).label("can_rehowl must be a 1 or 0")
+
+//feed.js
+let v_range = Joi.number().integer().invalid(0).min(-50).max(50).label("range must be an integer between -50 and 50")
 
 module.exports = { 
     v_username, 
@@ -49,5 +52,6 @@ module.exports = {
     v_can_comment_img,
     v_can_comment_sticker,
     v_can_like,
-    v_can_rehowl
+    v_can_rehowl,
+    v_range
 }

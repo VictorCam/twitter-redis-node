@@ -143,6 +143,7 @@ router.get("/comment", pagination(), tc(async (req, res) => {
 
     for(let i = 0; i < comments.length; i++) {
         comments[i] = comments[i][1]
+        comments[i]["commentid"] = comment_ids[i]
         delete comments[i]["ss:commentid"]
         delete comments[i]["postid"]
     }
@@ -167,7 +168,7 @@ router.get("/ncomment", pagination(), tc(async (req, res) => {
     //check if the comment exists and get a range of ncomments ids
     let pipe = await client.pipeline()
     pipe.exists(`ss:ncomment:${req.query.commentid}`)
-    pipe.zrevrange(`ss:ncomment:${req.query.commentid}`, req.start, req.end)
+    pipe.zrange(`ss:ncomment:${req.query.commentid}`, req.start, req.end)
     let [[,exists], [,ncomment_ids]] = await pipe.exec()
 
     //check if the post exists AND check if the zrange is empty
@@ -184,6 +185,7 @@ router.get("/ncomment", pagination(), tc(async (req, res) => {
     //format and remove certain keys
     for(let i = 0; i < ncomments.length; i++) {
         ncomments[i] = ncomments[i][1]
+        ncomments[i]["ncommentid"] = ncomment_ids[i]
         delete ncomments[i]["ss:ncommentid"]
         delete ncomments[i]["commentid"]
     }
@@ -372,22 +374,52 @@ router.post("/comment/like/:commentid", check_token(), tc(async (req, res) => {
     }
 
     //check if comment exists and if the user has already liked it
-    let pipe = client.pipeline()
-    pipe.exists(`comment:${valid.value.commentid}`)
-    pipe.zscore(`ss:my_comment_likes:${req.userid}`, valid.value.commentid)
-    let [[,comment], [,liked]] = await pipe.exec()
+    let comment = await client.exists(`comment:${valid.value.commentid}`)
 
     //check if comment is 0 (which means it does not exist)
     if(comment == 0) return res.status(400).json({"error": "commentid does not exist"})
     
-    //check if liked is 0 (which mean it was already liked)
-    if(liked == 0) return res.status(400).json({"error": "you have already liked this comment"})
+    //unix timestamp
+    let unix_ms = Date.now()
 
-    await client.zadd(`ss:my_comment_likes:${req.userid}`, unix_ms, valid.value.commentid)
+    //check if the user already liked the comment
+    let like = await client.zadd(`ss:my_comment_likes:${req.userid}`, unix_ms, valid.value.commentid)
 
+    //if the user already liked the comment, return an error
+    if(like == 0) return res.status(400).json({"error": "you have already liked this comment"})
+
+    //increment likes
     let pipe2 = client.pipeline()
     pipe2.zincrby(`ss:comment_likes:${valid.value.commentid}`, 1, valid.value.commentid)
     pipe2.hincrby(`comment:${valid.value.commentid}`, "likes", 1)
+    await pipe2.exec()
+
+    return res.sendStatus(200)
+}))
+
+router.post("/comment/unlike/:commentid", check_token(), tc(async (req, res) => {
+    //set headers
+    res.setHeader("Content-Type", "application/json")
+
+    //validate object
+    const schema = Joi.object().keys({
+        "commentid": v_commentid.required(),
+    })
+    let valid = schema.validate(req.params)
+    if(valid.error) {
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        return res.status(400).json({"error": "invalid user input"})
+    }
+
+    //check if the user already liked the comment
+    let remove_like = await client.zrem(`ss:my_comment_likes:${req.userid}`, valid.value.commentid)
+
+    //if the user did not like the comment, return an error
+    if(remove_like == 0) return res.status(400).json({"error": "you have not liked this comment"})
+
+    let pipe2 = client.pipeline()
+    pipe2.zincrby(`ss:comment_likes:${valid.value.commentid}`, -1, valid.value.commentid)
+    pipe2.hincrby(`comment:${valid.value.commentid}`, "likes", -1)
     await pipe2.exec()
 
     return res.sendStatus(200)
@@ -408,24 +440,51 @@ router.post("/ncomment/like/:ncommentid", check_token(), tc(async (req, res) => 
     }
 
     //check if ncomment exists and if the user has already liked it
-    let pipe = client.pipeline()
-    pipe.exists(`ncomment:${valid.value.ncommentid}`)
-    pipe.zscore(`ss:my_ncomment_likes:${req.userid}`, valid.value.ncommentid)
-    let [[,ncomment], [,liked]] = await pipe.exec()
+    let ncomment = await client.exists(`ncomment:${valid.value.ncommentid}`)
 
     //check if ncomment is 0 (which means it does not exist)
     if(ncomment == 0) return res.status(400).json({"error": "ncommentid does not exist"})
 
-    //check if liked is 0 (which mean it was already liked)
-    if(liked == 0) return res.status(400).json({"error": "you have already liked this comment"})
+    //unix timestamp
+    let unix_ms = Date.now()
 
-    await client.zadd(`ss:my_ncomment_likes:${req.userid}`, unix_ms, valid.value.ncommentid)
+    //check if the user already liked the comment
+    let like = await client.zadd(`ss:my_ncomment_likes:${req.userid}`, unix_ms, valid.value.ncommentid)
 
+    //if the user already liked the comment, return an error
+    if(like == 0) return res.status(400).json({"error": "you have already liked this comment"})
+
+    //increment likes
     await client.hincrby(`ncomment:${valid.value.ncommentid}`, "likes", 1)
 
     return res.sendStatus(200)
 }))
 
+router.post("/ncomment/unlike/:ncommentid", check_token(), tc(async (req, res) => {
+    //set headers
+    res.setHeader("Content-Type", "application/json")
+
+    //validate object
+    const schema = Joi.object().keys({
+        "ncommentid": v_ncommentid.required(),
+    })
+    let valid = schema.validate(req.params)
+    if(valid.error) {
+        if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        return res.status(400).json({"error": "invalid user input"})
+    }
+
+    //check if the user already liked the comment
+    let remove_like = await client.zrem(`ss:my_ncomment_likes:${req.userid}`, valid.value.ncommentid)
+
+    //if the user did not like the comment, return an error
+    if(remove_like == 0) return res.status(400).json({"error": "you have not liked this comment"})
+
+    //increment likes
+    await client.hincrby(`ncomment:${valid.value.ncommentid}`, "likes", -1)
+
+    return res.sendStatus(200)
+}))
 
 router.use(cors())
 module.exports = router

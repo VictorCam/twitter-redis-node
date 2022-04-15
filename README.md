@@ -12,7 +12,7 @@ B. docker-compose up
 ## 2. SERVER (./server)
 
 A. [install nodejs](https://nodejs.org/en/download/) </br>
-B. npm install</br>
+B. npm ci</br>
 C. npm install -g nodemon</br>
 D. make .env file with the following (change values in production):
 

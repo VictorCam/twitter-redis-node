@@ -263,7 +263,7 @@ router.put("/comment", check_token(), tc(async (req, res) => {
     if(req.userid != userid) return res.status(400).json({"error": "you do not own this comment"})
 
     //update comment
-    await client.hmset(`comment:${req.body.commentid}`, ["comment", req.body.comment, "is_updated", 1])
+    await client.hset(`comment:${req.body.commentid}`, ["comment", req.body.comment, "is_updated", 1])
 
     return res.status(200).json({"comment": req.body.comment, "commentid": req.body.commentid})
 }))
@@ -291,7 +291,7 @@ router.put("/ncomment", check_token(), tc(async (req, res) => {
     if(req.userid != userid) return res.status(400).json({"error": "you do not own this comment"})
 
     //update ncomment
-    await client.hmset(`ncomment:${req.body.ncommentid}`, ["comment", req.body.comment, "is_updated", 1])
+    await client.hset(`ncomment:${req.body.ncommentid}`, ["comment", req.body.comment, "is_updated", 1])
 
     return res.status(200).json({"comment": req.body.comment, "ncommentid": req.body.ncommentid})
 }))

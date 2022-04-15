@@ -1,40 +1,33 @@
-CLEAN UP API MORE SO IT USES CLEARER CODE LIKE NULL INSTEAD OF !
-
 # regex checker
 http://redos-checker.surge.sh/
 
 # free tools
 https://free-for.dev/
 
-//interesting post
+# interesting css things
+https://thisthat.dev/
+
+#interesting post
 //https://blog.carbonfive.com/using-redis-sorted-sets-to-build-a-scalable-real-time-web-waiting-list/
 https://www.youtube.com/watch?v=AryZSCeKU9Y
 
 
-//ft.drop [index] && ft._list
+#ft.drop [index] && ft._list
 //https://stackoverflow.com/questions/53832663/how-to-write-a-query-to-both-include-and-exclude-tags-in-redisearch#comment94525695_53833329
 // redisgraph/redis shortcut for comment/like/retweet/follower+following/mentions
 
 
 //allow stickers as well like in telegram!
 
-# clean regexes
-
 # do testing with the permissions
-# add check cases on postman for api responses
-# add check cases for the query params in comments and ncomments
-# update later: but reply back to the user with a more general/vauge response
 
 # for usernames make sure to limit guessing a lot after a certain number of attempts
 # to a certain username
-
-# (DONT FORGET STATUS CODES FOR ERRORS NODEJS!)
 
 
 # get popular sfw/nsfw
 # use timestamp and compare if n time has passed
 # use likes and timestamp and check which is relatively popular
-
 
 # FRONTEND CADDY as a webserver
 #IMPORTANT OPTIMIZATION!

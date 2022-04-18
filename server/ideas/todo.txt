@@ -4,6 +4,9 @@ http://redos-checker.surge.sh/
 # free tools
 https://free-for.dev/
 
+# font awesome
+https://fontawesome.com/icons/user?s=solid
+
 # interesting css things
 https://thisthat.dev/
 

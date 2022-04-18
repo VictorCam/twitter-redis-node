@@ -7,7 +7,7 @@
     "node": "14.x"
   },
   "scripts": {
-    "node": "nodemon"
+    "start": "node index.js"
   },
   "author": "",
   "license": "ISC",

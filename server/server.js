@@ -47,9 +47,9 @@ app.use((error, req, res, next) => {
 })
 
 // create a test route
-app.get("/", (req, res) => {
+app.get("/test", (req, res) => {
   res.send("hello world")
-}
+})
 
 //port
 const PORT = process.env.PORT || 13377

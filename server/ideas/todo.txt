@@ -10,40 +10,158 @@ https://fontawesome.com/icons/user?s=solid
 # interesting css things
 https://thisthat.dev/
 
-#interesting post
+# scaling a waiting list with redis
 //https://blog.carbonfive.com/using-redis-sorted-sets-to-build-a-scalable-real-time-web-waiting-list/
+
+# html tricks
 https://www.youtube.com/watch?v=AryZSCeKU9Y
 
 
-#ft.drop [index] && ft._list
-//https://stackoverflow.com/questions/53832663/how-to-write-a-query-to-both-include-and-exclude-tags-in-redisearch#comment94525695_53833329
-// redisgraph/redis shortcut for comment/like/retweet/follower+following/mentions
+#ft.drop [index] && ft._list (redis search)
+https://stackoverflow.com/questions/53832663/how-to-write-a-query-to-both-include-and-exclude-tags-in-redisearch#comment94525695_53833329
 
+# redisgraph/redis shortcut for comment/like/retweet/follower+following/mentions
 
-//allow stickers as well like in telegram!
+# allow stickers as well like in telegram!
 
 # do testing with the permissions
 
 # for usernames make sure to limit guessing a lot after a certain number of attempts
 # to a certain username
 
-
 # get popular sfw/nsfw
 # use timestamp and compare if n time has passed
 # use likes and timestamp and check which is relatively popular
 
+# FIND STICKERS BY INDEXING THE ONES THEY ALREADY HAVE
+# do more tests like this https://www.youtube.com/watch?v=NKZ0ahNbmak
+
 # FRONTEND CADDY as a webserver
-#IMPORTANT OPTIMIZATION!
-https://stackoverflow.com/questions/32854616/redis-sorted-set-find-item-by-property-value
 
-#SCALING NODEJS
+# remember to do a partial indexes for users who like posts
+# also a index as well for users who want to share folders of some sort
+ 
+# recommended to use unlink (when deleting large keys)
+# [cannot implement]: get the list of ncomments and delete it (not viable/worth it)
+# we could deleting them during certain time of the day where data is disconnected 
 
-//remember to do a partial index for users who like posts
-//also a index as well for users who want to share folders of some sort
 
-//recommended to use unlink (when deleting large keys)
-//[cannot implement]: get the list of ncomments and delete it (not viable/worth it)
-//we could deleting them during certain time of the day where data is disconnected 
+#negate exclusives
+REDIS: ==search by username and/or tag and/or score== HASH:FPOST:xxx
+userid=KV
+username
+postname
+tags --is_scrap can be implemented client side
+score
+image [small]
+is_exclusive --if 0:false then allow=>search and if 1:true then remove=>search
+post=KV
 
-//could make concurrent
-//https://dev.to/apurbostarry/how-to-make-concurrent-api-calls-in-nodejs-35b8
+
+# KVROCKS: KEY
+https://stackoverflow.com/questions/23507200/good-practices-for-designing-monthly-subscription-system-in-database
+
+
+# get the post permission if allowed to post certain things
+
+# consider using the npm package dayjs on frontend only
+
+# on userid add [balance]
+
+# on each post add [revenue]
+
+# viewing a post (history and stats)
+
+# count the post 1 for a user (do not count duplicates) but count it for ad api counts
+
+# api via stripe for buying ad and api to see and accept ad api and api using seedweed false
+
+# in the FUTURE make the api for doing image searches
+
+# do an api for voting/bidding (multiple bids at the same time)/commission status/forms/transfering money
+
+# maybe allow text posts on timelines but txt files do not generate revenue
+
+# api for users who are open for commission api that shows ads sfw or nsfw dpeneidngo on account on account settings and age
+
+
+feed-live
+active or not
+voice chat- but anyone who follows you can see you and join you 
+multiple accounts
+woofin woofin
+like discord but with inactiviity
+
+art posts /videos// vid stream exclustive posts
+watch list of tags --prevent abuse (post tag verfiers) -> limit large abitrary taggging -> allow 10 last of tags to watch
+
+we can do a subscription using a hash where we have the user check if their subscription:id exists then with the key of the username and the timestamp
+if it does not exist then that means that we don't have a subscription in place and if it does but it is expired then we tell them that their subscription is expired but they can renew it if they need to
+
+how are we going to search things up if we don't have any sort of way to find things
+
+I was thinking about having different sorted sets for posting
+when a user posts a post there will be different sorted sets according to the preferences of the user
+one will contain posts and rehowls
+another will contain just posts
+or we could make an api call that combines them together (with the expense of doing more network calls)
+
+rename the word "READ" on the feed to something thats akin to "posts that are left to read"
+synonyms for the word "posts that are left to read"
+
+https://javascript.info/websocket#chat-example
+
+pipeline commands when they pertaining to ONE user (belong to one shard)
+
+
+//learning here how I will make private content for content creators
+========
+api to get to db to check if you can sees (redis)
+if not do not give the link of the item
+if true give the link of the item
+
+db master (no membership)
+==
+api to get to db to check if you can sees
+do not give the link and do not preform api call on frontend
+
+db master (tmp membership but expired but stored url)
+==
+api to get to db to check if you can sees
+do not give the link and do not preform api call on frontend
+(has the url and gets info manually)
+
+db master (membership)
+==
+api to get to db to check if you can sees
+do not give the link and do not preform api call on frontend
+(has the url)
+==========
+
+# APPROX COSTS
+
+DDOS PROTECTION: $ - CLOUDFLARE (MONTHLY) ~20$
+REDIS SEARCH: $ - MANAGED (MONTHLY) ~7$
+URL NAME: $ MUST PAY (MONTHLY) ~15$
+NETWORK FIBER: $ MUST PAY (MONTHLY) ~200$
+SYS ADMIN: $ FOR 5 days? ~1600$
+ELETRICITY: $ MUST PAY (MONTHLY) ~120$
+EMAIL_SERVICE: $ MUST PAY (MONTHLY) ~100$
+
+TOTAL = APPROX 400-800 + 1600 dollars to run?
+
+MACHINES: $ MUST PAY (ONCE IN A LONG WHILE)
+
+HOST SEAWEEDFS, KVROCKS, CADDY, SVELTEKIT, EXPRESS
+
+# 200 as the limit for pub-sub
+# INBOX
+# pub-sub = notifications only
+# persist in the inbox
+# mentions/likes/re = pub-sub?
+# total (101)
+
+# 10000 = FOLLOWING LIMIT? (maybe more (per day?))
+
+we can skip a user if we are tired of seeing their posts (updates to the last post seen) or we can go to their recommended list
+(alt: we could do the users recommended list as well to be mixed in)

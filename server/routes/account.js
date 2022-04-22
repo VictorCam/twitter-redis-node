@@ -13,15 +13,6 @@ const check_token = require("../middleware/check_token")
 const tc = require("../middleware/try_catch")
 const { v_username, v_email, v_password } = require("../middleware/validation")
 
-//FIND STICKERS BY INDEXING THE ONES THEY ALREADY HAVE
-//MISSING A LOGGING OUT REQUEST
-//do more tests like this https://www.youtube.com/watch?v=NKZ0ahNbmak
-//uesrname is going to allow email thus @ . are allowed
-//dont forget that username can contain a number
-//also remember to check if the username is already taken by matching it with the userid
-
-//consider the fact that the phone number is going to be used for the login
-
 router.post("/login", tc(async (req, res) => {
     //set headers
     res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})

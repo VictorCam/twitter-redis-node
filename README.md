@@ -29,8 +29,6 @@ D. make .env file with the following (change values in production):
 
 E. nodemon (run nodejs server)</br>
 
-VALUES FOR PRODUCTION: 
-
 ---
 
 ## 3. CLIENT (./client)

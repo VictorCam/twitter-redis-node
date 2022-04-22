@@ -156,7 +156,7 @@ router.post("/post", check_token(), tc(async (req, res) => {
 
     //create post and increment userid post_size
 
-    await client.pipeline()
+    client.pipeline()
     .hset(`post:${uid}`,
     [
         "views", 0,

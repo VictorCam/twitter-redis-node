@@ -56,7 +56,7 @@ router.get("/feed", check_token(), tc(async (req, res) => {
     if(ss_post.length == 0) return res.status(200).json([])
 
     //update the score of the following
-    await client.zadd(`following:${req.userid}`, parseInt(ss_post[ss_post.length-1])+pos, userid)
+    client.zadd(`following:${req.userid}`, parseInt(ss_post[ss_post.length-1])+pos, userid)
 
     //get the posts
     let pipe = client.pipeline()

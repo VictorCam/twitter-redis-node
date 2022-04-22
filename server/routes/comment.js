@@ -47,7 +47,7 @@ router.post("/comment", check_token(), tc(async (req, res) => {
     let gen_commentid = base62.encode(unix_ms) + nanoid(parseInt(process.env.NANOID_LEN))
 
     //create comment and comment lookup using ss:comment (timestamp) or ss:comment_likes (likes)
-    await client.pipeline()
+    client.pipeline()
     .zadd(`ss:comment:${req.body.postid}`, unix_ms, gen_commentid)
     .zadd(`ss:comment_likes:${req.body.postid}`, 0, gen_commentid)
     .hset(`comment:${gen_commentid}`, ["userid", req.userid, "comment", req.body.comment, "postid", req.body.postid, "ss:commentid", req.body.postid, "likes", 0, "is_updated", 0, "timestamp", unix_ms])
@@ -95,7 +95,7 @@ router.post("/ncomment", check_token(), tc(async (req, res) => {
     let gen_ncommentid = base62.encode(unix_ms) + nanoid(parseInt(process.env.NANOID_LEN))
     
     //create ncomment and ncomment lookup using ss:ncomment (timestamp)
-    await client.pipeline()
+    client.pipeline()
     .zadd(`ss:ncomment:${req.body.commentid}`, unix_ms, gen_ncommentid)
     .hset(`ncomment:${gen_ncommentid}`, ["userid", req.userid, "ncomment", req.body.comment, "ss:ncommentid", req.body.commentid, "commentid", req.body.commentid, "likes", 0, "is_updated", 0])
     .exec()
@@ -166,7 +166,7 @@ router.get("/ncomment", pagination(), tc(async (req, res) => {
     }
 
     //check if the comment exists and get a range of ncomments ids
-    let pipe = await client.pipeline()
+    let pipe = client.pipeline()
     pipe.exists(`ss:ncomment:${req.query.commentid}`)
     pipe.zrange(`ss:ncomment:${req.query.commentid}`, req.start, req.end)
     let [[,exists], [,ncomment_ids]] = await pipe.exec()
@@ -233,7 +233,7 @@ router.get("/ncomment/:ncommentid", tc(async (req, res) => {
     //get ncomment
     let ncomment = await client.hgetall(`ncomment:${req.params.ncommentid}`)
 
-    //if {}, return ncomment does not exist
+    //if null return ncomment does not exist
     if(ncomment == null) return res.status(400).json({"error": "ncomment does not exist"})
 
     //return ncommentid and userid
@@ -263,7 +263,7 @@ router.put("/comment", check_token(), tc(async (req, res) => {
     if(req.userid != userid) return res.status(400).json({"error": "you do not own this comment"})
 
     //update comment
-    await client.hset(`comment:${req.body.commentid}`, ["comment", req.body.comment, "is_updated", 1])
+    client.hset(`comment:${req.body.commentid}`, ["comment", req.body.comment, "is_updated", 1])
 
     return res.status(200).json({"comment": req.body.comment, "commentid": req.body.commentid})
 }))
@@ -291,7 +291,7 @@ router.put("/ncomment", check_token(), tc(async (req, res) => {
     if(req.userid != userid) return res.status(400).json({"error": "you do not own this comment"})
 
     //update ncomment
-    await client.hset(`ncomment:${req.body.ncommentid}`, ["comment", req.body.comment, "is_updated", 1])
+    client.hset(`ncomment:${req.body.ncommentid}`, ["comment", req.body.comment, "is_updated", 1])
 
     return res.status(200).json({"comment": req.body.comment, "ncommentid": req.body.ncommentid})
 }))
@@ -318,7 +318,7 @@ router.delete("/comment/:commentid", check_token(), tc(async (req, res) => {
     if(req.userid != comment[0]) return res.status(400).json({"error": "you do not own this comment"})
 
     //delete comment and sorted sets associated with it
-    await client.pipeline()
+    client.pipeline()
     .del(`comment:${req.params.commentid}`)
     .zrem(`ss:comment:${comment[1]}`, req.params.commentid)
     .zrem(`ss:comment_likes:${comment[1]}`, req.params.commentid)
@@ -350,7 +350,7 @@ router.delete("/ncomment/:ncommentid", check_token(), tc(async (req, res) => {
     if(req.userid != ncomment[0]) return res.status(400).json({"error": "you do not own this comment"})
 
     //delete ncomment and sorted sets associated with it
-    await client.pipeline()
+    client.pipeline()
     .del(`ncomment:${req.params.ncommentid}`)
     .zrem(`ss:ncomment:${ncomment[1]}`, req.params.ncommentid)
     .exec()
@@ -392,7 +392,7 @@ router.post("/comment/like/:commentid", check_token(), tc(async (req, res) => {
     let pipe2 = client.pipeline()
     pipe2.zincrby(`ss:comment_likes:${valid.value.commentid}`, 1, valid.value.commentid)
     pipe2.hincrby(`comment:${valid.value.commentid}`, "likes", 1)
-    await pipe2.exec()
+    pipe2.exec()
 
     return res.sendStatus(200)
 }))
@@ -420,7 +420,7 @@ router.post("/comment/unlike/:commentid", check_token(), tc(async (req, res) => 
     let pipe2 = client.pipeline()
     pipe2.zincrby(`ss:comment_likes:${valid.value.commentid}`, -1, valid.value.commentid)
     pipe2.hincrby(`comment:${valid.value.commentid}`, "likes", -1)
-    await pipe2.exec()
+    pipe2.exec()
 
     return res.sendStatus(200)
 }))
@@ -455,7 +455,7 @@ router.post("/ncomment/like/:ncommentid", check_token(), tc(async (req, res) => 
     if(like == 0) return res.status(400).json({"error": "you have already liked this comment"})
 
     //increment likes
-    await client.hincrby(`ncomment:${valid.value.ncommentid}`, "likes", 1)
+    client.hincrby(`ncomment:${valid.value.ncommentid}`, "likes", 1)
 
     return res.sendStatus(200)
 }))
@@ -481,7 +481,7 @@ router.post("/ncomment/unlike/:ncommentid", check_token(), tc(async (req, res) =
     if(remove_like == 0) return res.status(400).json({"error": "you have not liked this comment"})
 
     //increment likes
-    await client.hincrby(`ncomment:${valid.value.ncommentid}`, "likes", -1)
+    client.hincrby(`ncomment:${valid.value.ncommentid}`, "likes", -1)
 
     return res.sendStatus(200)
 }))

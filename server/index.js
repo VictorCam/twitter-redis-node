@@ -46,14 +46,9 @@ app.use((error, req, res, next) => {
   return res.sendStatus(500)
 })
 
-// create a test route
-
+// create a / route
 app.get("/", (req, res) => {
-  return res.send("hello world 1")
-})
-
-app.get("/test", (req, res) => {
-  return res.send("hello world 2")
+  return res.send("hello world")
 })
 
 //port

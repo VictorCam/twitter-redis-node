@@ -56,11 +56,14 @@ router.post("/login", tc(async (req, res) => {
     //check if they have verified their account by checking the ttl isn't -1
     if(ttl != -1) return res.status(401).json({"error": "please verify your account on your email before logging in"})
 
-    //check if password is correct
-    if(!await verify(await client.hget(`userid:${userid}`, "password"), req.body.password, {secret: Buffer.from(process.env.ARGON2_SECRET, 'base64')})) return res.status(401).json({"error": "invalid password"})
+    //get the password and the refreshid
+    let userdata = await client.hmget(`userid:${userid}`, ["password", "refreshid"])
+
+    //check if password is correct by comparing the argon password
+    if(!await verify(userdata[0], req.body.password, {secret: Buffer.from(process.env.ARGON2_SECRET, 'base64')})) return res.status(401).json({"error": "invalid password"})
 
     //set jwt + set auth cookie
-    let token = jwt.sign({"userid": userid}, process.env.TOKEN_SECRET, {expiresIn: "24h"})
+    let token = jwt.sign({"userid": userid, "refreshid": userdata[1]}, process.env.TOKEN_SECRET, {expiresIn: "7d"})
     res.cookie('authorization', token, { httpOnly: true, sameSite: 'Strict'})
 
     return res.status(200).json({"token": token})
@@ -95,7 +98,7 @@ router.post("/register", tc(async (req, res) => {
     let userid = base62.encode(unix_ms) + nanoid(parseInt(process.env.NANOID_LEN))
 
     //check if username or email exists
-    let pipe = await client.pipeline()
+    let pipe = client.pipeline()
     pipe.get(`username:${valid.value.username}`)
     pipe.get(`email:${valid.value.email}`)
     let [[,username_exists], [,email_exists]] = await pipe.exec()
@@ -126,7 +129,8 @@ router.post("/register", tc(async (req, res) => {
         "is_user_locked", 0,
         "is_user_verified", 0,
         "join_date", unix_ms,
-        "desc", ""
+        "desc", "",
+        "refreshid", userid
     ])
 
     //if production is 1 then expire following keys after 24 hours

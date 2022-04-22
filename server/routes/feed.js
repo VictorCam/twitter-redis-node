@@ -40,9 +40,9 @@ router.get("/feed", check_token(), tc(async (req, res) => {
     let index = await client.zscore(`following:${req.userid}`, userid)
     if(index == null) return res.status(400).json({"error": "you are not following that user"})
 
-    //zrange start from index to inf and limit by 15
+    //zrange start from index to inf and limit by N amount
     let ss_post = null
-    let pos = null
+    let pos = 0
     if(valid.value.range < 0) {
         ss_post = await client.zrevrangebyscore(`ss:post:${userid}`, index, "-inf", "withscores", "limit", 0, valid.value.range*-1)
         pos = -1
@@ -55,8 +55,13 @@ router.get("/feed", check_token(), tc(async (req, res) => {
     //if there is no post return an empty array
     if(ss_post.length == 0) return res.status(200).json([])
 
+    //check if the score is a floating string or floating integer
+    let new_score = null 
+    if(ss_post[ss_post.length-1].includes(".")) new_score = parseFloat(ss_post[ss_post.length-1]) + pos
+    if(new_score == null) new_score = parseInt(ss_post[ss_post.length-1]) + pos
+
     //update the score of the following
-    client.zadd(`following:${req.userid}`, parseInt(ss_post[ss_post.length-1])+pos, userid)
+    client.zadd(`following:${req.userid}`, new_score, userid)
 
     //get the posts
     let pipe = client.pipeline()

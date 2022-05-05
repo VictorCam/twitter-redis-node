@@ -1,12 +1,76 @@
 <script>
-
+    import axios from 'axios';
+    import Cookies from 'js-cookie'
+    
     // a state for toggling the modal on and off
-    let showModal = 'is-active';
+    let showModal = '';
 
     //function
     function modal(e) {
         showModal = (showModal == '') ? 'is-active' : ''
     }
+
+    //submit form
+    async function validate(e) {
+        const formData = new FormData(e.target);
+        
+        //loop through the formdata and store in json
+        let payload = {};
+        formData.forEach((value, key) => {
+            payload[key] = value;
+        })
+
+        //create a request to the server with the payload to localhost:13377/v1/login
+        const response = await axios.post('http://localhost:13377/v1/login', payload)
+
+        console.log(response)
+    }
+
+    async function api(e) {
+        console.log("entered")
+
+        //if the cookie or the header is gone then we get a new csrf token
+
+
+        //with credentials
+        let res = await axios.get('http://localhost:13377/v1/csrf', { withCredentials: true })
+
+        //store csrf in localstorage
+        localStorage.setItem('csrf', res.data.csrf)
+    }
+
+    async function api2(e) {
+        console.log("entered")
+
+        //create a request to the server with the payload to localhost:13377/v1/process and with credentials set to true and with a csrf-token set as a header and with the cookie header
+        // let res = await axios.post('http://localhost:13377/v1/process', { withCredentials: true, headers: { 'csrf-token': Cookies.get('csrf') } })
+        
+        console.log(document.cookie)
+
+        const axiosConfig = {
+            credentials: "same-origin"
+        }
+        axios.defaults.withCredentials = true;
+        
+        axios.post('http://localhost:13377/v1/process',
+        axiosConfig)
+        .then((res) => {
+        // Some result here
+        })
+        .catch((err) => {
+        console.log(':(')
+        })
+    }
+
+    axios.interceptors.request.use(function (config) {
+        config.headers['csrf-token'] = localStorage.getItem('csrf')
+        return config;
+    }, function (error) {
+        // Do something with request error
+        return Promise.reject(error);
+    });
+
+
 
 </script>
 
@@ -69,6 +133,11 @@
     </div>
 </section>
 
+
+<!-- a simple button in the center of the page that triggers a function -->
+<button on:click="{e => api(e)}">csrf token</button>
+<button on:click="{e => api2(e)}">validate</button>
+
 <!-- signup -->
 <section class="section modal {showModal}">
     <div class="modal-background"></div>
@@ -85,7 +154,7 @@
 
         <div class="is-divider is-grey-light"></div>
 
-        <form action="" method="POST">
+        <form on:submit|preventDefault={validate}>
             <div class="field">
                 <label for="username" class="label medium">Username</label>
                 <div class="control">

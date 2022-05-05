@@ -1,5 +1,4 @@
 const express = require("express")
-const cors = require("cors")
 const router = express.Router()
 const Joi = require("joi")
 require("dotenv").config()
@@ -11,9 +10,12 @@ const tc = require("../middleware/try_catch")
 const {v_username, v_userid, v_range} = require("../middleware/validation")
 
 
+//we need a (put) route to update the feed
+//since get is being violated with an update
+
 router.get("/feed", check_token(), tc(async (req, res) => {
     //set headers
-    res.set({"Access-Control-Allow-Origin": "*"})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     const schema = Joi.object().keys({
@@ -56,7 +58,7 @@ router.get("/feed", check_token(), tc(async (req, res) => {
     if(ss_post.length == 0) return res.status(200).json([])
 
     //check if the score is a floating string or floating integer
-    let new_score = null 
+    let new_score = null
     if(ss_post[ss_post.length-1].includes(".")) new_score = parseFloat(ss_post[ss_post.length-1]) + pos
     if(new_score == null) new_score = parseInt(ss_post[ss_post.length-1]) + pos
 
@@ -82,5 +84,4 @@ router.get("/feed", check_token(), tc(async (req, res) => {
     return res.status(200).json(posts)
 }))
 
-router.use(cors())
 module.exports = router

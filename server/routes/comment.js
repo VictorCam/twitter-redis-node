@@ -1,6 +1,5 @@
 const express = require("express")
 const router = express.Router()
-const cors = require("cors")
 const Joi = require("joi")
 const {nanoid} = require('nanoid')
 const base62 = require("base62/lib/ascii")
@@ -20,7 +19,7 @@ const {v_postid, v_commentid, v_ncommentid, v_comment, v_type} = require("../mid
 
 router.post("/comment", check_token(), tc(async (req, res) => {
     //set headers
-    res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     let schema = Joi.object().keys({ 
@@ -58,7 +57,7 @@ router.post("/comment", check_token(), tc(async (req, res) => {
 
 router.post("/ncomment", check_token(), tc(async (req, res) => {
     //set headers
-    res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     let schema = Joi.object().keys({
@@ -105,7 +104,7 @@ router.post("/ncomment", check_token(), tc(async (req, res) => {
 
 router.get("/comment", pagination(), tc(async (req, res) => {
     //set headers
-    res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     let schema = Joi.object().keys({
@@ -153,7 +152,7 @@ router.get("/comment", pagination(), tc(async (req, res) => {
 
 router.get("/ncomment", pagination(), tc(async (req, res) => {
     //set headers
-    res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     let schema = Joi.object().keys({
@@ -195,7 +194,7 @@ router.get("/ncomment", pagination(), tc(async (req, res) => {
 
 router.get("/comment/:commentid", tc(async (req, res) => {
     //set headers
-    res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     let schema = Joi.object().keys({
@@ -218,7 +217,7 @@ router.get("/comment/:commentid", tc(async (req, res) => {
 
 router.get("/ncomment/:ncommentid", tc(async (req, res) => {
     //set headers
-    res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     let schema = Joi.object().keys({
@@ -242,8 +241,8 @@ router.get("/ncomment/:ncommentid", tc(async (req, res) => {
 
 router.put("/comment", check_token(), tc(async (req, res) => {
     //set headers
-    res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
-    
+    res.set({'Accept': 'application/json'})
+
     //validate object
     let schema = Joi.object().keys({
         "commentid": v_commentid.required(), 
@@ -270,7 +269,7 @@ router.put("/comment", check_token(), tc(async (req, res) => {
 
 router.put("/ncomment", check_token(), tc(async (req, res) => {
     //set headers
-    res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     let schema = Joi.object().keys({
@@ -298,7 +297,7 @@ router.put("/ncomment", check_token(), tc(async (req, res) => {
 
 router.delete("/comment/:commentid", check_token(), tc(async (req, res) => {
     //set headers
-    res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     let schema = Joi.object().keys({
@@ -330,8 +329,8 @@ router.delete("/comment/:commentid", check_token(), tc(async (req, res) => {
 
 router.delete("/ncomment/:ncommentid", check_token(), tc(async (req, res) => {
     //set headers
-    res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
-    
+    res.set({'Accept': 'application/json'})
+
     //validate object
     let schema = Joi.object().keys({
         "ncommentid": v_ncommentid.required()
@@ -361,7 +360,7 @@ router.delete("/ncomment/:ncommentid", check_token(), tc(async (req, res) => {
 //route to like a comment
 router.post("/comment/like/:commentid", check_token(), tc(async (req, res) => {
     //set headers
-    res.set("Content-Type", "application/json")
+    res.set({'Accept': 'application/json'})
 
     //validate object
     const schema = Joi.object().keys({
@@ -399,7 +398,7 @@ router.post("/comment/like/:commentid", check_token(), tc(async (req, res) => {
 
 router.post("/comment/unlike/:commentid", check_token(), tc(async (req, res) => {
     //set headers
-    res.set("Content-Type", "application/json")
+    res.set({'Accept': 'application/json'})
 
     //validate object
     const schema = Joi.object().keys({
@@ -427,7 +426,7 @@ router.post("/comment/unlike/:commentid", check_token(), tc(async (req, res) => 
 
 router.post("/ncomment/like/:ncommentid", check_token(), tc(async (req, res) => {
     //set headers
-    res.setHeader("Content-Type", "application/json")
+    res.set({'Accept': 'application/json'})
 
     //validate object
     const schema = Joi.object().keys({
@@ -462,8 +461,8 @@ router.post("/ncomment/like/:ncommentid", check_token(), tc(async (req, res) => 
 
 router.post("/ncomment/unlike/:ncommentid", check_token(), tc(async (req, res) => {
     //set headers
-    res.set("Content-Type", "application/json")
-
+    res.set({'Accept': 'application/json'})
+    
     //validate object
     const schema = Joi.object().keys({
         "ncommentid": v_ncommentid.required(),
@@ -486,5 +485,4 @@ router.post("/ncomment/unlike/:ncommentid", check_token(), tc(async (req, res) =
     return res.sendStatus(200)
 }))
 
-router.use(cors())
 module.exports = router

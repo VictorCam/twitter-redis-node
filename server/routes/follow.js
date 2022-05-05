@@ -1,5 +1,4 @@
 const express = require("express")
-const cors = require("cors")
 const router = express.Router()
 const Joi = require("joi")
 require("dotenv").config()
@@ -15,7 +14,7 @@ const {v_username, v_userid} = require("../middleware/validation")
 //follow a user
 router.post("/follow", check_token(), tc(async (req, res) => {
     //set headers
-    res.set({"Access-Control-Allow-Origin": "*"})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     const schema = Joi.object().keys({
@@ -55,7 +54,7 @@ router.post("/follow", check_token(), tc(async (req, res) => {
 
 router.post("/unfollow", check_token(), tc(async (req, res) => {
     //set headers
-    res.set({"Access-Control-Allow-Origin": "*"})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     const schema = Joi.object().keys({
@@ -91,7 +90,7 @@ router.post("/unfollow", check_token(), tc(async (req, res) => {
 
 router.get("/following", check_token(), pagination(), tc(async (req, res) => {
     //set headers
-    res.set("Access-Control-Allow-Origin", "*")
+    res.set({'Accept': 'application/json'})
 
     //DONT FORGET THIS LOGIC FOR LOCKED ACCOUNTS!
     //check if you are allowed to see the following list
@@ -164,6 +163,4 @@ router.get("/following/remain", check_token(), pagination(), tc(async (req, res)
     return res.status(200).json(followdata)
 }))
 
-
-router.use(cors())
 module.exports = router

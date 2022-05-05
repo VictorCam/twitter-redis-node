@@ -5,6 +5,7 @@ require("dotenv").config()
 // const client = new Redisearch({port: 6379})
 // const client = new Redis({port: 6666})
 const client = new Redis(process.env.REDIS_URL)
+const lclient = new Redis(process.env.REDIS_URL, {enableOfflineQueue: false}) 
 // const pub = new Redis({port:6666})
 // const sub = new Redis({port:6666})
 
@@ -19,6 +20,9 @@ Redis.Command.setReplyTransformer("hgetall", (result) => {
     return null
 })
 
-client.on('connect', function() { console.log('CLIENT: [Connected]') })
+if(process.env.NODE_ENV == "development") {
+    client.on('connect', function() { console.log('CLIENT: [Connected]') })
+    lclient.on('connect', function() { console.log('LCLIENT: [Connected]') })
+}
 
-module.exports = {client}
+module.exports = {client, lclient}

@@ -1,8 +1,7 @@
-const jwt = require("jsonwebtoken")
 const express = require("express")
-const cors = require("cors")
+const { V3 } = require('paseto')
 const { hash, verify, Algorithm } = require('@node-rs/argon2')
-const {nanoid} = require('nanoid')
+const { nanoid } = require('nanoid')
 const base62 = require("base62/lib/ascii")
 const router = express.Router()
 require("dotenv").config()
@@ -13,9 +12,30 @@ const check_token = require("../middleware/check_token")
 const tc = require("../middleware/try_catch")
 const { v_username, v_email, v_password } = require("../middleware/validation")
 
+// login
+// check if the user has a valid jwt token or valid csrf token already if they do then prevent a generation of a new csrf
+
+// login_add route?
+
+// signup
+// check if the user has a token if they do prevent the signup route
+
+
+//a test route to test if csrf is working
+router.get('/csrf', tc(async (req, res) => {
+    res.set({'Accept': 'application/json'})
+    return res.status(200).json({"test": "me"})
+}))
+
+//a test route to test if csrf is working
+router.post('/process', check_token(), tc(async (req, res) => {
+    res.set({'Accept': 'application/json'})
+    return res.sendStatus(200)
+}))
+
 router.post("/login", tc(async (req, res) => {
     //set headers
-    res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     const schema = Joi.object().keys({
@@ -53,16 +73,20 @@ router.post("/login", tc(async (req, res) => {
     //check if password is correct by comparing the argon password
     if(!await verify(userdata[0], req.body.password, {secret: Buffer.from(process.env.ARGON2_SECRET, 'base64')})) return res.status(401).json({"error": "invalid password"})
 
-    //set jwt + set auth cookie
-    let token = jwt.sign({"userid": userid, "refreshid": userdata[1]}, process.env.TOKEN_SECRET, {expiresIn: "7d"})
+    //generate a csrf token
+    let csrf = nanoid(36)
+
+    //set token + set auth cookie
+    let token = await V3.encrypt({"userid": userid, "refreshid": userdata[1], "csrf": csrf, "ts": Math.floor((Date.now()/1000))}, process.env.TOKEN_SECRET, {expiresIn: '7d'})
     res.cookie('authorization', token, { httpOnly: true, sameSite: 'Strict'})
 
-    return res.status(200).json({"token": token})
+    //return the token and the csrf where the cookie is set automatically and the token is sent in the header
+    return res.status(200).json({"token": token, "csrf": csrf})
 }))
 
 router.post("/register", tc(async (req, res) => {
     //set headers
-    res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     const schema = Joi.object().keys({
@@ -98,8 +122,8 @@ router.post("/register", tc(async (req, res) => {
     if(username_exists != null) return res.status(400).json({"error": "username already exists"})
     if(email_exists != null) return res.status(400).json({"error": "email already exists"})
 
-    //if production is 1 then send an email to the user with a verification link
-    if(process.env.PRODUCTION == "1") {
+    //if node_env == production  then send an email to the user with a verification link
+    if(process.env.NODE_ENV == "") {
         //buy a custom email domain with unlimited email sending and we will send the email to the user using node-mailer OR api
     }
 
@@ -125,7 +149,7 @@ router.post("/register", tc(async (req, res) => {
     ])
 
     //if production is 1 then expire following keys after 24 hours
-    if(process.env.PRODUCTION == "1") {
+    if(process.env.NODE_ENV == "") {
         pipeline.expire(`userid:${userid}`, process.env.EXPIRE_ACCOUNT)
         pipeline.expire(`username:${valid.value.username}`, process.env.EXPIRE_ACCOUNT)
         pipeline.expire(`email:${valid.value.email}`, process.env.EXPIRE_ACCOUNT)
@@ -139,7 +163,7 @@ router.post("/register", tc(async (req, res) => {
 
 router.get("/user/:username", tc(async (req, res) => {
     //set headers
-    res.set({ 'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API, 'Accept': 'application/json', 'Content-Type': 'application/json'})
+    res.set({'Accept': 'application/json'})
 
     //validate json schema
     const schema = Joi.object().keys({
@@ -166,11 +190,9 @@ router.get("/user/:username", tc(async (req, res) => {
 }))
 
 router.post("/logout", tc((req, res) => {
-    //set headers and removing cookies
-    res.set({'Access-Control-Allow-Credentials': true, 'Access-Control-Allow-Origin': process.env.CLIENT_API})
+    // remove cookies
     res.clearCookie('authorization')
     return res.sendStatus(200)
 }))
 
-router.use(cors())
 module.exports = router

@@ -1,6 +1,5 @@
 const express = require("express")
 const router = express.Router()
-const cors = require("cors")
 const Joi = require("joi")
 const base62 = require("base62/lib/ascii")
 const {nanoid} = require('nanoid')
@@ -43,7 +42,7 @@ const pagination = require("../middleware/pagination")
 //get many posts from a user
 router.get("/post", check_token(), pagination(), tc(async (req, res) => {
     //set headers
-    res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     const schema = Joi.object().keys({
@@ -93,7 +92,7 @@ router.get("/post", check_token(), pagination(), tc(async (req, res) => {
 //get one post
 router.get("/post/:postid", check_token(), tc(async (req, res) => {
     //set headers
-    res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     const schema = Joi.object().keys({
@@ -119,7 +118,7 @@ router.get("/post/:postid", check_token(), tc(async (req, res) => {
 //post a post
 router.post("/post", check_token(), tc(async (req, res) => {
     //set headers
-    res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     const schema = Joi.object().keys({
@@ -179,7 +178,8 @@ router.post("/post", check_token(), tc(async (req, res) => {
 
 //update a post
 router.put("/post", check_token(), tc(async (req, res) => {
-    res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
+    //set headers
+    res.set({'Accept': 'application/json'})
 
     //validate object
     const schema = Joi.object().keys({
@@ -226,7 +226,7 @@ router.put("/post", check_token(), tc(async (req, res) => {
 
 router.delete("/post/:postid", check_token(), tc(async (req, res) => {
     //set headers
-    res.set({'Accept': 'application/json', 'Content-Type': 'application/json'})
+    res.set({'Accept': 'application/json'})
 
     //validate object
     const schema = Joi.object().keys({
@@ -258,5 +258,4 @@ router.delete("/post/:postid", check_token(), tc(async (req, res) => {
     return res.sendStatus(200)
 }))
 
-router.use(cors());
-module.exports = router;
+module.exports = router

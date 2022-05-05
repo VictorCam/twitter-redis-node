@@ -16,7 +16,7 @@ B. npm ci</br>
 C. npm install -g nodemon</br>
 D. make .env file with the following (change values in production):
 
-    TOKEN_SECRET = xxx
+    TOKEN_SECRET = k3.local.xxx
     COOKIE_PARSER_SECRET = xxx
     ARGON2_SECRET = xxx
     ARGON2_TIME_COST = 40
@@ -25,7 +25,7 @@ D. make .env file with the following (change values in production):
     NANOID_LEN = 4
     CLIENT_API = http://localhost:3000
     EXPIRE_ACCOUNT = 86400
-    PRODUCTION = 0
+    NODE_ENV = development
 
 E. nodemon (run nodejs server)</br>
 

@@ -83,7 +83,7 @@ app.use("/v1", [login, posts, comment, follow, feed])
 //try catch err handle for all routes when they fail
 app.use((error, req, res, next) => {
   if(process.env.NODE_ENV == 'production') client.zadd("errors", Date.now(), JSON.stringify(error))
-  if(process.env.NODE_ENV == 'development') console.log(`error in ${req.url} route ==`, error)
+  if(process.env.NODE_ENV == 'development') console.log(`error in %s route ==`, req.url, error)
   return res.sendStatus(500)
 })
 

@@ -1,3 +1,7 @@
+/*
+ * Author: GitHub @VictorCam
+ */
+
 const express = require("express")
 const { V3 } = require('paseto')
 const { hash, verify, Algorithm } = require('@node-rs/argon2')
@@ -19,19 +23,6 @@ const { v_username, v_email, v_password } = require("../middleware/validation")
 
 // signup
 // check if the user has a token if they do prevent the signup route
-
-
-//a test route to test if csrf is working
-router.get('/csrf', tc(async (req, res) => {
-    res.set({'Accept': 'application/json'})
-    return res.status(200).json({"test": "me"})
-}))
-
-//a test route to test if csrf is working
-router.post('/process', check_token(), tc(async (req, res) => {
-    res.set({'Accept': 'application/json'})
-    return res.sendStatus(200)
-}))
 
 router.post("/login", tc(async (req, res) => {
     //set headers

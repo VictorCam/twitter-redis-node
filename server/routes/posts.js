@@ -1,3 +1,7 @@
+/*
+ * Author: GitHub @VictorCam
+ */
+
 const express = require("express")
 const router = express.Router()
 const Joi = require("joi")
@@ -89,8 +93,9 @@ router.get("/post", check_token(), pagination(), tc(async (req, res) => {
     return res.status(200).json(formatted_results)
 }))
 
-//get one post
-router.get("/post/:postid", check_token(), tc(async (req, res) => {
+//get one post (probably rename the check_token middleware to be more of an auth_check function and another for just grabbing info if user has it)
+//or (pass a string to make it an optional check LIKEWISE WITH THE API ABOVE!! (its a non compliant stateless rest api))
+router.get("/post/:postid", tc(async (req, res) => {
     //set headers
     res.set({'Accept': 'application/json'})
 

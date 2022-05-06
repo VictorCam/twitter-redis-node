@@ -1,3 +1,7 @@
+/*
+ * Author: GitHub @VictorCam
+ */
+
 const { V3 } = require('paseto')
 require("dotenv").config()
 

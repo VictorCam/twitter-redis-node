@@ -1,3 +1,7 @@
+/*
+ * Author: GitHub @VictorCam
+ */
+
 const Joi = require("joi")
 
 module.exports = function() {

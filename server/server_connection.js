@@ -1,3 +1,7 @@
+/*
+ * Author: GitHub @VictorCam
+ */
+
 const Redis = require("ioredis")
 // const { Redisearch, RedisGraph } = require('redis-modules-sdk')
 require("dotenv").config()

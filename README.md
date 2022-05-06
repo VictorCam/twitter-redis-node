@@ -27,7 +27,7 @@ D. make .env file with the following (change values in production):
     EXPIRE_ACCOUNT = 86400
     NODE_ENV = development
 
-E. nodemon (run nodejs server)</br>
+E. npm start (run nodejs server)</br>
 
 ---
 

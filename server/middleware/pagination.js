@@ -2,14 +2,14 @@
  * Author: GitHub @VictorCam
  */
 
-const Joi = require("joi")
+import joi from 'joi'
 
-module.exports = function() {
+export default function() {
     return function(req, res, next) {
         //vaidate req.query.amount and req.query.page
-        const schema = Joi.object().keys({
-            amount: Joi.number().integer().min(1).max(100).required().label("amount must be a number between 1 and 100"),
-            page: Joi.number().integer().min(1).max(1000000).required().label("page must be a number between 1 and 1000000")
+        const schema = joi.object().keys({
+            amount: joi.number().integer().min(1).max(100).required().label("amount must be a number between 1 and 100"),
+            page: joi.number().integer().min(1).max(1000000).required().label("page must be a number between 1 and 1000000")
         })
 
         //validate req.query.amount and req.query.page out of the req.query object

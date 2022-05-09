@@ -2,17 +2,18 @@
  * Author: GitHub @VictorCam
  */
 
-const express = require("express")
+import express from 'express'
+import dotenv from 'dotenv'
+import joi from 'joi'
+
+import { client } from '../server_connection.js'
+import check_token from '../middleware/check_token.js'
+import pagination from '../middleware/pagination.js'
+import tc from '../middleware/try_catch.js'
+import { v_username, v_userid, v_range } from '../middleware/validation.js'
+
 const router = express.Router()
-const Joi = require("joi")
-require("dotenv").config()
-
-const {client, rclient} = require("../server_connection")
-const check_token = require("../middleware/check_token")
-const pagination = require("../middleware/pagination")
-const tc = require("../middleware/try_catch")
-const {v_username, v_userid, v_range} = require("../middleware/validation")
-
+dotenv.config()
 
 //we need a (put) route to update the feed
 //since get is being violated with an update
@@ -22,7 +23,7 @@ router.get("/feed", check_token(), tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    const schema = Joi.object().keys({
+    const schema = joi.object().keys({
         "username": v_username,
         "userid": v_userid,
         "range": v_range.required()
@@ -88,4 +89,4 @@ router.get("/feed", check_token(), tc(async (req, res) => {
     return res.status(200).json(posts)
 }))
 
-module.exports = router
+export default router

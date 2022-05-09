@@ -2,17 +2,20 @@
  * Author: GitHub @VictorCam
  */
 
-const express = require("express")
-const router = express.Router()
-const Joi = require("joi")
-const {nanoid} = require('nanoid')
-const base62 = require("base62/lib/ascii")
 
-const check_token = require("../middleware/check_token")
-const pagination = require("../middleware/pagination")
-const tc = require("../middleware/try_catch")
-const {client, sclient, rclient} = require("../server_connection")
-const {v_postid, v_commentid, v_ncommentid, v_comment, v_type} = require("../middleware/validation")
+//CONVERT joi to lowercase joi
+import express from 'express'
+import joi from 'joi'
+import { nanoid } from 'nanoid'
+
+import base62 from 'base62/lib/ascii.js'
+import check_token from "../middleware/check_token.js"
+import pagination from "../middleware/pagination.js"
+import tc from "../middleware/try_catch.js"
+import { client } from "../server_connection.js"
+import {v_postid, v_commentid, v_ncommentid, v_comment, v_type} from '../middleware/validation.js'
+
+const router = express.Router()
 
 /*
     * TODO:
@@ -26,7 +29,7 @@ router.post("/comment", check_token(), tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({ 
+    let schema = joi.object().keys({ 
         "postid": v_postid.required(), 
         "comment": v_comment.required()
     })
@@ -64,7 +67,7 @@ router.post("/ncomment", check_token(), tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({
+    let schema = joi.object().keys({
         "commentid": v_commentid.required(),
         "comment": v_comment.required()
     })
@@ -111,7 +114,7 @@ router.get("/comment", pagination(), tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({
+    let schema = joi.object().keys({
         "postid": v_postid.required(), 
         "type": v_type.required()
     })
@@ -159,7 +162,7 @@ router.get("/ncomment", pagination(), tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({
+    let schema = joi.object().keys({
         "commentid": v_commentid.required()
     })
     let valid = schema.validate(req.query)
@@ -201,7 +204,7 @@ router.get("/comment/:commentid", tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({
+    let schema = joi.object().keys({
         "commentid": v_commentid.required()
     })
     let valid = schema.validate(req.params)
@@ -224,7 +227,7 @@ router.get("/ncomment/:ncommentid", tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({
+    let schema = joi.object().keys({
         "ncommentid": v_ncommentid.required()
     })
     let valid = schema.validate(req.params)
@@ -248,7 +251,7 @@ router.put("/comment", check_token(), tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({
+    let schema = joi.object().keys({
         "commentid": v_commentid.required(), 
         "comment": v_comment.required()
     })
@@ -276,7 +279,7 @@ router.put("/ncomment", check_token(), tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({
+    let schema = joi.object().keys({
         "ncommentid": v_ncommentid.required(),
         "comment": v_comment.required()
     })
@@ -304,7 +307,7 @@ router.delete("/comment/:commentid", check_token(), tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({
+    let schema = joi.object().keys({
         "commentid": v_commentid.required()
     })
     let valid = schema.validate(req.params)
@@ -336,7 +339,7 @@ router.delete("/ncomment/:ncommentid", check_token(), tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    let schema = Joi.object().keys({
+    let schema = joi.object().keys({
         "ncommentid": v_ncommentid.required()
     })
     let valid = schema.validate(req.params)
@@ -367,7 +370,7 @@ router.post("/comment/like/:commentid", check_token(), tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    const schema = Joi.object().keys({
+    const schema = joi.object().keys({
         "commentid": v_commentid.required(),
     })
     let valid = schema.validate(req.params)
@@ -405,7 +408,7 @@ router.post("/comment/unlike/:commentid", check_token(), tc(async (req, res) => 
     res.set({'Accept': 'application/json'})
 
     //validate object
-    const schema = Joi.object().keys({
+    const schema = joi.object().keys({
         "commentid": v_commentid.required(),
     })
     let valid = schema.validate(req.params)
@@ -433,7 +436,7 @@ router.post("/ncomment/like/:ncommentid", check_token(), tc(async (req, res) => 
     res.set({'Accept': 'application/json'})
 
     //validate object
-    const schema = Joi.object().keys({
+    const schema = joi.object().keys({
         "ncommentid": v_ncommentid.required(),
     })
     let valid = schema.validate(req.params)
@@ -468,7 +471,7 @@ router.post("/ncomment/unlike/:ncommentid", check_token(), tc(async (req, res) =
     res.set({'Accept': 'application/json'})
     
     //validate object
-    const schema = Joi.object().keys({
+    const schema = joi.object().keys({
         "ncommentid": v_ncommentid.required(),
     })
     let valid = schema.validate(req.params)
@@ -489,4 +492,4 @@ router.post("/ncomment/unlike/:ncommentid", check_token(), tc(async (req, res) =
     return res.sendStatus(200)
 }))
 
-module.exports = router
+export default router

@@ -2,12 +2,13 @@
  * Author: GitHub @VictorCam
  */
 
-const { V3 } = require('paseto')
-require("dotenv").config()
+import { V3 } from 'paseto'
+import dotenv from 'dotenv'
+dotenv.config()
 
-const { client } = require("../server_connection")
+import { client } from '../server_connection.js'
 
-module.exports = function() {
+export default function() {
   return async function (req, res, next) {
     try {
       //check if the cookie authorization exists

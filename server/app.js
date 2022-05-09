@@ -2,14 +2,16 @@
  * Author: GitHub @VictorCam
  */
 
-const express = require("express")
-const cookieParser = require('cookie-parser')
-const cors = require("cors")
-const helmet = require("helmet")
+import express from "express"
+import cookieParser from "cookie-parser"
+import cors from "cors"
+import helmet from "helmet"
+import dotenv from 'dotenv'
+import {client, lclient} from './server_connection.js'
+import { RateLimiterRedis } from 'rate-limiter-flexible'
+
 const app = express()
-require("dotenv").config()
-const { client, lclient } = require("./server_connection")
-const { RateLimiterRedis } = require('rate-limiter-flexible')
+dotenv.config()
 
 //cors details
 const corsOptions = {
@@ -27,36 +29,36 @@ const fileOptions = {
 }
 
 //rate limiter details
-const limiter = new RateLimiterRedis({
-  redis: lclient, // connection
-  keyPrefix: 'ratelimit', // name of the key in redis
-  points: parseInt(process.env.MAX_REQUESTS), // 2500 = 25 requests per 1 minutes
-  duration: 60 * 60 // 1 hour
-})
+// const limiter = new RateLimiterRedis({
+//   redis: lclient, // connection
+//   keyPrefix: 'ratelimit', // name of the key in redis
+//   points: parseInt(process.env.MAX_REQUESTS), // 2500 = 25 requests per 1 minutes
+//   duration: 60 * 60 // 1 hour
+// })
 
 //disable x-powered-by header
 app.disable('x-powered-by')
 
 //rate limiter middleware before we do any processing
-app.use(async ( req, res, next) => {
-  let ip = req.ip.replace(/:/g, "|")
-  limiter.consume(ip).then((info) => { 
-    res.set({
-      "Retry-After": parseInt(info.msBeforeNext / 1000),
-      "X-RateLimit-Limit": process.env.MAX_REQUESTS,
-      "X-RateLimit-Remaining": info.remainingPoints,
-    })
-    return next() 
-  })
-  .catch((info) => { 
-    res.set({
-      "Retry-After": parseInt(info.msBeforeNext / 1000),
-      "X-RateLimit-Limit": process.env.MAX_REQUESTS,
-      "X-RateLimit-Remaining": info.remainingPoints,
-    })
-    return res.status(429).json({"error": "too many requests"}) 
-  })
-})
+// app.use(async ( req, res, next) => {
+//   let ip = req.ip.replace(/:/g, "|")
+//   limiter.consume(ip).then((info) => { 
+//     res.set({
+//       "Retry-After": parseInt(info.msBeforeNext / 1000),
+//       "X-RateLimit-Limit": process.env.MAX_REQUESTS,
+//       "X-RateLimit-Remaining": info.remainingPoints,
+//     })
+//     return next() 
+//   })
+//   .catch((info) => { 
+//     res.set({
+//       "Retry-After": parseInt(info.msBeforeNext / 1000),
+//       "X-RateLimit-Limit": process.env.MAX_REQUESTS,
+//       "X-RateLimit-Remaining": info.remainingPoints,
+//     })
+//     return res.status(429).json({"error": "too many requests"}) 
+//   })
+// })
 
 //middlewares for cors/helmet/cookie-parser/image-upload/and memory limits
 app.use(cors(corsOptions))
@@ -75,14 +77,15 @@ app.use((error, req, res, next) => {
 })
 
 //imported routes
-const login = require("./routes/account")
-const posts = require("./routes/posts")
-const comment = require("./routes/comment")
-const follow = require("./routes/follow")
-const feed = require("./routes/feed")
+import login from './routes/account.js'
+import posts from "./routes/posts.js"
+import comment from "./routes/comment.js"
+import follow from "./routes/follow.js"
+import feed from "./routes/feed.js"
+import content from "./routes/content.js"
 
 //linked routes
-app.use("/v1", [login, posts, comment, follow, feed])
+app.use("/v1", [login, posts, comment, follow, feed, content])
 
 //try catch err handle for all routes when they fail
 app.use((error, req, res, next) => {

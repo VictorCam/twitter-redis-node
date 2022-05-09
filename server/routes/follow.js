@@ -1,19 +1,16 @@
-/*
- * Author: GitHub @VictorCam
- */
+import express from 'express'
+import joi from 'joi'
+import dotenv from 'dotenv'
+import { nanoid } from 'nanoid'
+import base62 from 'base62/lib/ascii.js'
+import { client } from '../server_connection.js'
+import check_token from '../middleware/check_token.js'
+import pagination from '../middleware/pagination.js'
+import tc from '../middleware/try_catch.js'
+import { v_username, v_email, v_password, v_userid } from '../middleware/validation.js'
 
-const express = require("express")
 const router = express.Router()
-const Joi = require("joi")
-require("dotenv").config()
-const {nanoid} = require('nanoid')
-const base62 = require("base62/lib/ascii")
-
-const {client, rclient} = require("../server_connection")
-const check_token = require("../middleware/check_token")
-const pagination = require("../middleware/pagination")
-const tc = require("../middleware/try_catch")
-const {v_username, v_userid} = require("../middleware/validation")
+dotenv.config()
 
 //follow a user
 router.post("/follow", check_token(), tc(async (req, res) => {
@@ -21,7 +18,7 @@ router.post("/follow", check_token(), tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    const schema = Joi.object().keys({
+    const schema = joi.object().keys({
         "username": v_username,
         "userid": v_userid
     }).xor("username", "userid").label("username or userid is required")
@@ -61,7 +58,7 @@ router.post("/unfollow", check_token(), tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    const schema = Joi.object().keys({
+    const schema = joi.object().keys({
         "username": v_username,
         "userid": v_userid
     }).xor("username", "userid").label("username or userid is required")
@@ -102,7 +99,7 @@ router.get("/following", check_token(), pagination(), tc(async (req, res) => {
     //get the username
 
     //validate object
-    const schema = Joi.object().keys({
+    const schema = joi.object().keys({
         "username": v_username,
         "userid": v_userid
     }).xor("username", "userid").label("username or userid is required")
@@ -167,4 +164,4 @@ router.get("/following/remain", check_token(), pagination(), tc(async (req, res)
     return res.status(200).json(followdata)
 }))
 
-module.exports = router
+export default router

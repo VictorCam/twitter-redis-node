@@ -2,19 +2,20 @@
  * Author: GitHub @VictorCam
  */
 
-const express = require("express")
-const { V3 } = require('paseto')
-const { hash, verify, Algorithm } = require('@node-rs/argon2')
-const { nanoid } = require('nanoid')
-const base62 = require("base62/lib/ascii")
-const router = express.Router()
-require("dotenv").config()
-const Joi = require('joi')
+import express from 'express'
+import { V3 } from 'paseto'
+import { hash, verify, Algorithm } from '@node-rs/argon2'
+import { nanoid } from 'nanoid'
+import base62 from 'base62/lib/ascii.js'
+import dotenv from 'dotenv'
+import joi from 'joi'
+import { client } from '../server_connection.js'
+import check_token from '../middleware/check_token.js'
+import tc from '../middleware/try_catch.js'
+import { v_username, v_email, v_password } from '../middleware/validation.js'
 
-const { client, rclient } = require("../server_connection")
-const check_token = require("../middleware/check_token")
-const tc = require("../middleware/try_catch")
-const { v_username, v_email, v_password } = require("../middleware/validation")
+const router = express.Router()
+dotenv.config()
 
 // login
 // check if the user has a valid jwt token or valid csrf token already if they do then prevent a generation of a new csrf
@@ -29,7 +30,7 @@ router.post("/login", tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    const schema = Joi.object().keys({
+    const schema = joi.object().keys({
         "username": v_username,
         "email": v_email,
         "password": v_password.required(),
@@ -80,7 +81,7 @@ router.post("/register", tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate object
-    const schema = Joi.object().keys({
+    const schema = joi.object().keys({
         "username": v_username.required(),
         "email": v_email.required(),
         "password": v_password.required(),
@@ -157,7 +158,7 @@ router.get("/user/:username", tc(async (req, res) => {
     res.set({'Accept': 'application/json'})
 
     //validate json schema
-    const schema = Joi.object().keys({
+    const schema = joi.object().keys({
         "username": v_username.required()
     })
     let valid = schema.validate(req.params)
@@ -186,4 +187,4 @@ router.post("/logout", tc((req, res) => {
     return res.sendStatus(200)
 }))
 
-module.exports = router
+export default router

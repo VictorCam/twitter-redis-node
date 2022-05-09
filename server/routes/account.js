@@ -1,17 +1,14 @@
-/*
- * Author: GitHub @VictorCam
- */
-
 import express from 'express'
+import base62 from 'base62/lib/ascii.js'
+import joi from 'joi'
+import dotenv from 'dotenv'
+import check_token from '../middleware/check_token.js'
+import tc from '../middleware/try_catch.js'
+
 import { V3 } from 'paseto'
 import { hash, verify, Algorithm } from '@node-rs/argon2'
 import { nanoid } from 'nanoid'
-import base62 from 'base62/lib/ascii.js'
-import dotenv from 'dotenv'
-import joi from 'joi'
 import { client } from '../server_connection.js'
-import check_token from '../middleware/check_token.js'
-import tc from '../middleware/try_catch.js'
 import { v_username, v_email, v_password } from '../middleware/validation.js'
 
 const router = express.Router()

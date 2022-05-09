@@ -1,18 +1,12 @@
-/*
- * Author: GitHub @VictorCam
- */
-
-
-//CONVERT joi to lowercase joi
 import express from 'express'
 import joi from 'joi'
-import { nanoid } from 'nanoid'
-
 import base62 from 'base62/lib/ascii.js'
 import check_token from "../middleware/check_token.js"
 import pagination from "../middleware/pagination.js"
 import tc from "../middleware/try_catch.js"
+
 import { client } from "../server_connection.js"
+import { nanoid } from 'nanoid'
 import {v_postid, v_commentid, v_ncommentid, v_comment, v_type} from '../middleware/validation.js'
 
 const router = express.Router()

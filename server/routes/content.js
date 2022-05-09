@@ -1,14 +1,14 @@
 import express from 'express'
-import { V3 } from 'paseto'
-import { nanoid } from 'nanoid'
 import dotenv from 'dotenv'
 import joi from 'joi'
 import snappy from 'snappy'
-
 import base62 from 'base62/lib/ascii.js'
-import { client } from '../server_connection.js'
 import check_token from '../middleware/check_token.js'
 import tc from '../middleware/try_catch.js'
+
+import { client } from '../server_connection.js'
+import { V3 } from 'paseto'
+import { nanoid } from 'nanoid'
 import { v_username, v_email, v_password } from '../middleware/validation.js'
 
 

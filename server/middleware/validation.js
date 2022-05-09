@@ -1,10 +1,7 @@
-/*
- * Author: GitHub @VictorCam
- */
-
 import joi from 'joi'
 import dotenv from 'dotenv'
 import base62 from 'base62/lib/ascii.js'
+
 dotenv.config()
 
 let v_length = base62.encode(Date.now()).length + parseInt(process.env.NANOID_LEN) //this values will change when the unix gets too large

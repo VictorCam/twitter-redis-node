@@ -1,17 +1,14 @@
-/*
- * Author: GitHub @VictorCam
- */
-
 import express from 'express'
 import joi from 'joi'
 import base62 from 'base62/lib/ascii.js'
-import { nanoid } from 'nanoid'
 import dotenv from 'dotenv'
 import tc from '../middleware/try_catch.js'
-import { client } from '../server_connection.js'
 import check_token from '../middleware/check_token.js'
-import { v_image, v_name, v_username, v_userid, v_tags, v_desc, v_can_comment, v_can_comment_img, v_can_comment_sticker, v_can_like, v_can_rehowl, v_postid } from '../middleware/validation.js'
 import pagination from '../middleware/pagination.js'
+
+import { nanoid } from 'nanoid'
+import { client } from '../server_connection.js'
+import { v_image, v_name, v_username, v_userid, v_tags, v_desc, v_can_comment, v_can_comment_img, v_can_comment_sticker, v_can_like, v_can_rehowl, v_postid } from '../middleware/validation.js'
 
 const router = express.Router()
 dotenv.config()

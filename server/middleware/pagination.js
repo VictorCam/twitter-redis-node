@@ -1,7 +1,3 @@
-/*
- * Author: GitHub @VictorCam
- */
-
 import joi from 'joi'
 
 export default function() {

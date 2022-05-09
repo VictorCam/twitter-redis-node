@@ -2,11 +2,14 @@
  * Author: GitHub @VictorCam
  */
 
-import { V3 } from 'paseto'
+
 import dotenv from 'dotenv'
+
+import { V3 } from 'paseto'
+import { client } from '../server_connection.js'
+
 dotenv.config()
 
-import { client } from '../server_connection.js'
 
 export default function() {
   return async function (req, res, next) {

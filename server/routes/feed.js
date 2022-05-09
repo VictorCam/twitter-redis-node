@@ -1,15 +1,11 @@
-/*
- * Author: GitHub @VictorCam
- */
-
 import express from 'express'
 import dotenv from 'dotenv'
 import joi from 'joi'
-
-import { client } from '../server_connection.js'
 import check_token from '../middleware/check_token.js'
 import pagination from '../middleware/pagination.js'
 import tc from '../middleware/try_catch.js'
+
+import { client } from '../server_connection.js'
 import { v_username, v_userid, v_range } from '../middleware/validation.js'
 
 const router = express.Router()

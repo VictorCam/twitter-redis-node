@@ -1,12 +1,13 @@
 import express from 'express'
 import joi from 'joi'
 import dotenv from 'dotenv'
-import { nanoid } from 'nanoid'
 import base62 from 'base62/lib/ascii.js'
-import { client } from '../server_connection.js'
+import tc from '../middleware/try_catch.js'
 import check_token from '../middleware/check_token.js'
 import pagination from '../middleware/pagination.js'
-import tc from '../middleware/try_catch.js'
+
+import { nanoid } from 'nanoid'
+import { client } from '../server_connection.js'
 import { v_username, v_email, v_password, v_userid } from '../middleware/validation.js'
 
 const router = express.Router()

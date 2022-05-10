@@ -1,48 +1,59 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import joi from 'joi'
-import snappy from 'snappy'
 import base62 from 'base62/lib/ascii.js'
 import check_token from '../middleware/check_token.js'
 import tc from '../middleware/try_catch.js'
+import busboy from 'busboy'
 
 import { client } from '../server_connection.js'
-import { V3 } from 'paseto'
 import { nanoid } from 'nanoid'
 import { v_username, v_email, v_password } from '../middleware/validation.js'
-
-
-import formidable from 'formidable'
 
 const router = express.Router()
 dotenv.config()
 
-router.post("/content", tc(async (req, res) => {
+router.get("/content/:image", tc(async (req, res) => {
 
-    //use formidable v3
-    const form = formidable({})
+    let pipe = client.pipeline()
+    pipe.getBuffer(`content:${req.params.image}`)
+    pipe.hgetall(`meta:${req.params.image}`)
+    let [[,buff], [,meta]] = await pipe.exec()
 
-    //parse the form
-    form.parse(req, async (err, fields, files) => {
-        if (err) return res.status(500).json({"error": "error parsing form"})
-        console.log(fields)
+    if(!meta || !buff) return res.status(404).json({"error": "not found"})
+ 
+    res.set('Content-Type', meta.contentType)
+    
+    return res.send(buff)
+}))
+
+router.post('/upload', tc(async (req, res) => {
+
+    var bb = busboy({ headers: req.headers })
+    req.pipe(bb)
+
+    bb.on('file', function(field, file, filename, encoding, mimetype) {
+        const temp = {file: []}
+
+        file.on('data', (data) => { temp.file.push(data) })
+      
+        file.on('end', async () => {
+            temp.file = Buffer.concat(temp.file)
+            temp.filename = filename
+            temp.contentType = mimetype
+
+            //generate a uniqueid for the image
+            let contentid = base62.encode(Date.now()) + nanoid(parseInt(process.env.NANOID_LEN))
+            let name = `${filename['filename']}_${contentid}`
+
+            //store in redis
+            let pipe = client.pipeline()
+            pipe.setBuffer(`content:${name}`, temp.file)
+            pipe.hset(`meta:${name}`, ['encoding', filename['encoding'], 'contentType', filename['mimeType']])
+            pipe.exec()
+            res.status(200).send({"contentid": name})
+        })
     })
-
-
-
-    //parse the form
-    form.parse(req, async (err, fields, files) => {
-        if (err) return res.status(500).json({"error": err})
-        console.log(files)
-    })
-
-
-
-    //get the multipart/form-data from the request
-    console.log(req.files)
-
-
-    return res.status(200).json({"test": "res"})
 }))
 
 

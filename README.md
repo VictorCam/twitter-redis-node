@@ -5,7 +5,7 @@ A woof in progress project.
 ## 1. DOCKER (./docker)
 
 A. [install docker](https://docs.docker.com/get-docker/) </br>
-B. docker-compose up
+B. docker-compose up -d
 
 ---
 

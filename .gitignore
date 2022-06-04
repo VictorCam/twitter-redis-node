@@ -1,7 +1,5 @@
 # NODE MODULE FILES
 node_modules
-fox.mp4
-fox.webm
 
 # LOCAL ENV FILES
 .env

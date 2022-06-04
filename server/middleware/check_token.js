@@ -14,19 +14,22 @@ dotenv.config()
 export default function() {
   return async function (req, res, next) {
     try {
-      //check if the cookie authorization exists
+      //get the headers and cookies (MUST EXIST)
       let token = req.cookies['authorization']
-      if(!token) return no_auth(req, res, next)
-
-      //check if the csrf header exists
       let csrf = req.headers['csrf-token']
-      if(!csrf) return no_auth(req, res, next)
+      let assigned_server = req.cookies['assigned_server']
+
+      //if ANY are missing we return no_auth
+      if(!assigned_server || !token || !csrf) return no_auth(req, res, next)
 
       //check if token and meta_data is valid
       let data = await V3.decrypt(token, process.env.TOKEN_SECRET)
 
       //check if he user.csrf is the same as the csrf header
       if(data.csrf != csrf) return no_auth(req, res, next)
+
+      //check if the assigned server is the same as the one in the token (if not then we log the user out)
+      if(assigned_server != assigned_server) return no_auth(req, res, next)
 
       //check if 1 hour has passed since the token was issued
       if(data.ts + (60*60) < (Date.now() / 1000)) {

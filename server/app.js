@@ -29,23 +29,23 @@ app.disable('x-powered-by')
 
 //rate limiter middleware before we do any processing
 // app.use(async ( req, res, next) => {
-//   let ip = req.ip.replace(/:/g, "|")
-//   limiter.consume(ip).then((info) => { 
-//     res.set({
-//       "Retry-After": parseInt(info.msBeforeNext / 1000),
-//       "X-RateLimit-Limit": process.env.MAX_REQUESTS,
-//       "X-RateLimit-Remaining": info.remainingPoints,
-//     })
-//     return next() 
-//   })
-//   .catch((info) => { 
-//     res.set({
-//       "Retry-After": parseInt(info.msBeforeNext / 1000),
-//       "X-RateLimit-Limit": process.env.MAX_REQUESTS,
-//       "X-RateLimit-Remaining": info.remainingPoints,
-//     })
-//     return res.status(429).json({"error": "too many requests"}) 
-//   })
+  // let ip = req.ip.replace(/:/g, "|")
+  // limiter.consume(ip).then((info) => { 
+  //   res.set({
+  //     "Retry-After": parseInt(info.msBeforeNext / 1000),
+  //     "X-RateLimit-Limit": process.env.MAX_REQUESTS,
+  //     "X-RateLimit-Remaining": info.remainingPoints,
+  //   })
+  //   return next() 
+  // })
+  // .catch((info) => { 
+  //   res.set({
+  //     "Retry-After": parseInt(info.msBeforeNext / 1000),
+  //     "X-RateLimit-Limit": process.env.MAX_REQUESTS,
+  //     "X-RateLimit-Remaining": info.remainingPoints,
+  //   })
+  //   return res.status(429).json({"error": "too many requests"}) 
+  // })
 // })
 
 //middlewares for cors/helmet/cookie-parser/image-upload/and memory limits
@@ -69,10 +69,9 @@ import posts from "./routes/posts.js"
 import comment from "./routes/comment.js"
 import follow from "./routes/follow.js"
 import feed from "./routes/feed.js"
-import content from "./routes/content.js"
 
 //linked routes
-app.use("/v1", [login, posts, comment, follow, feed, content])
+app.use("/v1", [login, posts, comment, follow, feed])
 
 //try catch err handle for all routes when they fail
 app.use((error, req, res, next) => {

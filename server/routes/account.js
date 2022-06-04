@@ -22,6 +22,9 @@ dotenv.config()
 // signup
 // check if the user has a token if they do prevent the signup route
 
+//only (LOGIN AND SIGNUP) route gets rate limited by redis based on ip
+//OR we could rate limit using 1 server and rate limit using memory
+
 router.post("/login", tc(async (req, res) => {
     //set headers
     res.set({'Accept': 'application/json'})
@@ -51,26 +54,45 @@ router.post("/login", tc(async (req, res) => {
     let [[,userid], [,ttl]] = await pipeline.exec()
 
     //check if the userid exists and if ttl isn't -1 then user isn't verified
-    if(userid == null) return res.status(401).json({"error": "username/email not found"})
+    if(userid == null) return res.status(401).json({"error": "username or email is not found"})
 
     //check if they have verified their account by checking the ttl isn't -1
     if(ttl != -1) return res.status(401).json({"error": "please verify your account on your email before logging in"})
 
     //get the password and the refreshid
-    let userdata = await client.hmget(`userid:${userid}`, ["password", "refreshid"])
+    let pipeline2 = client.pipeline()
+    pipeline2.hmget(`userid:${userid}`, ["password", "refreshid"])
+    pipeline2.get(`login_attempts:${userid}`)
+    let [[,userdata], [,login_attempts]] = await pipeline2.exec()
 
-    //check if password is correct by comparing the argon password
-    if(!await verify(userdata[0], req.body.password, {secret: Buffer.from(process.env.ARGON2_SECRET, 'base64')})) return res.status(401).json({"error": "invalid password"})
+    //on the 5th or more password attempt we will timeout the user for 10 minutes
+    if(parseInt(login_attempts) >= 5) {
+        client.expire(`login_attempts:${userid}`, 60*10)
+        return res.status(429).json({"error": "too many login attempts please try again later or reset your password"})
+    }
+
+    //check if password is correct using argon password if incorrect increment attempt return that password is incorrect
+    if(!await verify(userdata[0], req.body.password, {secret: Buffer.from(process.env.ARGON2_SECRET, 'base64')})) {
+        client.incrby(`login_attempts:${userid}`, 1)
+        return res.status(401).json({"error": "incorrect password"})
+    }
+
+    //delete the login attempts (if there was any)
+    client.del(`login_attempts:${userid}`)
 
     //generate a csrf token
     let csrf = nanoid(36)
 
-    //set token + set auth cookie
-    let token = await V3.encrypt({"userid": userid, "refreshid": userdata[1], "csrf": csrf, "ts": Math.floor((Date.now()/1000))}, process.env.TOKEN_SECRET, {expiresIn: '7d'})
-    res.cookie('authorization', token, { httpOnly: true, sameSite: 'Strict'})
+    //consistently hash the user (stays with a certain server depending how many instances are used)
+    let server_num = (base62.decode(userid) % parseInt(process.env.SERVER_AMOUNT)) + 1
 
-    //return the token and the csrf where the cookie is set automatically and the token is sent in the header
-    return res.status(200).json({"token": token, "csrf": csrf})
+    //set token + set auth cookie + assigned server
+    let token = await V3.encrypt({"userid": userid, "refreshid": userdata[1], "csrf": csrf, "assigned_server": server_num , "ts": Math.floor((Date.now()/1000))}, process.env.TOKEN_SECRET, {expiresIn: '7d'})
+    res.cookie('authorization', token, { httpOnly: true, sameSite: 'Strict'})
+    res.cookie('assigned_server', server_num)
+
+    //return the token, csrf, and the assigned server 
+    return res.status(200).json({"token": token, "csrf": csrf, "assigned_server": server_num})
 }))
 
 router.post("/register", tc(async (req, res) => {
@@ -137,7 +159,7 @@ router.post("/register", tc(async (req, res) => {
         "refreshid", userid
     ])
 
-    //if production is 1 then expire following keys after 24 hours
+    //if in production then expire following keys after 24 hours
     if(process.env.NODE_ENV == "") {
         pipeline.expire(`userid:${userid}`, process.env.EXPIRE_ACCOUNT)
         pipeline.expire(`username:${valid.value.username}`, process.env.EXPIRE_ACCOUNT)

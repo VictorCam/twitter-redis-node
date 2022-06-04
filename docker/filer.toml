@@ -1,0 +1,5 @@
+[redis3]
+enabled = true
+address = "localhost:6666"
+password = ""
+database = 0

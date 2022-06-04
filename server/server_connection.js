@@ -6,8 +6,8 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 // const client = new Redisearch({port: 6379})
-const client = new redis({port: 6666})
-// const client = new redis(process.env.REDIS_URL)
+// const client = new redis({port: 6666})
+const client = new redis(process.env.REDIS_URL)
 const lclient = new redis(process.env.REDIS_URL, {enableOfflineQueue: false}) 
 
 redis.Command.setReplyTransformer("hgetall", (result) => {

@@ -10,12 +10,6 @@ import { RateLimiterRedis } from 'rate-limiter-flexible'
 const app = express()
 dotenv.config()
 
-//cors details
-const corsOptions = {
-  origin: process.env.CLIENT_API, 
-  credentials: true
-}
-
 // rate limiter details
 // const limiter = new RateLimiterRedis({
 //   redis: lclient, // connection
@@ -48,12 +42,12 @@ app.disable('x-powered-by')
   // })
 // })
 
-//middlewares for cors/helmet/cookie-parser/image-upload/and memory limits
-app.use(cors(corsOptions))
+//middlewares for cors, helmet, cookie-parser, and memory limits
+app.use(cors({origin: process.env.CLIENT_API, credentials: true}))
 app.use(helmet())
 app.use(cookieParser(process.env.COOKIE_PARSER_SECRET))
-app.use(express.urlencoded({ extended: true, limit: "1kb", parameterLimit: 10 }))
-app.use(express.json({ limit: "3kb", 'type': 'application/json'}))
+app.use(express.urlencoded({ extended: true, limit: "5kb", parameterLimit: 10 }))
+app.use(express.json({ limit: "5kb", 'type': 'application/json'}))
 
 //error handling before going to the routes
 app.use((error, req, res, next) => {

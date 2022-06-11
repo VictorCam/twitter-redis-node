@@ -14,7 +14,7 @@ B. docker-compose up -d
 A. [install nodejs](https://nodejs.org/en/download/) </br>
 B. npm ci</br>
 C. npm install -g nodemon</br>
-D. make .env file with the following (change values in production):
+D. make .env file with the following (change values in production (including the 'xxx' values)):
 
     TOKEN_SECRET = k3.local.xxx
     COOKIE_PARSER_SECRET = xxx
@@ -25,6 +25,7 @@ D. make .env file with the following (change values in production):
     NANOID_LEN = 4
     CLIENT_API = http://localhost:3000
     EXPIRE_ACCOUNT = 86400
+    SERVER_AMOUNT = 1
     NODE_ENV = development
 
 E. nodemon (run nodejs server)</br>

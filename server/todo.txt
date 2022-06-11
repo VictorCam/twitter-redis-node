@@ -57,6 +57,11 @@ image [small]
 is_exclusive --if 0:false then allow=>search and if 1:true then remove=>search
 post=KV
 
+# blocking someone
+# means blocking comments on any submission/journals
+# blocks from replying to your comments (even on someone else's journal)
+# blocks any notes they send you
+
 
 # KVROCKS: KEY
 https://stackoverflow.com/questions/23507200/good-practices-for-designing-monthly-subscription-system-in-database

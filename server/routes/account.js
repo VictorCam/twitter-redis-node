@@ -108,6 +108,7 @@ router.post("/register", tc(async (req, res) => {
     let valid = schema.validate(req.body)
     if(valid.error) {
         if(valid.error.details[0].type != 'object.unknown') return res.status(400).json({"error": valid.error.details[0].context.label})
+        console.log(valid.error)
         return res.status(400).json({"error": "invalid user input"})
     }
 

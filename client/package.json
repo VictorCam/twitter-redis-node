@@ -1,35 +1,33 @@
 {
-  "name": "client",
-  "version": "0.0.1",
-  "scripts": {
-    "dev": "svelte-kit dev",
-    "build": "svelte-kit build",
-    "package": "svelte-kit package",
-    "preview": "svelte-kit preview",
-    "prepare": "svelte-kit sync",
-    "test": "playwright test",
-    "lint": "prettier --ignore-path .gitignore --check --plugin-search-dir=. . && eslint --ignore-path .gitignore .",
-    "format": "prettier --ignore-path .gitignore --write --plugin-search-dir=. ."
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.21.0",
-    "@sveltejs/adapter-auto": "next",
-    "@sveltejs/kit": "next",
-    "eslint": "^7.32.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-svelte3": "^3.2.1",
-    "prettier": "^2.5.1",
-    "prettier-plugin-svelte": "^2.5.0",
-    "svelte": "^3.44.0"
-  },
-  "type": "module",
-  "dependencies": {
-    "axios": "^0.26.1",
-    "bulma": "^0.9.3",
-    "bulma-extensions": "^6.2.7",
-    "cookie": "^0.5.0",
-    "dayjs": "^1.11.1",
-    "dotenv": "^16.0.0",
-    "js-cookie": "^3.0.1"
-  }
+	"name": "client",
+	"version": "0.0.1",
+	"scripts": {
+		"dev": "svelte-kit dev",
+		"build": "svelte-kit build",
+		"package": "svelte-kit package",
+		"preview": "svelte-kit preview",
+		"prepare": "svelte-kit sync",
+		"lint": "eslint .",
+		"vite-tauri": "vite-tauri"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-auto": "next",
+		"@sveltejs/kit": "next",
+		"@tauri-apps/cli": "^1.0.0-rc.13",
+		"eslint": "^8.17.0",
+		"eslint-plugin-svelte3": "^4.0.0",
+		"svelte": "^3.48.0",
+		"sveltekit-autoimport": "^1.6.8",
+		"unplugin-auto-import": "^0.8.7",
+		"vite-plugin-tauri": "^2.0.0"
+	},
+	"dependencies": {
+		"axios": "^0.27.2",
+		"bulma": "^0.9.4",
+		"bulma-extensions": "^6.2.7",
+		"dayjs": "^1.11.3",
+		"dotenv": "^16.0.1",
+		"js-cookie": "^3.0.1"
+	},
+	"type": "module"
 }

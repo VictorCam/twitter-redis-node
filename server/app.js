@@ -74,13 +74,17 @@ app.use((error, req, res, next) => {
   return res.sendStatus(500)
 })
 
-// create a test / route
+// create a test routes / route
 app.get("/", (req, res) => {
   return res.status(200).json({"message": "hello world"})
 })
+app.get("/v1", (req, res) => {
+  return res.status(200).json({"message": "hello world from v1"})
+})
+
 
 //port
-const PORT = process.env.PORT || 13377
+const PORT = process.env.PORT || 99
 app.listen(PORT, function() {
   if(process.env.NODE_ENV == "development") console.log("Server is running on port:", PORT)
 })

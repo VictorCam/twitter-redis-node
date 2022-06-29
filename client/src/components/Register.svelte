@@ -1,10 +1,16 @@
 <script>
-    import { sum_toggle, modal, signup } from '../stores/store_root'
+    import { s_register } from '../stores/store'
+    import { f_register } from '../stores/function'
+    import { a_register } from '../stores/api'
+
+    export let rmodal
 </script>
 
-<section class="section modal {$sum_toggle}">
-    <div class="modal-background"></div>
-    <button class="modal-close is-large" on:click="{e => modal(e)}" aria-label="close"></button>
+<div>{rmodal}</div>
+
+<section class="section modal {$s_register}">
+    <div class="modal-background {rmodal}"></div>
+    <button class="modal-close is-large {rmodal}" on:click="{e => f_register(e)}" aria-label="close"></button>
     <div class="modal-card container column is-two-fifths has-background-light p-5">
         <h1 class="title has-text-centered is-size-4">
             Sign up
@@ -17,7 +23,7 @@
 
         <div class="is-divider is-grey-light"></div>
 
-        <form on:submit|preventDefault={signup}>
+        <form on:submit|preventDefault={a_register}>
             <div class="field">
                 <i class="fa-solid fa-user form-icon"></i>
                 <label for="username" class="label medium">Username</label>
@@ -59,9 +65,7 @@
     </div>
 </section>
 
-<style>
-    @import 'bulma/css/bulma.css';
-    
+<style>  
     /* form */
     .label {
         display: inline-block;

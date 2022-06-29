@@ -1,19 +1,12 @@
-export const sum_toggle = writable('') //sign up modal toggle
-
-export const modal = (e) => {
-    return (get(sum_toggle) == '') ? sum_toggle.set('is-active') : sum_toggle.set('')
-}
-
-    //submit form
-export async function signup(e) {
+//sign up modal submit toggle
+export async function a_register(e) {
     const formData = new FormData(e.target)
     
     //loop through the formdata and store in json
-    let payload = {};
+    let payload = {}
     formData.forEach((value, key) => {
         payload[key] = value
     })
-
 
     if (payload['password_confirmation'] != payload['password']) {
         //display an error message to the user that the passwords do not match 
@@ -27,7 +20,9 @@ export async function signup(e) {
 
     //if status is correct then display 200 response and direct to the login route
     if(res.status == 200) {
-        sum_toggle.set('')
-        goto("/test")
+        register_toggle.set('')
+        return goto("/test")
     }
+    
+    //return an error if anythign else
 }

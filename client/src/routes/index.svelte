@@ -1,22 +1,14 @@
 <script>
-    import { sum_toggle, modal } from '../stores/store_root'
+    import { s_register } from '../stores/store'
     import Navbar from '../components/Navbar.svelte'
-    import Register from '../components/RegisterModal.svelte'
-    import Signup from '../components/Register.svelte'
+    import Register from '../components/Register.svelte'
     import Footer from '../components/Footer.svelte'
     const s_url = import.meta.env.VITE_URL
 
-    async function api(e) {
-        console.log("entered")
-
-        sum_toggle.set('is-active')
+    //
+    async function redirect(e) {
+        s_register.set('is-active')
         goto("/register")
-
-        //with credentials
-        let res = await axios.get(s_url, { withCredentials: true })
-        console.log(res.data)
-
-        
     }
 
     // axios.interceptors.request.use(function (config) {
@@ -47,18 +39,11 @@
 
 
 <!-- a simple button in the center of the page that triggers a function -->
-<button on:click="{e => api(e)}">register route</button>
+<button on:click="{e => redirect(e)}">register route</button>
 
 <Footer></Footer>
 
 <style>
-/* import bulma */
-@import 'bulma/css/bulma.css';
-
-/* import divider */
-/* @import 'bulma-extensions/bulma-divider/dist/css/bulma-divider.min.css'; */
-
 /* https://coolors.co/palette/264653-2a9d8f-e9c46a-f4a261-e76f51 */
-
 
 </style>

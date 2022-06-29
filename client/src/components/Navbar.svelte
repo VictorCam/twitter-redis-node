@@ -1,7 +1,8 @@
 <script>
-    //function for displaying modal
-    import { modal } from '../stores/store_root'
     import cookies from 'js-cookie'
+    import { f_register } from '../stores/function'
+
+    // console.log(cookies.get('test'))
 </script>
 
 <section>
@@ -38,7 +39,7 @@
     <div class="navbar-end">
       {#if cookies.get('test')}
         <div class="navbar-item">
-          <a href={''} on:click="{e => modal(e)}" class="button has-background-success has-text-white">
+          <a href={''} on:click="{e => f_register(e)}" class="button has-background-success has-text-white">
             <strong>Sign up</strong>
           </a>
           <a href={''} class="button">

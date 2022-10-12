@@ -6,7 +6,6 @@ A woof in progress project.
 
 A. [install docker](https://docs.docker.com/get-docker/) </br>
 B. docker-compose up -d
-
 ---
 
 ## 2. SERVER (./server)
@@ -27,6 +26,7 @@ D. make .env file with the following (change values in production (including the
     EXPIRE_ACCOUNT = 86400
     SERVER_AMOUNT = 1
     NODE_ENV = development
+    REDIS_URL = xxx
 
 E. nodemon (run nodejs server)</br>
 
@@ -38,7 +38,7 @@ B. make .env file with the following:
 
     VITE_SERVER="http://localhost:13377"
     
-C. npm run dev (run sveltekit)</br>
+C. npm run dev (runs svelte)</br>
 
 
 ---

@@ -63,9 +63,10 @@ import posts from "./routes/posts.js"
 import comment from "./routes/comment.js"
 import follow from "./routes/follow.js"
 import feed from "./routes/feed.js"
+import content from './routes/content.js'
 
 //linked routes
-app.use("/v1", [login, posts, comment, follow, feed])
+app.use("/v1", [login, posts, comment, follow, feed, content])
 
 //try catch err handle for all routes when they fail
 app.use((error, req, res, next) => {
@@ -78,10 +79,6 @@ app.use((error, req, res, next) => {
 app.get("/", (req, res) => {
   return res.status(200).json({"message": "hello world"})
 })
-app.get("/v1", (req, res) => {
-  return res.status(200).json({"message": "hello world from v1"})
-})
-
 
 //port
 const PORT = process.env.PORT || 99

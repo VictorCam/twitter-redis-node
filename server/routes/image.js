@@ -7,7 +7,7 @@ import tc from '../middleware/try_catch.js'
 import busboy from 'busboy'
 import sharp from 'sharp'
 
-import { client, imgClient } from '../server_connection.js'
+// import { client, imgClient } from '../server_connection.js'
 import { nanoid } from 'nanoid'
 import { v_username, v_email, v_password, v_imageid } from '../middleware/validation.js'
 const router = express.Router()

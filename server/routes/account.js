@@ -71,8 +71,6 @@ router.post("/login", tc(async (req, res) => {
         return res.status(429).json({"error": "too many login attempts please try again later or reset your password"})
     }
 
-    console.log(process.env.ARGON2_SECRET)
-
     //check if password is correct using argon password if incorrect increment attempt return that password is incorrect
     if(!await verify(userdata[0], req.body.password, {secret: Buffer.from(process.env.ARGON2_SECRET, 'base64')})) {
         client.incrby(`login_attempts:${userid}`, 1)

@@ -12,7 +12,7 @@ B. docker-compose up -d
 ## 2. SERVER (./server)
 
 A. [install nodejs](https://nodejs.org/en/download/) </br>
-B. npm ci</br>
+B. npm install</br>
 C. npm install -g nodemon</br>
 D. run "node gen.js" to create the TOKEN_SECRET value (won't work without it) </br>
 E. make .env file with the following (change values in production (including the 'xxx' values)):

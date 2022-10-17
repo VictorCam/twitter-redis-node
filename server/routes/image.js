@@ -15,7 +15,7 @@ dotenv.config()
 
 //https://images.weserv.nl/docs/ (consider as a caching layer to prevent server overloading)
 
-//https://images.weserv.nl/?url=https://raw.githubusercontent.com/link-u/avif-sample-images/master/fox.profile2.10bpc.yuv422.odd-height.avif&output=png
+//https://images.weserv.nl/?url=xxx&output=png
 //something like this is rly good!!
 
 //test for other stuff

@@ -63,10 +63,10 @@ import posts from "./routes/posts.js"
 import comment from "./routes/comment.js"
 import follow from "./routes/follow.js"
 import feed from "./routes/feed.js"
-import content from './routes/content.js'
+import image from './routes/image.js'
 
 //linked routes
-app.use("/v1", [login, posts, comment, follow, feed, content])
+app.use("/v1", [login, posts, comment, follow, feed, image])
 
 //try catch err handle for all routes when they fail
 app.use((error, req, res, next) => {

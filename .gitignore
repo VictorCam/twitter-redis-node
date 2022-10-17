@@ -1,5 +1,6 @@
-# NODE MODULE FILES
+# MODULE FILES
 node_modules
+pnpm-lock.yaml
 
 # LOCAL ENV FILES
 .env

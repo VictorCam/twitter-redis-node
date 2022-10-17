@@ -11,9 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "@jamify/redis-streams": "^1.3.0",
-    "@node-redis/client": "^1.0.6",
-    "@node-redis/search": "^1.0.5",
     "@node-rs/argon2": "^1.2.0",
+    "@trubavuong/seaweedfs": "^3.0.1",
     "base62": "^2.0.1",
     "busboy": "^1.6.0",
     "cookie-parser": "^1.4.6",
@@ -26,6 +25,7 @@
     "nanoid": "^4.0.0",
     "paseto": "^3.1.1",
     "rate-limiter-flexible": "^2.3.11",
+    "redis-om": "^0.3.6",
     "sharp": "^0.31.1"
   }
 }

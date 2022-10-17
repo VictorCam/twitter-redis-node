@@ -1,8 +1,7 @@
 import redis from 'ioredis'
 import dotenv from 'dotenv'
-import { StreamIORedis } from '@jamify/redis-streams'
 
-// import { Redisearch, RedisGraph } from 'redis-modules-sdk'
+import {StreamIORedis} from '@jamify/redis-streams'
 
 dotenv.config()
 
@@ -10,8 +9,7 @@ dotenv.config()
 // const client = new redis({port: 6666})
 const client = new redis(process.env.REDIS_URL)
 const lclient = new redis(process.env.REDIS_URL, {enableOfflineQueue: false}) 
-const imgclient = new StreamIORedis(process.env.REDIS_URL)
-// let imgclient = null
+let imgClient = new StreamIORedis(process.env.REDIS_URL)
 
 redis.Command.setReplyTransformer("hgetall", (result) => {
     if(result.length != 0) {
@@ -25,9 +23,9 @@ redis.Command.setReplyTransformer("hgetall", (result) => {
 })
 
 if(process.env.NODE_ENV == "development") {
-    client.on('connect', function() { console.log('CLIENT: [Connected]') })
-    lclient.on('connect', function() { console.log('LCLIENT: [Connected]') })
-    imgclient.on('connect', function() { console.log('LCLIENT: [Connected]') })
+    client.on('connect', () => { console.log('CLIENT: [Connected]') })
+    lclient.on('connect', () => { console.log('LCLIENT: [Connected]') })
+    imgClient.on('connect', () => { console.log('imgClient: [Connected]') })
 }
 
-export {client, lclient, imgclient}
+export {client, lclient, imgClient}

@@ -6,8 +6,10 @@ dotenv.config()
 
 let v_length = base62.encode(Date.now()).length + parseInt(process.env.NANOID_LEN) //this values will change when the unix gets too large
 
+let v_id = joi.string().pattern(new RegExp(`^[a-zA-Z0-9-_]{${11},${v_length}}$`)) //anything that relates to an id will need to be assigned with this
+
 //userid
-let v_userid = joi.string().pattern(new RegExp(`^[a-zA-Z0-9-_]{${11},${v_length}}$`)).label("invalid userid format")
+let v_userid = v_id.label("invalid userid format")
 
 //account.js
 let v_username = joi.string().regex(/^[a-zA-Z0-9_]{1,20}$/).lowercase().label("username must be between 1-20 characters and can only contain letters, numbers and underscores")
@@ -15,9 +17,9 @@ let v_email = joi.string().email().min(5).max(200).lowercase().label("email must
 let v_password = joi.string().regex(/^[\x21-\x7E]{8,200}$/).label("password must be between 8-200 characters and only contain letters, numbers, and special characters")
 
 //comment.js posts.js
-let v_ncommentid = joi.string().pattern(new RegExp(`^[a-zA-Z0-9-_]{${11},${v_length}}$`)).label("invalid ncommentid format")
-let v_commentid = joi.string().pattern(new RegExp(`^[a-zA-Z0-9-_]{${11},${v_length}}$`)).label("invalid commentid format")
-let v_postid = joi.string().pattern(new RegExp(`^[a-zA-Z0-9-_]{${11},${v_length}}$`)).label("invalid postid format")
+let v_ncommentid = v_id.label("invalid ncommentid format")
+let v_commentid = v_id.label("invalid commentid format")
+let v_postid = v_id.label("invalid postid format")
 let v_comment = joi.string().min(1).max(1000).label("comment should be between 1 to 1000 characters")
 let v_type = joi.string().valid("like", "reg").label("invalid type (like/reg) allowed")
 
@@ -34,6 +36,9 @@ let v_can_rehowl = joi.number().integer().min(0).max(1).label("can_rehowl must b
 
 //feed.js
 let v_range = joi.number().integer().invalid(0).min(-50).max(50).label("range must be an integer between -50 and 50")
+
+//content.js
+let v_imageid = v_id.label("invalid contentid format")
 
 export { 
     v_username, 
@@ -54,5 +59,6 @@ export {
     v_can_comment_sticker,
     v_can_like,
     v_can_rehowl,
-    v_range
+    v_range,
+    v_imageid
 }

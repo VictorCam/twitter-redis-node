@@ -1,8 +1,3 @@
-/*
- * Author: GitHub @VictorCam
- */
-
-
 import dotenv from 'dotenv'
 
 import { V3 } from 'paseto'

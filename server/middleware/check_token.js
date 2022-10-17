@@ -1,6 +1,6 @@
 import dotenv from 'dotenv'
 
-import { V3 } from 'paseto'
+import { V1 as paseto } from 'paseto'
 import { client } from '../server_connection.js'
 
 dotenv.config()
@@ -18,7 +18,7 @@ export default function() {
       if(!assigned_server || !token || !csrf) return no_auth(req, res, next)
 
       //check if token and meta_data is valid
-      let data = await V3.decrypt(token, process.env.TOKEN_SECRET)
+      let data = await paseto.decrypt(token, process.env.TOKEN_SECRET)
 
       //check if he user.csrf is the same as the csrf header
       if(data.csrf != csrf) return no_auth(req, res, next)
@@ -34,7 +34,7 @@ export default function() {
         if(refreshid != data.refreshid) return no_auth(req, res, next)
 
         //assign a fresh new authorization token
-        let new_token = await V3.encrypt({"userid": data.userid, "refreshid": refreshid, "csrf": csrf, "ts": data.ts}, process.env.TOKEN_SECRET, {expiresIn: "7d"})
+        let new_token = await paseto.encrypt({"userid": data.userid, "refreshid": refreshid, "csrf": csrf, "ts": data.ts}, process.env.TOKEN_SECRET, {expiresIn: "7d"})
         res.cookie('authorization', new_token, { httpOnly: true, sameSite: 'Strict'})
       }
 

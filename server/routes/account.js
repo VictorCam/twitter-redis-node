@@ -5,7 +5,7 @@ import dotenv from 'dotenv'
 import check_token from '../middleware/check_token.js'
 import tc from '../middleware/try_catch.js'
 
-import { V3 } from 'paseto'
+import { V1 as paseto } from 'paseto' //use version3 but for now we'll use v2 to run in sever mode
 import { hash, verify, Algorithm } from '@node-rs/argon2'
 import { nanoid } from 'nanoid'
 import { client } from '../server_connection.js'
@@ -71,6 +71,8 @@ router.post("/login", tc(async (req, res) => {
         return res.status(429).json({"error": "too many login attempts please try again later or reset your password"})
     }
 
+    console.log(process.env.ARGON2_SECRET)
+
     //check if password is correct using argon password if incorrect increment attempt return that password is incorrect
     if(!await verify(userdata[0], req.body.password, {secret: Buffer.from(process.env.ARGON2_SECRET, 'base64')})) {
         client.incrby(`login_attempts:${userid}`, 1)
@@ -87,7 +89,7 @@ router.post("/login", tc(async (req, res) => {
     let server_num = (base62.decode(userid) % parseInt(process.env.SERVER_AMOUNT)) + 1
 
     //set token + set auth cookie + assigned server
-    let token = await V3.encrypt({"userid": userid, "refreshid": userdata[1], "csrf": csrf, "assigned_server": server_num , "ts": Math.floor((Date.now()/1000))}, process.env.TOKEN_SECRET, {expiresIn: '7d'})
+    let token = await paseto.encrypt({"userid": userid, "refreshid": userdata[1], "csrf": csrf, "assigned_server": server_num , "ts": Math.floor((Date.now()/1000))}, process.env.TOKEN_SECRET, {expiresIn: '7d'})
     res.cookie('authorization', token, { httpOnly: true, sameSite: 'Strict'})
     res.cookie('assigned_server', server_num)
 

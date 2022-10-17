@@ -6,6 +6,7 @@ A woof in progress project.
 
 A. [install docker](https://docs.docker.com/get-docker/) </br>
 B. docker-compose up -d
+
 ---
 
 ## 2. SERVER (./server)
@@ -13,9 +14,10 @@ B. docker-compose up -d
 A. [install nodejs](https://nodejs.org/en/download/) </br>
 B. npm ci</br>
 C. npm install -g nodemon</br>
-D. make .env file with the following (change values in production (including the 'xxx' values)):
+D. run "node gen.js" to create the TOKEN_SECRET value (won't work without it) </br>
+E. make .env file with the following (change values in production (including the 'xxx' values)):
 
-    TOKEN_SECRET = k3.local.xxx
+    TOKEN_SECRET = k1.local.xxx
     COOKIE_PARSER_SECRET = xxx
     ARGON2_SECRET = xxx
     ARGON2_TIME_COST = 40

@@ -1,7 +1,6 @@
 import redis from 'ioredis'
 import dotenv from 'dotenv'
-
-import {StreamIORedis} from '@jamify/redis-streams'
+import { StreamIORedis } from './node_modules/@jamify/redis-streams'
 
 dotenv.config()
 

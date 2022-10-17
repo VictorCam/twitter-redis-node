@@ -59,7 +59,7 @@ router.post('/image', tc(async (req, res) => {
     bb.on('file', async (field, file, filename, encoding, mimetype) => {
         //check if it's something valid for sharp to use
 
-        file.pipe(sharp().avif({effort: 2, quality: 50})).pipe(imgClient.writeStream(`image:${req.params.imageid}`))
+        file.pipe(sharp().avif({effort: 2, quality: 50})).pipe(imgClient.writeStream(`image:${imageid}`))
         .on('finish', async () => await res.status(200).json({"imageid": imageid}))
 
 

@@ -46,7 +46,7 @@ C. npm run dev (runs svelte)</br>
 ---
 
 
-## 4. THUNDERCLIENT (./tests)
+## THUNDERCLIENT SERVER (./server/tests)
 A [video tutorial (optional)](https://www.youtube.com/watch?v=NKZ0ahNbmak) </br>
 B. import JSON(s)</br>
 C. run collection in **numbered order**</br>

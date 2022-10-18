@@ -87,7 +87,7 @@ router.post("/login", tc(async (req, res) => {
     let server_num = (base62.decode(userid) % parseInt(process.env.SERVER_AMOUNT)) + 1
 
     //set token + set auth cookie + assigned server
-    let token = await paseto.encrypt({"userid": userid, "refreshid": userdata[1], "csrf": csrf, "assigned_server": server_num , "ts": Math.floor((Date.now()/1000))}, process.env.TOKEN_SECRET, {expiresIn: '7d'})
+    let token = await paseto.encrypt({"userid": userid, "refreshid": userdata[1], "csrf": csrf, "assigned_server": server_num , "ts": Math.floor((Date.now()/1000))}, Buffer.from(process.env.TOKEN_SECRET, 'base64'), {expiresIn: '7d'})
     res.cookie('authorization', token, { httpOnly: true, sameSite: 'Strict'})
     res.cookie('assigned_server', server_num)
 

@@ -17,7 +17,7 @@ C. npm install -g nodemon</br>
 D. run "node gen.js" to create the TOKEN_SECRET value (won't work without it) </br>
 E. make .env file with the following (change values in production (including the 'xxx' values)):
 
-    TOKEN_SECRET = k1.local.xxx
+    TOKEN_SECRET = xxx
     COOKIE_PARSER_SECRET = xxx
     ARGON2_SECRET = xxx
     ARGON2_TIME_COST = 40

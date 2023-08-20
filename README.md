@@ -32,17 +32,6 @@ E. nodemon (run nodejs server)</br>
 
 ---
 
-## 3. CLIENT (./client)
-A. npm install</br>
-B. make .env file with the following:
-
-    VITE_SERVER="http://localhost:13377"
-    
-C. npm run dev (runs svelte)</br>
-
-
----
-
 
 ## THUNDERCLIENT SERVER (./server/tests)
 A [video tutorial (optional)](https://www.youtube.com/watch?v=NKZ0ahNbmak) </br>

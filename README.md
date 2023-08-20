@@ -1,6 +1,4 @@
-# Project-CodeCanine
-
-A woof in progress project. 
+# Project
 
 ## 1. DOCKER (./docker)
 
